@@ -1,0 +1,60 @@
+:root {
+  /* Surfaces */
+  --bg: #faf7f2;
+  --surface: #ffffff;
+  --surface-2: #efe9df;
+  --surface-3: #f4efe6;
+  --surface-hover: #f1ece3;
+  --border: #e6dfd3;
+  --placeholder: #d8cdbd;
+  --placeholder-2: #e9e0d2;
+  --placeholder-3: #f6f1e9;
+
+  /* Text */
+  --text: #2a2622;
+  --muted: #6f675e;
+
+  /* Brand */
+  --primary: #4a5fa8;
+  --primary-hover: #3a4c8c;
+  --primary-tint: #e4e8f5;
+  --primary-deep: #3a4c8c;
+
+  /* Warn */
+  --warn-bg: #f3e6d2;
+  --warn-text: #8a5a1e;
+  --warn-deep: #6b4512;
+
+  /* Error */
+  --error-bg: #f6e3de;
+  --error-text: #8e3a2f;
+  --error-border: #e1b9b0;
+  --error-strong: #b5473a;
+
+  /* Type */
+  --font-serif: 'Lora', Georgia, 'Times New Roman', serif;
+  --font-sans: 'Albert Sans', Helvetica, Arial, sans-serif;
+
+  /* Shape */
+  --radius-pill: 999px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 22px;
+  --radius-2xl: 24px;
+
+  /* Elevation */
+  --shadow-book: 0 30px 60px -20px rgba(42, 38, 34, 0.35), 0 2px 0 #e6dfd3;
+  --shadow-card: 0 14px 30px -18px rgba(42, 38, 34, 0.4);
+  --shadow-page: 0 24px 50px -24px rgba(42, 38, 34, 0.4), 0 0 0 1px #e6dfd3;
+  --shadow-seg: 0 1px 3px rgba(0, 0, 0, 0.12);
+
+  /* Layout */
+  --gutter: 20px;
+  --max-wide: 1120px;
+  --max-narrow: 760px;
+  --max-form: 480px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+
+  color-scheme: light;
+}

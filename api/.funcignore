@@ -1,0 +1,9 @@
+*.ts
+src/
+test/
+tsconfig.json
+esbuild.config.mjs
+local.settings.json
+local.settings.example.json
+.funcignore
+*.map

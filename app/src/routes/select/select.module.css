@@ -1,0 +1,111 @@
+.sticky {
+  position: sticky;
+  top: 0;
+  background: rgba(250, 247, 242, 0.92);
+  backdrop-filter: blur(10px);
+  z-index: 5;
+  border-bottom: 1px solid var(--border);
+}
+
+.stickyInner {
+  max-width: var(--max-wide);
+  margin: 0 auto;
+  padding: 14px var(--gutter);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.year {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+}
+
+.yearLabel {
+  font-family: var(--font-serif);
+  font-size: 26px;
+}
+
+.yearCount {
+  font-family: var(--font-sans);
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 4px;
+}
+
+.tile {
+  position: relative;
+  aspect-ratio: 1;
+  border: 0;
+  padding: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--surface-2);
+  transition: opacity 0.15s;
+}
+
+.tile--off {
+  opacity: 0.45;
+}
+
+.tile img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.badge {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  background: rgba(42, 38, 34, 0.55);
+  color: #fff;
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 999px;
+}
+
+.badge--bottom {
+  top: auto;
+  bottom: 6px;
+}
+
+.checkmark {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  background: rgba(42, 38, 34, 0.25);
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-size: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.checkmark--on {
+  background: var(--primary);
+}
+
+.empty {
+  max-width: 420px;
+  margin: 0 auto;
+  padding: 80px 24px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}

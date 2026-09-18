@@ -1,0 +1,40 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+
+    "APP_BASE_URL": "http://localhost:4280",
+    "STORAGE_CONNECTION_STRING": "UseDevelopmentStorage=true",
+
+    "AUTH_JWT_SECRET": "change-me-32-random-bytes-base64",
+    "TOKEN_ENC_KEY": "change-me-32-random-bytes-base64",
+    "CRON_SECRET": "change-me-random",
+    "COOKIE_SECURE": "false",
+
+    "PRICE_BASE_CENTS": "900",
+    "PRICE_INCLUDED_PAGES": "40",
+    "PRICE_EXTRA_PAGE_CENTS": "15",
+    "LIBRARY_RETENTION_DAYS": "90",
+    "REMINDER_DAYS_BEFORE": "7",
+    "MAX_PHOTOS_PER_LIBRARY": "10000",
+    "MAX_PHOTOS_PER_BOOK": "600",
+
+    "FEATURE_CONNECT_ENABLED": "false",
+    "IG_APP_ID": "",
+    "IG_APP_SECRET": "",
+    "IG_REDIRECT_URI": "https://<your-tunnel-or-swa-host>/api/instagram/callback",
+
+    "STRIPE_SECRET_KEY": "",
+    "STRIPE_PUBLISHABLE_KEY": "",
+    "STRIPE_WEBHOOK_SECRET": "",
+
+    "EMAIL_PROVIDER": "console",
+    "RESEND_API_KEY": "",
+    "EMAIL_FROM": "Printagram <hello@printagram.app>"
+  },
+  "Host": {
+    "LocalHttpPort": 7071,
+    "CORS": "*"
+  }
+}

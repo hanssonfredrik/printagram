@@ -1,0 +1,42 @@
+name: Scheduled maintenance
+
+# Free replacement for timer triggers (not available on Static Web Apps managed Functions):
+# expire libraries after 3 months, send reminders 7 days before, refresh Instagram tokens,
+# clean up orphans, anonymous sessions and expired tokens.
+on:
+  schedule:
+    - cron: '17 3 * * *' # daily, 03:17 UTC
+  workflow_dispatch:
+    inputs:
+      tasks:
+        description: Comma-separated task list
+        default: expireLibraries,sendReminders,refreshIgTokens,cleanupOrphans,cleanupAnonymous,cleanupTokens
+        required: false
+
+permissions: {}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run cron tasks
+        env:
+          CRON_URL: ${{ secrets.CRON_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          TASKS: ${{ github.event.inputs.tasks || 'expireLibraries,sendReminders,refreshIgTokens,cleanupOrphans,cleanupAnonymous,cleanupTokens' }}
+        run: |
+          set -euo pipefail
+          IFS=',' read -ra tasks <<< "$TASKS"
+          for task in "${tasks[@]}"; do
+            total=0
+            for i in $(seq 1 40); do
+              res=$(curl -sS -X POST "$CRON_URL/api/cron/run" \
+                -H "Content-Type: application/json" -H "x-cron-key: $CRON_SECRET" \
+                -d "{\"task\":\"$task\"}")
+              processed=$(echo "$res" | jq -r '.processed // 0')
+              more=$(echo "$res" | jq -r '.more // false')
+              total=$((total + processed))
+              [ "$more" = "true" ] || break
+            done
+            echo "$task: processed $total"
+          done

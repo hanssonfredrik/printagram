@@ -1,0 +1,14 @@
+{
+  "$schema": "https://aka.ms/azure/static-web-apps-cli/schema",
+  "configurations": {
+    "printagram": {
+      "appLocation": "app",
+      "apiLocation": "api",
+      "outputLocation": "dist",
+      "appDevserverUrl": "http://localhost:5173",
+      "run": "npm run dev:real -w app",
+      "apiPort": 7071,
+      "port": 4280
+    }
+  }
+}

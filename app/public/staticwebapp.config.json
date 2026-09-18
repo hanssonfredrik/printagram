@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json.schemastore.org/staticwebapp.config.json",
+  "platform": {
+    "apiRuntime": "node:20"
+  },
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/api/*", "/assets/*", "/*.{ico,png,svg,txt,webmanifest,json,woff2}"]
+  },
+  "routes": [
+    { "route": "/.auth/*", "statusCode": 404 },
+    { "route": "/api/*", "allowedRoles": ["anonymous"] },
+    { "route": "/assets/*", "headers": { "Cache-Control": "public, max-age=31536000, immutable" } }
+  ],
+  "responseOverrides": {
+    "404": { "rewrite": "/index.html", "statusCode": 200 }
+  },
+  "globalHeaders": {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": "camera=(), microphone=(), geolocation=(), payment=(self \"https://js.stripe.com\")",
+    "Content-Security-Policy": "default-src 'self'; script-src 'self' https://js.stripe.com; connect-src 'self' https://*.blob.core.windows.net https://api.stripe.com https://r.stripe.com https://m.stripe.network; img-src 'self' blob: data: https://*.blob.core.windows.net https://*.cdninstagram.com https://*.fbcdn.net; font-src 'self' https://fonts.gstatic.com data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; frame-src https://js.stripe.com https://hooks.stripe.com https://m.stripe.network; worker-src 'self' blob:; base-uri 'self'; form-action 'self' https://www.instagram.com; frame-ancestors 'none'"
+  },
+  "trailingSlash": "never"
+}

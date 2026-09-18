@@ -1,0 +1,46 @@
+.drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  min-height: 280px;
+  border: 2px dashed var(--placeholder);
+  background: #fff;
+  border-radius: 24px;
+  padding: 32px;
+  text-align: center;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.drop--over {
+  border-color: var(--primary);
+  background: var(--primary-tint);
+}
+
+.dropIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: 20px;
+  background: var(--primary-tint);
+  display: grid;
+  place-items: center;
+  color: var(--primary);
+  font-size: 26px;
+}
+
+.choose {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 10px 18px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.err {
+  border-radius: 16px;
+}

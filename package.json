@@ -1,0 +1,49 @@
+{
+  "name": "printagram",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Your Instagram, as a real book. React + Vite SPA with Azure Static Web Apps managed Functions.",
+  "workspaces": [
+    "shared",
+    "app",
+    "api"
+  ],
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "dev": "npm run dev -w app",
+    "dev:api": "npm run start -w api",
+    "dev:full": "concurrently -n azurite,swa -c blue,magenta \"npm run azurite\" \"npm run swa\"",
+    "azurite": "azurite --silent --location .azurite --skipApiVersionCheck --blobPort 10000 --tablePort 10002 --queuePort 10001",
+    "swa": "swa start",
+    "storage:setup": "tsx scripts/storage-setup.ts",
+    "build": "npm run build -w shared && npm run build -w app && npm run build -w api",
+    "typecheck": "npm run typecheck -ws --if-present",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "test": "npm run test -ws --if-present",
+    "cron": "tsx scripts/cron.ts"
+  },
+  "devDependencies": {
+    "@azure/static-web-apps-cli": "^2.0.10",
+    "@eslint/js": "^9.39.0",
+    "@types/node": "^24.10.0",
+    "azurite": "^3.37.0",
+    "concurrently": "^10.0.5",
+    "eslint": "^9.39.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.26",
+    "globals": "^16.5.0",
+    "playwright": "^1.63.0",
+    "prettier": "^3.9.8",
+    "tsx": "^4.23.13",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.70.0"
+  },
+  "allowScripts": {
+    "esbuild@0.28.2": true,
+    "protobufjs@7.6.6": true
+  },
+  "type": "module"
+}

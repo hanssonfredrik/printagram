@@ -1,0 +1,30 @@
+{
+  "name": "@printagram/api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Printagram managed Azure Functions (Node 20, v4 programming model)",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --noEmit && node esbuild.config.mjs",
+    "typecheck": "tsc --noEmit",
+    "watch": "node esbuild.config.mjs --watch",
+    "prestart": "npm run build",
+    "start": "func start",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@azure/data-tables": "^13.3.2",
+    "@azure/functions": "^4.16.5",
+    "@azure/storage-blob": "^12.33.0",
+    "jimp": "^1.6.1",
+    "jose": "^6.2.12",
+    "stripe": "^22.6.2",
+    "ulid": "^3.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "esbuild": "^0.28.2",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.7"
+  }
+}

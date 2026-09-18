@@ -1,0 +1,23 @@
+.option {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  text-align: left;
+  width: 100%;
+  color: var(--text);
+}
+
+.option--on {
+  border: 2px solid var(--primary);
+  cursor: pointer;
+}
+
+.option--soon {
+  background: var(--surface-3);
+  color: var(--muted);
+}

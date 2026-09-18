@@ -1,0 +1,69 @@
+.navBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: #fff;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.navBtn:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+
+.navBtn:disabled {
+  opacity: 0.4;
+}
+
+.format {
+  border: 2px solid var(--border);
+  background: #fff;
+  border-radius: 14px;
+  padding: 14px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.format--on {
+  border-color: var(--primary);
+}
+
+.formatIcon {
+  border-radius: 4px;
+  background: var(--surface-2);
+  border: 1px solid var(--placeholder);
+}
+
+.covers {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.coverChoice {
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.coverChoice img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.coverChoice--on {
+  border-color: var(--primary);
+}

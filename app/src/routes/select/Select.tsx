@@ -1,0 +1,354 @@
+import { useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router';
+import type { Photo } from '@printagram/shared';
+import {
+  fmtEuro,
+  MONTHS_SHORT,
+  monthKey,
+  pageCount,
+  parseMonthKey,
+  price,
+} from '@printagram/shared';
+import {
+  Button,
+  Chip,
+  Placeholder,
+  Segmented,
+  Select as SelectBox,
+  Spinner,
+} from '@/components/ui';
+import { chosenPhotos, useDraft, visiblePhotos } from '@/state/draft';
+import { useLibrary } from '@/state/library';
+import { useConfig, useSession } from '@/state/session';
+import { useDemo } from '@/state/demo';
+import s from './select.module.css';
+
+export function Select() {
+  const nav = useNavigate();
+  const cfg = useConfig();
+  const d = useDraft();
+  const lib = useLibrary();
+  const libraries = useSession((x) => x.libraries);
+  const demoEmpty = useDemo((x) => x.empty);
+
+  // Resolve which library to show: the draft's, else the most recent one.
+  const targetId = d.libraryId ?? libraries[0]?.id ?? null;
+
+  useEffect(() => {
+    if (!targetId) return;
+    if (lib.libraryId !== targetId || lib.photos.length === 0) {
+      void lib.load(targetId).then(({ photos }) => {
+        if (d.libraryId !== targetId || !d.rangeFrom)
+          d.startLibrary(targetId, photos, { keepSelection: true });
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [targetId]);
+
+  const photos = useMemo(() => (demoEmpty ? [] : lib.photos), [demoEmpty, lib.photos]);
+  const hasLikes = lib.library?.hasLikes ?? d.source === 'connect';
+  const monthKeys = useMemo(
+    () => [...new Set(photos.map((p) => monthKey(p.year, p.month)))].sort(),
+    [photos],
+  );
+  const monthOptions = monthKeys.map((k) => {
+    const { year, month } = parseMonthKey(k);
+    return { value: k, label: `${MONTHS_SHORT[month]} ${year}` };
+  });
+  const filters = useMemo(
+    () => ({
+      photosOnly: d.photosOnly,
+      favsOnly: d.favsOnly,
+      carouselAll: d.carouselAll,
+      rangeFrom: d.rangeFrom,
+      rangeTo: d.rangeTo,
+    }),
+    [d.photosOnly, d.favsOnly, d.carouselAll, d.rangeFrom, d.rangeTo],
+  );
+  const visible = useMemo(() => visiblePhotos(photos, filters, hasLikes), [photos, filters, hasLikes]);
+  const chosen = useMemo(
+    () => chosenPhotos(visible, d.mode, d.selected),
+    [visible, d.mode, d.selected],
+  );
+  const isChoose = d.mode === 'choose';
+  const selectedSet = useMemo(() => new Set(d.selected), [d.selected]);
+  const total = pageCount(chosen.length, d.format);
+  const pr = price(total, cfg.pricing);
+  const overLimit = chosen.length > cfg.limits.maxPhotosPerBook;
+
+  const years = useMemo(() => {
+    const byYear = new Map<number, Map<string, Photo[]>>();
+    for (const p of visible) {
+      const k = monthKey(p.year, p.month);
+      if (!byYear.has(p.year)) byYear.set(p.year, new Map());
+      const months = byYear.get(p.year)!;
+      if (!months.has(k)) months.set(k, []);
+      months.get(k)!.push(p);
+    }
+    return [...byYear.entries()]
+      .sort((a, b) => b[0] - a[0])
+      .map(([year, months]) => ({
+        year,
+        photos: [...months.values()].flat(),
+        months: [...months.entries()]
+          .sort((a, b) => (a[0] < b[0] ? 1 : -1))
+          .map(([key, ps]) => ({
+            key,
+            label: MONTHS_SHORT[parseMonthKey(key).month]!,
+            photos: ps,
+          })),
+      }));
+  }, [visible]);
+
+  const allOn = (ps: Photo[]) => !isChoose || ps.every((p) => selectedSet.has(p.id));
+
+  if (!targetId) {
+    return (
+      <div className="screen">
+        <div className={s.empty}>
+          <Placeholder
+            soft
+            style={{
+              width: 120,
+              aspectRatio: '1',
+              borderRadius: 14,
+              border: '1px dashed var(--placeholder)',
+            }}
+          />
+          <h2 className="h3">No photos yet</h2>
+          <p className="muted">
+            Bring in your Instagram photos first, then choose the ones for your book.
+          </p>
+          <Button onClick={() => nav('/start')}>Bring in photos</Button>
+        </div>
+      </div>
+    );
+  }
+
+  const sourceLabel = lib.library
+    ? lib.library.source === 'instagram'
+      ? `${lib.library.sourceLabel} · connected`
+      : lib.library.sourceLabel
+    : '';
+  const back = () =>
+    nav(d.source === 'connect' ? '/connect' : d.source === 'export' ? '/export/upload' : '/start');
+
+  return (
+    <div className="screen screen--bar">
+      <header className={s.sticky}>
+        <div className={s.stickyInner}>
+          <div className="row between gap-12">
+            <div className="row gap-12">
+              <button type="button" className="back" onClick={back} aria-label="Back">
+                ←
+              </button>
+              <div className="h4">Choose your photos</div>
+            </div>
+            <div
+              className="small muted"
+              style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+            >
+              {sourceLabel}
+            </div>
+          </div>
+          {photos.length > 0 && (
+            <>
+              <Segmented
+                value={d.mode}
+                onChange={(m) =>
+                  d.setMode(
+                    m,
+                    visible.map((p) => p.id),
+                  )
+                }
+                options={[
+                  { value: 'all', label: 'All photos' },
+                  { value: 'choose', label: 'Choose photos' },
+                ]}
+              />
+              <div className="row row-wrap gap-8">
+                <Chip on={d.photosOnly} onClick={() => d.setFilter({ photosOnly: !d.photosOnly })}>
+                  Photos only
+                </Chip>
+                {hasLikes && (
+                  <Chip on={d.favsOnly} onClick={() => d.setFilter({ favsOnly: !d.favsOnly })}>
+                    ♥ Most liked
+                  </Chip>
+                )}
+                <Chip
+                  on={d.carouselAll}
+                  onClick={() => d.setFilter({ carouselAll: !d.carouselAll })}
+                >
+                  {d.carouselAll ? 'Carousels: all images' : 'Carousels: first image'}
+                </Chip>
+                <SelectBox
+                  ariaLabel="From month"
+                  value={d.rangeFrom ?? monthKeys[0] ?? ''}
+                  options={monthOptions}
+                  onChange={(v) =>
+                    d.setFilter({
+                      rangeFrom: v,
+                      rangeTo: d.rangeTo && v > d.rangeTo ? v : d.rangeTo,
+                    })
+                  }
+                />
+                <span className="muted tiny">to</span>
+                <SelectBox
+                  ariaLabel="To month"
+                  value={d.rangeTo ?? monthKeys[monthKeys.length - 1] ?? ''}
+                  options={monthOptions}
+                  onChange={(v) =>
+                    d.setFilter({
+                      rangeTo: v,
+                      rangeFrom: d.rangeFrom && v < d.rangeFrom ? v : d.rangeFrom,
+                    })
+                  }
+                />
+              </div>
+            </>
+          )}
+        </div>
+      </header>
+
+      {lib.loading && photos.length === 0 && (
+        <div className="container" style={{ padding: 48, display: 'grid', placeItems: 'center' }}>
+          <Spinner />
+        </div>
+      )}
+
+      {!lib.loading && photos.length === 0 && (
+        <div className={s.empty}>
+          <Placeholder
+            soft
+            style={{
+              width: 120,
+              aspectRatio: '1',
+              borderRadius: 14,
+              border: '1px dashed var(--placeholder)',
+            }}
+          />
+          <h2 className="h3">No photos found</h2>
+          <p className="muted">
+            We couldn't find any posts here. If you uploaded an export, make sure you selected
+            “Posts” when requesting it.
+          </p>
+          <Button onClick={back}>Go back and try again</Button>
+        </div>
+      )}
+
+      {photos.length > 0 && (
+        <>
+          <div className="container stack" style={{ padding: '16px var(--gutter)', gap: 36 }}>
+            {years.map((y) => (
+              <div key={y.year} className="stack stack-18">
+                <div className={s.year}>
+                  <div className={s.yearLabel}>
+                    {y.year} <span className={s.yearCount}>{y.photos.length} photos</span>
+                  </div>
+                  {isChoose && (
+                    <button
+                      type="button"
+                      className="link-button"
+                      onClick={() =>
+                        d.toggleIds(
+                          y.photos.map((p) => p.id),
+                          !allOn(y.photos),
+                        )
+                      }
+                    >
+                      {allOn(y.photos) ? 'Deselect year' : 'Select whole year'}
+                    </button>
+                  )}
+                </div>
+                {y.months.map((mo) => (
+                  <div key={mo.key} className="stack stack-10">
+                    <div className="row between" style={{ alignItems: 'baseline' }}>
+                      <div className="semibold">
+                        {mo.label}{' '}
+                        <span className="tiny muted" style={{ fontWeight: 400 }}>
+                          {mo.photos.length}
+                        </span>
+                      </div>
+                      {isChoose && (
+                        <button
+                          type="button"
+                          className="link-button"
+                          onClick={() =>
+                            d.toggleIds(
+                              mo.photos.map((p) => p.id),
+                              !allOn(mo.photos),
+                            )
+                          }
+                        >
+                          {allOn(mo.photos) ? 'Deselect all' : 'Select all'}
+                        </button>
+                      )}
+                    </div>
+                    <div className={s.grid}>
+                      {mo.photos.map((p) => {
+                        const on = !isChoose || selectedSet.has(p.id);
+                        return (
+                          <button
+                            key={p.id}
+                            type="button"
+                            className={`${s.tile} ${on ? '' : s['tile--off']}`}
+                            aria-pressed={on}
+                            aria-label={`${p.caption || 'Photo'}, ${p.takenAt.slice(0, 10)}`}
+                            onClick={() =>
+                              d.toggleIds([p.id], isChoose ? !selectedSet.has(p.id) : false)
+                            }
+                          >
+                            {p.thumbUrl ? (
+                              <img src={p.thumbUrl} alt="" loading="lazy" decoding="async" />
+                            ) : (
+                              <Placeholder style={{ width: '100%', height: '100%' }} />
+                            )}
+                            {p.isVideo && <span className={s.badge}>▶ video</span>}
+                            {!p.isVideo && p.carouselCount > 1 && (
+                              <span className={s.badge}>
+                                {p.carouselIdx + 1}/{p.carouselCount}
+                              </span>
+                            )}
+                            {hasLikes && !p.isVideo && p.likes !== null && (
+                              <span className={`${s.badge} ${s['badge--bottom']}`}>
+                                ♥ {p.likes}
+                              </span>
+                            )}
+                            <span className={`${s.checkmark} ${on ? s['checkmark--on'] : ''}`}>
+                              {on ? '✓' : ''}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
+            {visible.length === 0 && (
+              <div className="center muted" style={{ padding: '48px 0' }}>
+                No photos match these filters.
+              </div>
+            )}
+          </div>
+
+          <div className="footer-bar">
+            <div className="footer-bar__inner">
+              <div>
+                <div className="semibold">{chosen.length} photos selected</div>
+                <div className="tiny muted">
+                  {overLimit
+                    ? `Maximum ${cfg.limits.maxPhotosPerBook} photos per book`
+                    : `~${total} pages · ${fmtEuro(pr.totalCents)}`}
+                </div>
+              </div>
+              <Button disabled={chosen.length === 0 || overLimit} onClick={() => nav('/preview')}>
+                Continue
+              </Button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
