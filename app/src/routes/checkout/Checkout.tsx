@@ -16,7 +16,7 @@ import {
 import { CoverThumb } from '@/components/PageRenderer';
 import { ApiClientError, api } from '@/services';
 import { useDraft } from '@/state/draft';
-import { useBook } from '@/state/useBook';
+import { saveCurrentDraft, useBook } from '@/state/useBook';
 import { useConfig, useSession } from '@/state/session';
 import { FakePayment } from './FakePayment';
 import s from './checkout.module.css';
@@ -60,19 +60,8 @@ export function Checkout() {
     (async () => {
       try {
         await ensureSession();
-        const saved = await api.saveDraft({
-          id: d.draftBookId,
-          libraryId: book.libraryId!,
-          settings: {
-            title: d.title,
-            format: d.format,
-            showMeta: d.showMeta,
-            coverPhotoId: book.cover?.id ?? null,
-          },
-          photoIds: book.chosen.map((p) => p.id),
-        });
-        d.setBook({ draftBookId: saved.id });
-        const res = await api.createOrder(saved.id);
+        const bookId = await saveCurrentDraft(book);
+        const res = await api.createOrder(bookId);
         setOrder(res.order);
         setClientSecret(res.clientSecret);
         setProvider(res.provider);

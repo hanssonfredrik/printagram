@@ -156,8 +156,9 @@ $bundle = Join-Path $Root 'api/dist/index.js'
 if (Test-Path $bundle) { Remove-Item $bundle -Force }
 
 # ---------------------------------------------------------------- run
-$names = 'azurite,build,func,web'
-$cmds = @('npm:local:azurite', 'npm:local:build', 'npm:local:func', 'npm:local:web')
+# Vite runs as its own process (not via `swa --run`) so a Vite failure stops the whole stack.
+$names = 'azurite,build,func,vite,web'
+$cmds = @('npm:local:azurite', 'npm:local:build', 'npm:local:func', 'npm:local:vite', 'npm:local:web')
 if (-not $NoBrowser) { $names += ',open'; $cmds += 'npm:local:open' }
 if ($SeedPromo) { $names += ',promo'; $cmds += 'npm:local:seed-promo' }
 
@@ -169,7 +170,7 @@ Write-Host ''
 
 try {
   & npx --no-install concurrently --kill-others-on-fail --prefix '[{name}]' --names $names `
-    --prefix-colors 'blue,gray,magenta,green,cyan,yellow' @cmds
+    --prefix-colors 'blue,gray,magenta,green,cyan,yellow,white' @cmds
 } finally {
   # Windows sometimes leaves Azurite or the func host orphaned after Ctrl+C.
   $left = Get-PortOwners

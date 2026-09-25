@@ -1,8 +1,8 @@
 import {
   discountCents,
   normalizePromoCode,
-  pageCount,
   price,
+  totalPages,
   PROMO_MESSAGES,
   promoRejection,
 } from '@printagram/shared';
@@ -12,6 +12,7 @@ import {
   libContainerName,
   PDF_CONTAINER,
   pdfBlobName,
+  readBlobHead,
   readSasUrl,
   writeSasUrl,
 } from '../lib/blobs.js';
@@ -40,7 +41,7 @@ import {
   type BookRow,
   type OrderRow,
 } from '../lib/tables.js';
-import { orderView, photoView } from '../lib/views.js';
+import { bookPages, normalizeLayout, orderView, photoView } from '../lib/views.js';
 
 async function ownedOrder(userId: string, id: string): Promise<OrderRow> {
   const o = await orders.get(userId, id);
@@ -62,7 +63,7 @@ async function coverThumb(o: OrderRow): Promise<string | null> {
 
 /** Price for a book at its current content, before any discount. */
 function subtotalFor(book: BookRow): { pages: number; subtotalCents: number } {
-  const pages = pageCount(book.photoIds.length, book.format);
+  const pages = totalPages(bookPages(book));
   return { pages, subtotalCents: price(pages, config.pricing).totalCents };
 }
 
@@ -138,6 +139,8 @@ route(
       format: book.format,
       showMeta: book.showMeta,
       coverPhotoId: book.coverPhotoId,
+      layout: normalizeLayout(book.layout),
+      pages: bookPages(book),
       photoIds: book.photoIds,
       pageCount: pages,
       photoCount: book.photoIds.length,
@@ -325,6 +328,11 @@ route(
     const selected = o.photoIds
       .map((id) => byId.get(id))
       .filter((p): p is NonNullable<typeof p> => !!p && p.status === 'ready');
+    if (selected.length !== o.photoIds.length)
+      throw conflict(
+        'PHOTOS_MISSING',
+        'Some photos in this book are no longer stored, so the PDF cannot be built.',
+      );
     const version = o.status === 'ready' ? o.pdfVersion + 1 : Math.max(1, o.pdfVersion || 1);
     return json({
       version,
@@ -336,9 +344,12 @@ route(
         format: o.format,
         showMeta: o.showMeta,
         coverPhotoId: o.coverPhotoId,
+        layout: normalizeLayout(o.layout),
+        pages: bookPages(o),
         photoCount: selected.length,
         pageCount: o.pageCount,
       },
+      bleedMm: config.bleedMm,
     });
   },
 );
@@ -361,6 +372,10 @@ route(
     if (!props || props.size === 0) throw conflict('PDF_MISSING', 'The PDF upload did not arrive.');
     if (Number.isFinite(bytes) && bytes > 0 && Math.abs(props.size - bytes) > 0)
       throw conflict('PDF_SIZE_MISMATCH', 'The uploaded PDF is incomplete.');
+    // A real PDF starts with %PDF- and a book is never a few hundred bytes.
+    const head = await readBlobHead(PDF_CONTAINER, name, 1024);
+    if (!head || props.size < 1024 || !head.subarray(0, 5).equals(Buffer.from('%PDF-')))
+      throw conflict('PDF_INVALID', 'The uploaded file is not a valid PDF.');
     const wasReady = o.status === 'ready';
     let shareToken = o.shareToken;
     if (!shareToken) {

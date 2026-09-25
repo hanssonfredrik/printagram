@@ -1,5 +1,5 @@
-import type { BookFormat } from '@printagram/shared';
-import { pageCount } from '@printagram/shared';
+import type { BookFormat, BookLayout, PageSpec } from '@printagram/shared';
+import { flattenPhotoIds, totalPages, validatePages } from '@printagram/shared';
 import { config } from '../lib/config.js';
 import {
   badRequest,
@@ -12,9 +12,9 @@ import {
   str,
 } from '../lib/http.js';
 import { newId, nowIso } from '../lib/ids.js';
-import { books, libraries, type BookRow } from '../lib/tables.js';
-import { bookView } from '../lib/views.js';
 import { bookContentHash } from '../lib/orderService.js';
+import { books, libraries, photos, type BookRow } from '../lib/tables.js';
+import { bookPages, bookView, normalizeLayout } from '../lib/views.js';
 
 interface BookInput {
   libraryId?: unknown;
@@ -22,7 +22,9 @@ interface BookInput {
   format?: unknown;
   showMeta?: unknown;
   coverPhotoId?: unknown;
-  photoIds?: unknown;
+  layout?: unknown;
+  pages?: unknown;
+  manualLayout?: unknown;
 }
 
 function parseFormat(v: unknown, fallback: BookFormat): BookFormat {
@@ -31,16 +33,31 @@ function parseFormat(v: unknown, fallback: BookFormat): BookFormat {
   throw badRequest('INVALID_FIELD', 'format must be square or portrait.');
 }
 
-function parsePhotoIds(v: unknown): string[] | undefined {
-  if (v === undefined) return undefined;
-  if (!Array.isArray(v)) throw badRequest('INVALID_FIELD', 'photoIds must be an array.');
-  const ids = [...new Set(v.map((x) => String(x).slice(0, 64)))];
-  if (ids.length > config.maxPhotosPerBook)
+/** Checks the page list against the library's printable photos and the per-book limit. */
+async function parsePages(raw: unknown, libraryId: string): Promise<PageSpec[]> {
+  const rows = await photos.listAll(libraryId);
+  const allowed = new Set(
+    rows.filter((p) => p.status === 'ready' && !p.isVideo).map((p) => p.photoId),
+  );
+  const err = validatePages(raw, allowed);
+  if (err) throw badRequest('INVALID_PAGES', err);
+  const pages = (raw as PageSpec[]).map((p) => ({
+    template: p.template,
+    photoIds: [...p.photoIds],
+    ...(p.template === 'text' ? { text: String(p.text ?? '').slice(0, 400) } : {}),
+  }));
+  const count = flattenPhotoIds(pages).length;
+  if (count > config.maxPhotosPerBook)
     throw badRequest(
       'TOO_MANY_PHOTOS',
       `A book can have at most ${config.maxPhotosPerBook} photos.`,
     );
-  return ids;
+  return pages;
+}
+
+function coverFor(v: unknown, photoIds: string[], fallback: string | null): string | null {
+  const wanted = v === undefined ? fallback : v ? String(v).slice(0, 64) : null;
+  return wanted && photoIds.includes(wanted) ? wanted : (photoIds[0] ?? null);
 }
 
 route('booksList', { methods: ['GET'], route: 'books', auth: 'required' }, async ({ user }) => {
@@ -58,7 +75,8 @@ route(
     const lib = await libraries.get(user.userId, libraryId);
     if (!lib) throw notFound('Library');
     const format = parseFormat(body.format, 'square');
-    const photoIds = parsePhotoIds(body.photoIds) ?? [];
+    const pages = await parsePages(body.pages ?? [], libraryId);
+    const photoIds = flattenPhotoIds(pages);
     const now = nowIso();
     const row: BookRow = {
       bookId: newId(),
@@ -67,9 +85,12 @@ route(
       title: str(body.title, 'title', { optional: true, max: 120 }) || 'Our years',
       format,
       showMeta: body.showMeta !== false,
-      coverPhotoId: body.coverPhotoId ? String(body.coverPhotoId).slice(0, 64) : null,
+      coverPhotoId: coverFor(body.coverPhotoId, photoIds, null),
+      layout: normalizeLayout(body.layout),
+      pages,
+      manualLayout: body.manualLayout === true,
       photoIds,
-      pageCount: pageCount(photoIds.length, format),
+      pageCount: totalPages(pages),
       version: 1,
       status: 'draft',
       orderId: null,
@@ -104,26 +125,28 @@ route(
       );
     const body = await readJson<BookInput>(req);
     const format = parseFormat(body.format, b.format);
-    const photoIds = parsePhotoIds(body.photoIds) ?? b.photoIds;
+    const pages =
+      body.pages === undefined ? bookPages(b) : await parsePages(body.pages, b.libraryId);
+    const photoIds = flattenPhotoIds(pages);
+    const layout: BookLayout =
+      body.layout === undefined ? normalizeLayout(b.layout) : normalizeLayout(body.layout);
     const patch: Partial<BookRow> = {
       title: body.title !== undefined ? str(body.title, 'title', { max: 120 }) || b.title : b.title,
       format,
       showMeta: body.showMeta === undefined ? b.showMeta : body.showMeta !== false,
-      coverPhotoId:
-        body.coverPhotoId === undefined
-          ? b.coverPhotoId
-          : body.coverPhotoId
-            ? String(body.coverPhotoId).slice(0, 64)
-            : null,
+      coverPhotoId: coverFor(body.coverPhotoId, photoIds, b.coverPhotoId),
+      layout,
+      pages,
+      manualLayout: body.manualLayout === undefined ? !!b.manualLayout : body.manualLayout === true,
       photoIds,
-      pageCount: pageCount(photoIds.length, format),
+      pageCount: totalPages(pages),
       updatedAt: nowIso(),
     };
     // Only real content changes bump the version (an unchanged save must not invalidate open orders).
     const changed = bookContentHash({ ...b, ...patch } as BookRow) !== bookContentHash(b);
     patch.version = changed ? b.version + 1 : b.version;
     await books.merge(user.userId, b.bookId, patch);
-    return json(bookView({ ...b, ...patch }));
+    return json(bookView({ ...b, ...patch } as BookRow));
   },
 );
 
@@ -136,6 +159,8 @@ route(
     const now = nowIso();
     const copy: BookRow = {
       ...b,
+      pages: bookPages(b),
+      layout: normalizeLayout(b.layout),
       bookId: newId(),
       title: `${b.title} (copy)`,
       status: 'draft',

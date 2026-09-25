@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import type { LibrarySummary, Order } from '@printagram/shared';
-import { fmtDate, fmtSpan } from '@printagram/shared';
+import { fmtDate, photoSpan } from '@printagram/shared';
 import { Banner, Button, Card, ProgressBar } from '@/components/ui';
 import { CoverThumb } from '@/components/PageRenderer';
 import { ApiClientError, api } from '@/services';
@@ -38,6 +38,10 @@ export function Done() {
   const [shared, setShared] = useState(false);
   const localPdf = useRef<Uint8Array | null>(null);
   const started = useRef(false);
+  const pdfAbort = useRef<AbortController | null>(null);
+
+  // Leaving the page stops PDF generation (the worker is terminated, nothing half-uploaded).
+  useEffect(() => () => pdfAbort.current?.abort(), []);
 
   // The library shown is the one this order was made from (not whatever the draft points at).
   const library: LibrarySummary | undefined = order
@@ -56,19 +60,21 @@ export function Done() {
       try {
         const target = await api.getPdfUploadTarget(o.id, regenerate);
         const photos = target.photos;
-        const first = photos[0];
-        const last = photos[photos.length - 1];
+        pdfAbort.current = new AbortController();
         const { bytes, pages } = await generatePdf(
           {
             photos,
+            pages: target.book.pages,
             title: target.book.title,
             format: target.book.format,
             showMeta: target.book.showMeta,
             showLikes: libraryRef.current?.hasLikes ?? false,
             coverPhotoId: target.book.coverPhotoId,
-            dateSpan: first && last ? fmtSpan(first.takenAt, last.takenAt) : '',
+            dateSpan: photoSpan(photos),
+            bleedMm: target.bleedMm,
           },
           (p) => setPct(p.pct),
+          pdfAbort.current.signal,
         );
         localPdf.current = bytes;
         setStage('uploading');
@@ -79,6 +85,7 @@ export function Done() {
         setStage('ready');
         await refreshLibraries();
       } catch (e) {
+        if (e instanceof DOMException && e.name === 'AbortError') return;
         console.error(e);
         setStage('error');
         setMsg(e instanceof Error ? e.message : 'Could not create the PDF.');

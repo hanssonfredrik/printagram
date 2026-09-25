@@ -4,6 +4,7 @@ import type {
   BookSettings,
   LibrarySummary,
   Order,
+  PageSpec,
   PaymentProviderName,
   Photo,
   UserInfo,
@@ -30,6 +31,8 @@ export interface RegisterItem {
   carouselCount: number;
   width: number | null;
   height: number | null;
+  /** image/jpeg | image/png | image/webp */
+  mime: string | null;
   bytes: number;
 }
 
@@ -75,7 +78,13 @@ export interface PdfUploadTarget {
   version: number;
   putUrl: string;
   photos: Photo[];
-  book: BookSettings & { photoCount: number; pageCount: number };
+  book: BookSettings & { pages: PageSpec[]; photoCount: number; pageCount: number };
+  bleedMm: number;
+}
+
+export interface PhotoRef {
+  photoId: string;
+  takenAt: string;
 }
 
 export interface ShareInfo {
@@ -129,7 +138,7 @@ export interface Api {
     orig: Blob,
     thumb: Blob,
   ): Promise<void>;
-  confirmPhotos(libraryId: string, photoIds: string[]): Promise<void>;
+  confirmPhotos(libraryId: string, photos: PhotoRef[]): Promise<void>;
   completeImport(libraryId: string, fileName?: string): Promise<LibrarySummary>;
 
   instagramStartUrl(): Promise<string>;
@@ -143,7 +152,8 @@ export interface Api {
     id?: string | null;
     libraryId: string;
     settings: BookSettings;
-    photoIds: string[];
+    pages: PageSpec[];
+    manualLayout: boolean;
   }): Promise<Book>;
   getBook(id: string): Promise<Book>;
   duplicateBook(id: string): Promise<Book>;

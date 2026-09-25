@@ -5,7 +5,6 @@
       "appLocation": "app",
       "outputLocation": "dist",
       "appDevserverUrl": "http://localhost:5173",
-      "run": "npm run dev -w app",
       "apiPort": 7071,
       "port": 4280,
       "apiDevserverUrl": "http://localhost:7071"

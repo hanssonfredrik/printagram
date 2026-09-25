@@ -1,82 +1,102 @@
 .page {
+  position: relative;
   width: 100%;
   background: #fff;
-  border-radius: 4px 10px 10px 4px;
+  border-radius: 2px;
   box-shadow: var(--shadow-page);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  transition: aspect-ratio 0.2s;
   overflow: hidden;
+  container-type: inline-size;
+  transition: aspect-ratio 0.2s;
+}
+
+/* Every positioned element uses % of the page, derived from millimetres in shared/layout.ts. */
+.frame,
+.caption,
+.centerText {
+  position: absolute;
+}
+
+.frame {
+  overflow: hidden;
+  background: var(--surface-2);
+}
+
+.cropped {
+  position: absolute;
+  max-width: none;
+  object-fit: fill;
 }
 
 .fill {
-  flex: 1;
-  min-height: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.coverTitle {
-  font-family: var(--font-serif);
-  font-size: 18px;
-  text-align: center;
-  padding: 4px 0;
-  flex: none;
+.caption {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.6em;
+  padding-top: 0.45em;
+  color: var(--muted);
+  line-height: 1.25;
 }
 
-.titlePage {
-  flex: 1;
+.captionText {
+  min-width: 0;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.captionMeta {
+  flex: none;
+  white-space: pre;
+}
+
+.centerText {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  gap: 8px;
+  gap: 0.4em;
 }
 
 .titleText {
   font-family: var(--font-serif);
-  font-size: 24px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
 }
 
-.slot {
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.meta {
-  font-size: 11px;
+.subText {
   color: var(--muted);
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  flex: none;
 }
 
-.caption {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
+.pageText {
+  font-family: var(--font-serif);
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
 }
 
-.metaRight {
-  display: flex;
-  gap: 8px;
-  flex: none;
+.ppi {
+  position: absolute;
+  left: 4px;
+  bottom: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--warn-bg);
+  color: var(--warn-deep);
 }
 
-.back {
-  flex: 1;
-  display: grid;
-  place-items: center;
-  color: var(--muted);
-  font-size: 12px;
+.ppi--low {
+  background: var(--error-bg);
+  color: var(--error-text);
 }
 
 .coverThumb {

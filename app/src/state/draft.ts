@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { BookFormat, Photo } from '@printagram/shared';
-import { monthKey } from '@printagram/shared';
+import type { Book, BookFormat, BookLayout, PageSpec, Photo } from '@printagram/shared';
+import { DEFAULT_LAYOUT, monthKey } from '@printagram/shared';
 
 export type AccountKind = 'pro' | 'personal' | 'unsure';
 /** Which import path the user is on. 'connect' = Instagram login, 'export' = uploaded ZIP. */
@@ -36,6 +36,9 @@ export interface DraftState {
   showMeta: boolean;
   coverPhotoId: string | null;
   pageIdx: number;
+  layout: BookLayout;
+  /** Pages as arranged by hand; null while the layout is automatic. */
+  manualPages: PageSpec[] | null;
 
   // Order
   lastOrderId: string | null;
@@ -61,6 +64,13 @@ export interface DraftState {
     >,
   ) => void;
   setPageIdx: (i: number) => void;
+  setLayout: (patch: Partial<BookLayout>) => void;
+  /** Stores a hand-made arrangement (from Arrange / template picker). */
+  setManualPages: (pages: PageSpec[]) => void;
+  /** Drops the hand-made arrangement and goes back to the automatic layout. */
+  resetLayout: () => void;
+  /** Restores a saved draft exactly: selection, filters, pages and settings. */
+  openBook: (book: Book, libraryPhotos: Photo[]) => void;
   setLastOrderId: (id: string | null) => void;
   resetForNewBook: (title?: string) => void;
   resetAll: () => void;
@@ -89,6 +99,8 @@ const initial = {
   showMeta: true,
   coverPhotoId: null,
   pageIdx: 0,
+  layout: DEFAULT_LAYOUT,
+  manualPages: null as PageSpec[] | null,
   lastOrderId: null,
 };
 
@@ -126,6 +138,7 @@ export const useDraft = create<DraftState>()(
                 coverPhotoId: null,
                 pageIdx: 0,
                 draftBookId: null,
+                manualPages: null,
                 title: get().title === DEFAULT_TITLE || !sameLib ? title : get().title,
               }),
         });
@@ -154,6 +167,34 @@ export const useDraft = create<DraftState>()(
       },
 
       setPageIdx: (pageIdx) => set({ pageIdx }),
+      setLayout: (patch) => set({ layout: { ...get().layout, ...patch } }),
+      setManualPages: (manualPages) => set({ manualPages }),
+      resetLayout: () => set({ manualPages: null }),
+
+      openBook(book, libraryPhotos) {
+        const keys = [...new Set(libraryPhotos.map((p) => monthKey(p.year, p.month)))].sort();
+        const inBook = new Set(book.photoIds);
+        const needsCarousel = libraryPhotos.some((p) => inBook.has(p.id) && p.carouselIdx > 0);
+        set({
+          libraryId: book.libraryId,
+          draftBookId: book.status === 'draft' ? book.id : null,
+          title: book.title,
+          format: book.format,
+          showMeta: book.showMeta,
+          coverPhotoId: book.coverPhotoId,
+          layout: book.layout ?? DEFAULT_LAYOUT,
+          manualPages: book.manualLayout ? book.pages : null,
+          // Select exactly the book's photos, with filters wide enough to show all of them.
+          mode: 'choose',
+          selected: [...book.photoIds],
+          photosOnly: true,
+          favsOnly: false,
+          carouselAll: needsCarousel,
+          rangeFrom: keys[0] ?? null,
+          rangeTo: keys[keys.length - 1] ?? null,
+          pageIdx: 0,
+        });
+      },
       setLastOrderId: (lastOrderId) => set({ lastOrderId }),
 
       resetForNewBook(title) {
@@ -163,6 +204,7 @@ export const useDraft = create<DraftState>()(
           coverPhotoId: null,
           pageIdx: 0,
           draftBookId: null,
+          manualPages: null,
           title: title ?? get().title,
           favsOnly: false,
         });
@@ -170,7 +212,7 @@ export const useDraft = create<DraftState>()(
 
       resetAll: () => set({ ...initial }),
     }),
-    { name: 'printagram.draft.v1' },
+    { name: 'printagram.draft.v2' },
   ),
 );
 

@@ -5,8 +5,10 @@ import {
   MAX_EXPORT_BYTES,
   MAX_PHOTOS_PER_BOOK,
   MAX_PHOTOS_PER_LIBRARY,
-  pageCount,
+  DEFAULT_LAYOUT,
+  flattenPhotoIds,
   price,
+  totalPages,
   discountCents,
   normalizePromoCode,
   PROMO_MESSAGES,
@@ -385,6 +387,7 @@ export const mockApi: Api = {
         carouselCount: it.carouselCount,
         width: it.width,
         height: it.height,
+        mime: it.mime,
         origUrl: '',
         thumbUrl: '',
         status: it.isVideo ? 'ready' : 'pending',
@@ -410,9 +413,9 @@ export const mockApi: Api = {
     p.thumbUrl = URL.createObjectURL(thumb);
   },
 
-  async confirmPhotos(libraryId, photoIds) {
+  async confirmPhotos(libraryId, refs) {
     const photos = state.photosByLibrary[libraryId] ?? [];
-    const set = new Set(photoIds);
+    const set = new Set(refs.map((r) => r.photoId));
     for (const p of photos) if (set.has(p.id)) p.status = 'ready';
   },
 
@@ -503,16 +506,19 @@ export const mockApi: Api = {
     return state.books.map((b) => ({ ...b }));
   },
 
-  async saveDraft({ id, libraryId, settings, photoIds }) {
+  async saveDraft({ id, libraryId, settings, pages: content, manualLayout }) {
     let book = id ? state.books.find((b) => b.id === id) : undefined;
     if (book && book.status === 'ordered') book = undefined;
-    const pages = pageCount(photoIds.length, settings.format);
+    const photoIds = flattenPhotoIds(content);
+    const pages = totalPages(content);
     if (!book) {
       book = {
         id: uid('book'),
         libraryId,
         status: 'draft',
         ...settings,
+        pages: content,
+        manualLayout,
         photoIds,
         pageCount: pages,
         version: 1,
@@ -523,6 +529,8 @@ export const mockApi: Api = {
       state.books = [book, ...state.books];
     } else {
       Object.assign(book, settings, {
+        pages: content,
+        manualLayout,
         photoIds,
         pageCount: pages,
         version: book.version + 1,
@@ -531,7 +539,7 @@ export const mockApi: Api = {
       });
     }
     save();
-    return { ...book };
+    return { ...book } as Book;
   },
 
   async getBook(id) {
@@ -569,7 +577,7 @@ export const mockApi: Api = {
       (o) => o.bookId === bookId && (o.status === 'created' || o.status === 'failed'),
     );
     if (open) return { order: toOrderView(open), clientSecret: null, provider: 'fake' };
-    const pages = pageCount(book.photoIds.length, book.format);
+    const pages = totalPages(book.pages);
     const subtotal = price(pages).totalCents;
     const order: Order = {
       id: uid('ord'),
@@ -680,9 +688,12 @@ export const mockApi: Api = {
         format: book.format,
         showMeta: book.showMeta,
         coverPhotoId: book.coverPhotoId,
+        layout: book.layout ?? DEFAULT_LAYOUT,
+        pages: book.pages,
         photoCount: photos.length,
         pageCount: o.pageCount,
       },
+      bleedMm: 4,
     };
   },
 

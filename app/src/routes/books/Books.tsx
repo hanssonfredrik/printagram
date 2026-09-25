@@ -109,15 +109,8 @@ export function Books() {
 
   const openDraft = async (b: Book) => {
     const { photos } = await libState.load(b.libraryId, true);
-    d.startLibrary(b.libraryId, photos, { keepSelection: false });
-    d.setBook({
-      draftBookId: b.id,
-      title: b.title,
-      format: b.format,
-      showMeta: b.showMeta,
-      coverPhotoId: b.coverPhotoId,
-    });
-    d.setMode('choose', b.photoIds);
+    // Restore the exact photos and pages, not a selection rebuilt from filters.
+    d.openBook(b, photos);
     nav('/preview');
   };
 

@@ -1,14 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import type { Photo } from '@printagram/shared';
-import {
-  fmtEuro,
-  MONTHS_SHORT,
-  monthKey,
-  pageCount,
-  parseMonthKey,
-  price,
-} from '@printagram/shared';
+import { fmtEuro, MONTHS_SHORT, monthKey, parseMonthKey, price } from '@printagram/shared';
 import {
   Button,
   Chip,
@@ -18,6 +11,7 @@ import {
   Spinner,
 } from '@/components/ui';
 import { chosenPhotos, useDraft, visiblePhotos } from '@/state/draft';
+import { useBook } from '@/state/useBook';
 import { useLibrary } from '@/state/library';
 import { useConfig, useSession } from '@/state/session';
 import s from './select.module.css';
@@ -73,7 +67,9 @@ export function Select() {
   );
   const isChoose = d.mode === 'choose';
   const selectedSet = useMemo(() => new Set(d.selected), [d.selected]);
-  const total = pageCount(chosen.length, d.format);
+  // Page count and price follow the same automatic layout the preview will use.
+  const book = useBook();
+  const total = book.total;
   const pr = price(total, cfg.pricing);
   const overLimit = chosen.length > cfg.limits.maxPhotosPerBook;
 

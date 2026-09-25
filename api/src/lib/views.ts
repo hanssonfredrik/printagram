@@ -1,4 +1,5 @@
-import type { Book, LibrarySummary, Order, Photo } from '@printagram/shared';
+import type { Book, BookLayout, LibrarySummary, Order, PageSpec, Photo } from '@printagram/shared';
+import { DEFAULT_LAYOUT, legacyPages, totalPages } from '@printagram/shared';
 import type { BookRow, LibraryRow, OrderRow, PhotoRow } from './tables.js';
 
 export function libraryView(l: LibraryRow): LibrarySummary {
@@ -32,6 +33,7 @@ export function photoView(p: PhotoRow): Photo {
     carouselCount: p.carouselCount,
     width: p.width,
     height: p.height,
+    mime: p.mime ?? null,
     origUrl: p.origBlob,
     thumbUrl: p.thumbBlob,
     status: p.status,
@@ -47,8 +49,11 @@ export function bookView(b: BookRow): Book {
     format: b.format,
     showMeta: b.showMeta,
     coverPhotoId: b.coverPhotoId,
+    layout: normalizeLayout(b.layout),
+    pages: bookPages(b),
+    manualLayout: !!b.manualLayout,
     photoIds: b.photoIds,
-    pageCount: b.pageCount,
+    pageCount: totalPages(bookPages(b)),
     version: b.version,
     createdAt: b.createdAt,
     updatedAt: b.updatedAt,
@@ -81,4 +86,26 @@ export function orderView(o: OrderRow, coverThumbUrl: string | null = null): Ord
     shareToken: o.shareToken,
     coverThumbUrl,
   };
+}
+
+export function normalizeLayout(l: unknown): BookLayout {
+  const v = (l ?? {}) as Partial<BookLayout>;
+  return {
+    density:
+      v.density === '1' || v.density === '2' || v.density === 'auto'
+        ? v.density
+        : DEFAULT_LAYOUT.density,
+    fullBleed: v.fullBleed === true,
+  };
+}
+
+/** Pages of a stored book or order; rows saved before page layouts existed get the old layout. */
+export function bookPages(b: {
+  pages?: PageSpec[] | null;
+  photoIds: string[];
+  format: Book['format'];
+}): PageSpec[] {
+  if (Array.isArray(b.pages) && b.pages.length > 0) return b.pages;
+  const stub = b.photoIds.map((id) => ({ id, width: null, height: null }) as unknown as Photo);
+  return legacyPages(stub, b.format);
 }

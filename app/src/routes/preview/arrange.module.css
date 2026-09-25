@@ -1,0 +1,84 @@
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.card--over {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-tint);
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.moveBtns {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+}
+
+.photos {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 4px;
+  min-height: 90px;
+}
+
+.photo {
+  aspect-ratio: 1;
+  border: 0;
+  padding: 0;
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--surface-2);
+  cursor: grab;
+  touch-action: none;
+}
+
+.photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+.photo:focus-visible {
+  outline: 3px solid var(--primary);
+  outline-offset: 1px;
+}
+
+.textPage {
+  min-height: 90px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  font-family: var(--font-serif);
+  color: var(--muted);
+  background: var(--surface-3);
+  border-radius: 6px;
+  padding: 8px;
+  font-size: 13px;
+}
+
+.overlay {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 10px 24px -8px rgba(0, 0, 0, 0.4);
+}

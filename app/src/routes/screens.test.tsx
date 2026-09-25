@@ -1,6 +1,7 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createMemoryRouter, RouterProvider } from 'react-router';
+import { DEFAULT_LAYOUT } from '@printagram/shared';
 import { router as appRouter } from '@/router';
 import { resetMockState, seedDemoExportLibrary, mockFlags } from '@/test/fakeApi';
 import { useDraft } from '@/state/draft';
@@ -140,11 +141,16 @@ describe('screens (against the in-memory test API)', () => {
     expect(await screen.findByText('Preview your book')).toBeTruthy();
     expect(screen.getByText('Cover')).toBeTruthy();
     fireEvent.click(screen.getByLabelText('Next page'));
+    expect(await screen.findByText('Title page')).toBeTruthy();
+    fireEvent.click(screen.getByLabelText('Next page'));
     expect(await screen.findByText(/Page 1 of/)).toBeTruthy();
+    // Per-page layout tools appear on content pages.
+    expect(screen.getByRole('radiogroup', { name: 'Page layout' })).toBeTruthy();
     fireEvent.click(screen.getByText('Portrait'));
     expect(await screen.findByText(/pages · Portrait/)).toBeTruthy();
-    fireEvent.click(screen.getByRole('switch'));
-    expect(screen.getByRole('switch').getAttribute('aria-checked')).toBe('false');
+    const captions = screen.getByRole('switch', { name: /Captions and dates/ });
+    fireEvent.click(captions);
+    expect(captions.getAttribute('aria-checked')).toBe('false');
     expect(screen.getByRole('button', { name: 'Checkout' })).toBeTruthy();
   });
 
@@ -234,8 +240,15 @@ describe('screens (against the in-memory test API)', () => {
       await api.login('mara@example.com', 'hunter2hunter2');
       await api.saveDraft({
         libraryId: lib.id,
-        settings: { title: 'Draft one', format: 'square', showMeta: true, coverPhotoId: null },
-        photoIds: ['demo_0'],
+        settings: {
+          title: 'Draft one',
+          format: 'square',
+          showMeta: true,
+          coverPhotoId: null,
+          layout: DEFAULT_LAYOUT,
+        },
+        pages: [{ template: '1-margin', photoIds: ['demo_0'] }],
+        manualLayout: false,
       });
       await useSession.getState().init();
     });

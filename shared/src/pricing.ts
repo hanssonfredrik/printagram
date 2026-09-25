@@ -1,4 +1,4 @@
-import type { BookFormat, PricingConfig } from './types.js';
+import type { PricingConfig } from './types.js';
 
 export const DEFAULT_PRICING: PricingConfig = {
   baseCents: 900,
@@ -11,18 +11,6 @@ export const DEFAULT_PRICING: PricingConfig = {
 export const MAX_PHOTOS_PER_BOOK = 600;
 export const MAX_PHOTOS_PER_LIBRARY = 10_000;
 export const MAX_EXPORT_BYTES = 8 * 1024 * 1024 * 1024;
-
-/** Photos per page for each format. Square books show two photos per page. */
-export function photosPerPage(format: BookFormat): number {
-  return format === 'square' ? 2 : 1;
-}
-
-/** Cover + title page + photo pages + back page. */
-export function pageCount(photoCount: number, format: BookFormat): number {
-  const per = photosPerPage(format);
-  const photoPages = Math.ceil(Math.max(0, photoCount) / per);
-  return 2 + photoPages + 1;
-}
 
 export interface PriceBreakdown {
   includedPages: number;

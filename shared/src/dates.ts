@@ -66,3 +66,15 @@ export function fmtSpan(firstIso: string, lastIso: string): string {
   }
   return `${MONTHS_SHORT[lo.getUTCMonth()]} ${lo.getUTCFullYear()} – ${MONTHS_SHORT[hi.getUTCMonth()]} ${hi.getUTCFullYear()}`;
 }
+
+/** "Mar 2021 – Dec 2024" across the earliest and latest photo (order-independent). */
+export function photoSpan(photos: { takenAt: string }[]): string {
+  if (photos.length === 0) return '';
+  let lo = photos[0]!.takenAt;
+  let hi = lo;
+  for (const p of photos) {
+    if (p.takenAt < lo) lo = p.takenAt;
+    if (p.takenAt > hi) hi = p.takenAt;
+  }
+  return fmtSpan(lo, hi);
+}

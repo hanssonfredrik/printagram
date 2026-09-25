@@ -99,6 +99,7 @@ export function makeDemoPhotos(source: 'instagram' | 'export', from = 2023, to =
           carouselCount: count,
           width: w,
           height: h,
+          mime: 'image/jpeg',
           origUrl: demoImage(c, w, h),
           thumbUrl: demoImage(c, 400, Math.round((400 * h) / w)),
           status: 'ready',

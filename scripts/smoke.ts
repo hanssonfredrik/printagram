@@ -101,8 +101,9 @@ async function main() {
     isVideo: i === 4,
     carouselIdx: i % 2,
     carouselCount: i < 4 ? 2 : 1,
-    width: 1,
-    height: 1,
+    width: 1080,
+    height: 1080,
+    mime: i === 4 ? null : 'image/jpeg',
   }));
   const reg = await call<
     {
@@ -135,7 +136,12 @@ async function main() {
   const confirm = await call<{ readyCount: number }>(
     'POST',
     `/libraries/${lib.body.id}/photos/confirm`,
-    { photoIds: reg.body.map((r) => r.photoId) },
+    {
+      photos: reg.body.map((r) => ({
+        photoId: r.photoId,
+        takenAt: items.find((it) => it.key === r.key)!.takenAt,
+      })),
+    },
   );
   assert(
     confirm.status === 200 && confirm.body.readyCount === 4,
@@ -172,15 +178,30 @@ async function main() {
   assert(thumb.status === 200, `thumb GET via container SAS ${thumb.status}`);
   ok('listed photos and fetched a thumbnail with the container read SAS');
 
+  const stills = photos.body.photos.filter((p) => !p.caption.includes('4')).map((p) => p.id);
   const draft = await call<{ id: string; pageCount: number; version: number }>('POST', '/books', {
     libraryId: lib.body.id,
     title: 'Smoke book',
     format: 'square',
     showMeta: true,
-    photoIds: photos.body.photos.filter((p) => !p.caption.includes('4')).map((p) => p.id),
+    layout: { density: '2', fullBleed: false },
+    pages: [
+      { template: '2-stack', photoIds: stills.slice(0, 2) },
+      { template: '2-side', photoIds: stills.slice(2, 4) },
+    ],
   });
   assert(draft.status === 201 && draft.body.pageCount === 5, `draft ${JSON.stringify(draft.body)}`);
   ok(`draft book ${draft.body.id} (${draft.body.pageCount} pages)`);
+
+  const badPages = await call<{ error: { code: string } }>('POST', '/books', {
+    libraryId: lib.body.id,
+    title: 'Bad book',
+    format: 'square',
+    showMeta: true,
+    pages: [{ template: '1-margin', photoIds: ['not-in-this-library'] }],
+  });
+  assert(badPages.status === 400, `pages with a foreign photo rejected (${badPages.status})`);
+  ok('pages with photos from outside the library are rejected');
 
   const anonOrder = await call<{ order: { id: string; status: string } }>('POST', '/orders', {
     bookId: draft.body.id,
@@ -295,7 +316,12 @@ async function main() {
     target.status === 200 && target.body.photos.length === 4,
     `upload target ${JSON.stringify(target.body).slice(0, 200)}`,
   );
-  const pdf = Buffer.from('%PDF-1.4\n1 0 obj<<>>endobj\ntrailer<<>>\n%%EOF\n');
+  // Padded past the server's minimum size; pdf/complete checks the %PDF- header and size.
+  const pdf = Buffer.concat([
+    Buffer.from('%PDF-1.4\n'),
+    Buffer.alloc(2048, 32),
+    Buffer.from('\n%%EOF\n'),
+  ]);
   const put = await fetch(target.body.putUrl, {
     method: 'PUT',
     headers: { 'x-ms-blob-type': 'BlockBlob', 'Content-Type': 'application/pdf' },

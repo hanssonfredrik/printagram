@@ -173,6 +173,20 @@ export async function blobProperties(
   }
 }
 
+/** Reads the first bytes of a blob (range read), or null if it does not exist. */
+export async function readBlobHead(
+  containerName: string,
+  blobName: string,
+  count: number,
+): Promise<Buffer | null> {
+  try {
+    return await container(containerName).getBlobClient(blobName).downloadToBuffer(0, count);
+  } catch (e) {
+    if ((e as { statusCode?: number }).statusCode === 404) return null;
+    throw e;
+  }
+}
+
 export async function uploadBuffer(
   containerName: string,
   blobName: string,

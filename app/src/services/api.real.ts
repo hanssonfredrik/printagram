@@ -84,6 +84,74 @@ async function putBlob(
   });
 }
 
+const BLOCK_BYTES = 4 * 1024 * 1024;
+const BLOCK_RETRIES = 3;
+
+async function sendWithRetry(url: string, init: RequestInit): Promise<void> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const res = await fetch(url, init);
+      if (res.ok) return;
+      // Client errors (expired link, bad request) will not fix themselves.
+      if (res.status < 500 || attempt >= BLOCK_RETRIES - 1)
+        throw new ApiClientError('UPLOAD_FAILED', `Upload failed (${res.status})`, res.status);
+    } catch (e) {
+      if (e instanceof ApiClientError || attempt >= BLOCK_RETRIES - 1)
+        throw e instanceof ApiClientError
+          ? e
+          : new ApiClientError('UPLOAD_FAILED', 'Upload failed (network)', 0);
+    }
+    await new Promise((r) => setTimeout(r, 500 * 2 ** attempt));
+  }
+}
+
+/**
+ * Uploads the book PDF: small files in one PUT; larger ones as 4 MB blocks (Put Block + Put Block
+ * List) so a dropped connection only retries one block instead of the whole book.
+ */
+async function putPdf(
+  url: string,
+  pdf: Uint8Array,
+  onProgress?: (pct: number) => void,
+): Promise<void> {
+  const type = 'application/pdf';
+  if (pdf.byteLength <= BLOCK_BYTES) {
+    await sendWithRetry(url, {
+      method: 'PUT',
+      headers: {
+        'x-ms-blob-type': 'BlockBlob',
+        'Content-Type': type,
+        'x-ms-blob-content-type': type,
+      },
+      body: new Blob([pdf as BlobPart], { type }),
+    });
+    onProgress?.(100);
+    return;
+  }
+  const ids: string[] = [];
+  const count = Math.ceil(pdf.byteLength / BLOCK_BYTES);
+  for (let i = 0; i < count; i++) {
+    // Block ids must all have the same length.
+    const id = btoa(`block-${String(i).padStart(6, '0')}`);
+    ids.push(id);
+    const chunk = pdf.subarray(i * BLOCK_BYTES, Math.min(pdf.byteLength, (i + 1) * BLOCK_BYTES));
+    await sendWithRetry(`${url}&comp=block&blockid=${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      body: new Blob([chunk as BlobPart]),
+    });
+    onProgress?.(((i + 1) / count) * 100);
+  }
+  const xml =
+    '<?xml version="1.0" encoding="utf-8"?><BlockList>' +
+    ids.map((id) => `<Latest>${id}</Latest>`).join('') +
+    '</BlockList>';
+  await sendWithRetry(`${url}&comp=blocklist`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/xml', 'x-ms-blob-content-type': type },
+    body: xml,
+  });
+}
+
 async function fetchLibraryRead(
   id: string,
 ): Promise<{ library: LibrarySummary; read: ReadSas | null }> {
@@ -146,8 +214,8 @@ export const realApi: Api = {
       putBlob(target.thumbPutUrl, thumb, 'image/jpeg'),
     ]);
   },
-  confirmPhotos: (libraryId, photoIds) =>
-    post<void>(`/libraries/${libraryId}/photos/confirm`, { photoIds }),
+  confirmPhotos: (libraryId, photos) =>
+    post<void>(`/libraries/${libraryId}/photos/confirm`, { photos }),
   completeImport: (libraryId, fileName) =>
     post<LibrarySummary>(`/libraries/${libraryId}/imports/complete`, { label: fileName }),
 
@@ -161,10 +229,10 @@ export const realApi: Api = {
   disconnectInstagram: () => post<void>('/instagram/disconnect'),
 
   listBooks: () => get<Book[]>('/books'),
-  saveDraft: ({ id, libraryId, settings, photoIds }) =>
+  saveDraft: ({ id, libraryId, settings, pages, manualLayout }) =>
     id
-      ? patch<Book>(`/books/${id}`, { ...settings, photoIds, libraryId })
-      : post<Book>('/books', { ...settings, photoIds, libraryId }),
+      ? patch<Book>(`/books/${id}`, { ...settings, pages, manualLayout })
+      : post<Book>('/books', { ...settings, pages, manualLayout, libraryId }),
   getBook: (id) => get<Book>(`/books/${id}`),
   duplicateBook: (id) => post<Book>(`/books/${id}/duplicate`),
   deleteBook: (id) => del<void>(`/books/${id}`),
@@ -191,8 +259,7 @@ export const realApi: Api = {
       })),
     };
   },
-  uploadPdf: (target, pdf, onProgress) =>
-    putBlob(target.putUrl, pdf, 'application/pdf', onProgress),
+  uploadPdf: (target, pdf, onProgress) => putPdf(target.putUrl, pdf, onProgress),
   completePdf: (orderId, version, bytes, pages) =>
     post<Order>(`/orders/${orderId}/pdf/complete`, { version, bytes, pages }),
   async downloadUrl(orderId) {

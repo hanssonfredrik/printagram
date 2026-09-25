@@ -3,6 +3,8 @@
  * Keep this file free of runtime dependencies.
  */
 
+import type { BookLayout, PageSpec } from './layout.js';
+
 export type PhotoSource = 'instagram' | 'export';
 
 export type BookFormat = 'square' | 'portrait';
@@ -45,6 +47,8 @@ export interface Photo {
   carouselCount: number;
   width: number | null;
   height: number | null;
+  /** image/jpeg, image/png or image/webp (null for photos imported before this was stored). */
+  mime: string | null;
   /** Relative blob path (orig/...jpg), a full URL, or an object URL in mock mode. */
   origUrl: string;
   thumbUrl: string;
@@ -72,12 +76,18 @@ export interface BookSettings {
   format: BookFormat;
   showMeta: boolean;
   coverPhotoId: string | null;
+  layout: BookLayout;
 }
 
 export interface Book extends BookSettings {
   id: string;
   libraryId: string;
   status: BookStatus;
+  /** Content pages in print order (cover, title and back are implicit). */
+  pages: PageSpec[];
+  /** True once the user arranged pages by hand (auto-layout no longer rearranges them). */
+  manualLayout: boolean;
+  /** All photos in print order (derived from pages). */
   photoIds: string[];
   pageCount: number;
   version: number;

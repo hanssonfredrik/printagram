@@ -10,7 +10,7 @@ import { useSession } from '@/state/session';
 import { useLibrary } from '@/state/library';
 import s from './upload.module.css';
 
-type Up = 'idle' | 'uploading' | 'processing' | 'done';
+type Up = 'idle' | 'reading' | 'uploading' | 'finishing' | 'done';
 
 const ERRORS: Record<UploadErrorKind, { title: string; text: string; guide: boolean }> = {
   html: {
@@ -65,10 +65,10 @@ export function Upload() {
   const [err, setErr] = useState<UploadErrorKind | null>(null);
   const [fileName, setFileName] = useState('');
   const [fileSize, setFileSize] = useState('');
-  const [pct, setPct] = useState(0);
+  const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [summary, setSummary] = useState<ImportSummary | null>(null);
   const [sample, setSample] = useState<string[]>([]);
-  const fileInput = useRef<HTMLInputElement>(null);
+  const lastFiles = useRef<File[]>([]);
   const abort = useRef<AbortController | null>(null);
 
   useEffect(() => {
@@ -76,6 +76,16 @@ export function Upload() {
   }, [setSource]);
 
   useEffect(() => () => abort.current?.abort(), []);
+
+  // Leaving the page mid-upload would stop the import; ask first.
+  useEffect(() => {
+    if (up !== 'reading' && up !== 'uploading') return;
+    const onBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, [up]);
 
   const finish = async (summ: ImportSummary) => {
     const lib = summ.library;
@@ -93,26 +103,27 @@ export function Upload() {
     setUp('done');
   };
 
-  const run = async (file: File) => {
+  const run = async (files: File[], includeArchived = false, incremental = adding) => {
+    if (files.length === 0) return;
+    lastFiles.current = files;
     setErr(null);
-    setFileName(file.name);
-    setFileSize(fmtSize(file.size));
-    setUp('uploading');
-    setPct(0);
+    setFileName(files.length === 1 ? files[0]!.name : `${files.length} files`);
+    setFileSize(fmtSize(files.reduce((n, f) => n + f.size, 0)));
+    setUp('reading');
+    setProgress({ done: 0, total: 0 });
     abort.current = new AbortController();
     try {
       await ensureSession();
-      const summ = await importExportZip(file, api, {
-        incremental: adding,
+      const summ = await importExportZip(files, api, {
+        incremental,
+        includeArchived,
         signal: abort.current.signal,
         onProgress: (e) => {
-          if (e.phase === 'reading') setPct(0);
-          else if (e.phase === 'uploading')
-            setPct(e.total ? Math.round((e.done / e.total) * 100) : 100);
-          else if (e.phase === 'finishing') {
-            setPct(100);
-            setUp('processing');
-          }
+          if (e.phase === 'reading') setUp('reading');
+          else if (e.phase === 'uploading') {
+            setUp('uploading');
+            setProgress({ done: e.done, total: e.total });
+          } else setUp('finishing');
         },
       });
       await finish(summ);
@@ -127,11 +138,22 @@ export function Upload() {
   const onDrop = (e: DragEvent<HTMLLabelElement>) => {
     e.preventDefault();
     setDrag(false);
-    const f = e.dataTransfer.files[0];
-    if (f) void run(f);
+    void run([...e.dataTransfer.files]);
   };
 
   const e = err ? ERRORS[err] : null;
+  const pct = progress.total ? Math.round((progress.done / progress.total) * 100) : 0;
+  const notes: string[] = [];
+  if (summary) {
+    if (summary.alreadyThere > 0)
+      notes.push(`${summary.alreadyThere} were already in your library`);
+    if (summary.missing > 0)
+      notes.push(
+        `${summary.missing} are in a part of the export you didn't add — drop all the ZIP parts together`,
+      );
+    if (summary.unsupported > 0) notes.push(`${summary.unsupported} use a format we can't print`);
+    if (summary.failed > 0) notes.push(`${summary.failed} could not be read or uploaded`);
+  }
 
   return (
     <div className="screen screen--padded">
@@ -155,18 +177,18 @@ export function Upload() {
             >
               <div className={s.dropIcon}>↑</div>
               <div className="h3">Drop the ZIP here</div>
-              <div className="muted pretty" style={{ fontSize: 15, maxWidth: '38ch' }}>
+              <div className="muted pretty" style={{ fontSize: 15, maxWidth: '40ch' }}>
                 The file Instagram sent you, as is. No need to unzip it. Usually named{' '}
-                <span className="mono tiny">instagram-yourname-….zip</span>
+                <span className="mono tiny">instagram-yourname-….zip</span>. Got several parts? Drop
+                them all at once.
               </div>
-              <span className={s.choose}>Or choose a file</span>
+              <span className={s.choose}>Or choose files</span>
               <input
-                ref={fileInput}
                 type="file"
+                multiple
                 accept=".zip,application/zip,application/x-zip-compressed"
                 onChange={(ev) => {
-                  const f = ev.target.files?.[0];
-                  if (f) void run(f);
+                  void run([...(ev.target.files ?? [])]);
                   ev.target.value = '';
                 }}
                 style={{ display: 'none' }}
@@ -190,22 +212,39 @@ export function Upload() {
           </>
         )}
 
-        {up === 'uploading' && (
-          <Card bordered radius="2xl" pad="hero">
-            <div className="row between" style={{ alignItems: 'baseline' }}>
-              <div className="semibold">Uploading {fileName}</div>
-              <div className="small muted">{pct}%</div>
-            </div>
-            <ProgressBar pct={pct} />
-            <div className="small muted">{fileSize} · keep this tab open</div>
-          </Card>
-        )}
-
-        {up === 'processing' && (
+        {up === 'reading' && (
           <Card bordered radius="2xl" pad="hero" center>
             <Spinner />
             <div className="semibold">Reading your export…</div>
-            <div className="small muted">Looking for posts and sorting them by date.</div>
+            <div className="small muted">
+              {fileName} · {fileSize}. Looking for your posts — nothing is uploaded yet.
+            </div>
+          </Card>
+        )}
+
+        {up === 'uploading' && (
+          <Card bordered radius="2xl" pad="hero">
+            <div className="row between" style={{ alignItems: 'baseline' }}>
+              <div className="semibold">
+                Adding photos · {progress.done} of {progress.total}
+              </div>
+              <div className="small muted">{pct}%</div>
+            </div>
+            <ProgressBar pct={pct} />
+            <div className="row between gap-12 row-wrap">
+              <div className="small muted">Only your photos are uploaded · keep this tab open</div>
+              <Button size="sm" variant="secondary" onClick={() => abort.current?.abort()}>
+                Stop here
+              </Button>
+            </div>
+          </Card>
+        )}
+
+        {up === 'finishing' && (
+          <Card bordered radius="2xl" pad="hero" center>
+            <Spinner />
+            <div className="semibold">Finishing up…</div>
+            <div className="small muted">Sorting your photos by date.</div>
           </Card>
         )}
 
@@ -214,17 +253,19 @@ export function Upload() {
             <div className="check check--done">✓</div>
             <div>
               <div className="h3">
-                {adding
-                  ? `Found ${summary.photos - summary.skipped} new photos`
-                  : `Found ${summary.photos} photos from ${summary.years}`}
+                {adding || summary.alreadyThere > 0
+                  ? `Added ${summary.added} new photo${summary.added === 1 ? '' : 's'}`
+                  : `Found ${summary.added} photos from ${summary.years}`}
               </div>
               <div className="small muted" style={{ marginTop: 4 }}>
                 {summary.posts} posts · {summary.carousels} carousels · {summary.videos} videos
-                skipped by default
-                {adding && summary.skipped > 0
-                  ? ` · ${summary.skipped} already in your library`
-                  : ''}
+                skipped{summary.cancelled ? ' · stopped early' : ''}
               </div>
+              {notes.length > 0 && (
+                <div className="small muted pretty" style={{ marginTop: 6 }}>
+                  Of the photos in your export: {notes.join('; ')}.
+                </div>
+              )}
             </div>
             <div
               style={{
@@ -244,6 +285,23 @@ export function Upload() {
                 />
               ))}
             </div>
+            {summary.archivedAvailable > 0 && (
+              <Banner tone="info" tight>
+                <div className="row between gap-12 row-wrap">
+                  <span>
+                    Your export also has {summary.archivedAvailable} archived post
+                    {summary.archivedAvailable === 1 ? '' : 's'}.
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => run(lastFiles.current, true, true)}
+                  >
+                    Add them too
+                  </Button>
+                </div>
+              </Banner>
+            )}
             <Button
               size="xl"
               style={{ width: '100%', maxWidth: 320 }}

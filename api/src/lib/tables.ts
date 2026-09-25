@@ -16,6 +16,8 @@ import type {
   OrderStatus,
   PhotoSource,
   PromoDefinition,
+  BookLayout,
+  PageSpec,
 } from '@printagram/shared';
 import { config } from './config.js';
 import { nowIso } from './ids.js';
@@ -81,6 +83,10 @@ export interface BookRow {
   format: BookFormat;
   showMeta: boolean;
   coverPhotoId: string | null;
+  /** Serialised as JSON (chunked like arrays). */
+  layout: BookLayout;
+  pages: PageSpec[];
+  manualLayout: boolean;
   photoIds: string[];
   pageCount: number;
   version: number;
@@ -100,6 +106,8 @@ export interface OrderRow {
   format: BookFormat;
   showMeta: boolean;
   coverPhotoId: string | null;
+  layout: BookLayout;
+  pages: PageSpec[];
   photoIds: string[];
   pageCount: number;
   photoCount: number;
@@ -139,6 +147,7 @@ export interface PhotoRow {
   carouselCount: number;
   width: number | null;
   height: number | null;
+  mime: string | null;
   origBlob: string;
   thumbBlob: string;
   status: 'pending' | 'ready' | 'missing';
@@ -295,7 +304,7 @@ const ORDER_NULLABLE: (keyof OrderRow)[] = [
   'promoCode',
   'failureReason',
 ];
-const PHOTO_NULLABLE: (keyof PhotoRow)[] = ['likes', 'width', 'height'];
+const PHOTO_NULLABLE: (keyof PhotoRow)[] = ['likes', 'width', 'height', 'mime'];
 const LOOKUP_NULLABLE: (keyof LookupRow)[] = ['userId', 'value', 'purpose', 'expiresAt', 'usedAt'];
 
 export const rk = {
@@ -416,7 +425,7 @@ export const importJobs = {
   },
 };
 
-const BOOK_ARRAYS: (keyof BookRow)[] = ['photoIds'];
+const BOOK_ARRAYS: (keyof BookRow)[] = ['photoIds', 'pages', 'layout'];
 export const books = {
   get: (userId: string, id: string) =>
     getOrNull<BookRow>(TABLE_ACCOUNTS, userId, rk.book(id), BOOK_NULLABLE, BOOK_ARRAYS),
@@ -443,7 +452,7 @@ export const books = {
   },
 };
 
-const ORDER_ARRAYS: (keyof OrderRow)[] = ['photoIds'];
+const ORDER_ARRAYS: (keyof OrderRow)[] = ['photoIds', 'pages', 'layout'];
 export const orders = {
   get: (userId: string, id: string) =>
     getOrNull<OrderRow>(TABLE_ACCOUNTS, userId, rk.order(id), ORDER_NULLABLE, ORDER_ARRAYS),

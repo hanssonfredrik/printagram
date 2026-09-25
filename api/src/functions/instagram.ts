@@ -229,12 +229,14 @@ function flatten(media: ig.IgMedia[]): PendingItem[] {
   return out;
 }
 
-async function makeThumb(orig: Buffer): Promise<Buffer> {
+async function makeThumb(orig: Buffer): Promise<{ thumb: Buffer; width: number; height: number }> {
   const { Jimp } = await import('jimp');
   const img = await Jimp.read(orig);
-  const scale = Math.min(1, 400 / Math.max(img.width, img.height));
-  if (scale < 1) img.resize({ w: Math.round(img.width * scale) });
-  return img.getBuffer('image/jpeg', { quality: 80 });
+  const width = img.width;
+  const height = img.height;
+  const scale = Math.min(1, 400 / Math.max(width, height));
+  if (scale < 1) img.resize({ w: Math.round(width * scale) });
+  return { thumb: await img.getBuffer('image/jpeg', { quality: 80 }), width, height };
 }
 
 /** Processes one bounded batch of an Instagram import; the client loops while `more` is true. */
@@ -312,6 +314,7 @@ route(
               carouselCount: it.carouselCount,
               width: null,
               height: null,
+              mime: it.isVideo ? null : 'image/jpeg',
               origBlob: it.isVideo ? '' : origBlobName(photoId),
               thumbBlob: it.isVideo ? '' : thumbBlobName(photoId),
               status: 'ready',
@@ -328,10 +331,10 @@ route(
             }
             try {
               const orig = await ig.fetchBytes(it.url);
-              const thumb = await makeThumb(orig);
+              const { thumb, width, height } = await makeThumb(orig);
               await uploadBuffer(cont, base.origBlob, orig, 'image/jpeg');
               await uploadBuffer(cont, base.thumbBlob, thumb, 'image/jpeg');
-              await photos.upsertMany([base]);
+              await photos.upsertMany([{ ...base, width, height }]);
               job.processed++;
             } catch (e) {
               ctx.warn(`import ${photoId} failed`, e);

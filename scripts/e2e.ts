@@ -1,17 +1,18 @@
 /**
  * Browser end-to-end run with headless Chromium (Playwright):
- * upload a real export ZIP → select → preview → checkout (mock pay) → done → download PDF.
+ * upload a real export ZIP → select → preview/arrange → checkout (test payment) → done → PDF.
  * Also captures screenshots of every screen into docs/screenshots.
  *
- *   APP_URL=http://localhost:5173 npx tsx scripts/e2e.ts        # mock mode (Vite dev)
- *   APP_URL=http://localhost:4280 npx tsx scripts/e2e.ts        # full stack (SWA CLI + Functions + Azurite)
+ * Runs against the local stack started by start-local.ps1 (SWA CLI + Functions + Azurite):
+ *   npx tsx scripts/e2e.ts                     # http://localhost:4280
+ *   APP_URL=https://… npx tsx scripts/e2e.ts   # a deployed environment in test-payment mode
  */
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { chromium, type Page } from 'playwright';
-import { PDFDocument } from 'pdf-lib';
+import { PDFArray, PDFDocument, PDFName } from 'pdf-lib';
 
-const APP = (process.env.APP_URL ?? 'http://localhost:5173').replace(/\/$/, '');
+const APP = (process.env.APP_URL ?? 'http://localhost:4280').replace(/\/$/, '');
 const shots = path.resolve('docs/screenshots');
 mkdirSync(shots, { recursive: true });
 const fixture = path.resolve('fixtures/instagram-fixture.zip');
@@ -98,25 +99,40 @@ async function main() {
   await page.getByText('Preview your book').waitFor();
   await page.getByText('Cover', { exact: true }).waitFor();
   await page.getByLabel('Next page').click();
+  await page.getByText('Title page').waitFor();
   await page.getByLabel('Next page').click();
-  await page.getByText('Page 2 of').waitFor();
+  await page.getByText(/Page 1 of/).waitFor();
   await shot(page, '08-preview');
+  // One photo per page, then back to the mixed layout.
+  await page.getByRole('tab', { name: 'One' }).click();
+  await page.getByText(/Page 1 of 5/).waitFor();
+  await page.getByRole('tab', { name: 'Mixed' }).click();
+  await page.getByRole('tab', { name: 'Arrange pages' }).click();
+  await shot(page, '08b-arrange');
+  await page.getByRole('tab', { name: 'Page by page' }).click();
   await page.getByLabel('Book title').fill('Fixture book · 2025');
+  const footer = await page.getByText(/\d+ pages · Square/).innerText();
+  const expectedPages = Number(/(\d+) pages/.exec(footer)![1]);
   await page.getByRole('button', { name: 'Checkout' }).click();
   await page.getByText('Choose a format').waitFor();
+  await page.getByText('Test payment — no money is taken').waitFor();
   await shot(page, '09-checkout');
-  ok('preview');
+  ok(`preview: density, arrange, ${expectedPages} pages`);
 
-  await page.getByPlaceholder('Card number').fill('4242 4242 4242 4242');
-  await page.getByPlaceholder('MM / YY').fill('12/30');
-  await page.getByPlaceholder('CVC').fill('123');
-  await page.getByPlaceholder('Name on card').fill('Mara Linde');
   await page.getByPlaceholder('Email').fill(EMAIL);
   await page.getByPlaceholder('Create a password (8+ characters)').fill('hunter2hunter2');
-  await page.getByRole('button', { name: /^Pay €9/ }).click();
+  await page.getByLabel(/4000 0000 0000 0002/).check();
+  await page.getByRole('button', { name: 'Place test order' }).click();
+  await page
+    .getByText(/declined/i)
+    .first()
+    .waitFor({ timeout: 20000 });
+  ok('test decline card shows the reason');
+  await page.getByLabel(/4242 4242 4242 4242/).check();
+  await page.getByRole('button', { name: 'Place test order' }).click();
   await page.getByText('Your book is ready').waitFor({ timeout: 120000 });
   await shot(page, '10-done');
-  ok('paid (mock) and PDF generated in the worker');
+  ok('paid (test card) and PDF generated in the worker');
 
   const [download] = await Promise.all([
     page.waitForEvent('download'),
@@ -128,12 +144,17 @@ async function main() {
   assert(bytes.subarray(0, 5).toString() === '%PDF-', 'pdf header');
   const doc = await PDFDocument.load(bytes);
   assert(
-    doc.getPageCount() === 6,
-    `page count ${doc.getPageCount()} (expected cover+title+3 photo pages+back)`,
+    doc.getPageCount() === expectedPages,
+    `page count ${doc.getPageCount()} (preview said ${expectedPages})`,
   );
-  const { width, height } = doc.getPage(0).getSize();
-  assert(Math.round(width) === 595 && Math.round(height) === 595, `page size ${width}x${height}`);
-  ok(`PDF: ${bytes.length} bytes, ${doc.getPageCount()} pages, 21×21 cm`);
+  const first = doc.getPage(0);
+  const trim = first.getTrimBox();
+  const media = first.getMediaBox();
+  // 210 mm trim + 4 mm bleed on each side.
+  assert(Math.round(trim.width) === 595 && Math.round(trim.height) === 595, `trim ${trim.width}`);
+  assert(Math.round(media.width) === 618 && Math.round(trim.x) === 11, `media ${media.width}`);
+  assert(doc.catalog.lookup(PDFName.of('OutputIntents'), PDFArray).size() === 1, 'OutputIntent');
+  ok(`PDF: ${bytes.length} bytes, ${doc.getPageCount()} pages, 21×21 cm trim + 4 mm bleed, sRGB`);
 
   await page.getByRole('button', { name: 'Share' }).click();
   await page.getByText('Link copied').waitFor();
@@ -146,10 +167,7 @@ async function main() {
   await page.getByRole('button', { name: 'Delete photos now' }).click();
   await page.getByText(/Delete 5 photos and/).waitFor();
   await page.getByRole('button', { name: 'Keep my photos' }).click();
-  await page.getByRole('button', { name: 'Reminder email' }).click();
-  await page.getByText('Your photos are deleted in 7 days').waitFor();
-  await shot(page, '12-reminder-email');
-  ok('delete confirmation + reminder email preview');
+  ok('delete confirmation');
 
   // Phone width
   await page.setViewportSize({ width: 390, height: 844 });
@@ -167,7 +185,8 @@ async function main() {
 
   const real = errors.filter(
     (e) =>
-      !/favicon|Download the React DevTools|fonts.googleapis|ERR_INTERNET_DISCONNECTED|net::ERR/.test(
+      // 402 is the intended response to the decline test card.
+      !/favicon|Download the React DevTools|fonts.googleapis|ERR_INTERNET_DISCONNECTED|net::ERR|status of 402/.test(
         e,
       ),
   );
@@ -177,7 +196,7 @@ async function main() {
   assert(real.length === 0, 'no page/console errors');
   writeFileSync(
     path.join(shots, 'README.md'),
-    '# Screenshots\n\nGenerated by `npx tsx scripts/e2e.ts` against the mock-mode dev server.\n',
+    '# Screenshots\n\nGenerated by `npx tsx scripts/e2e.ts` against the local stack (start-local.ps1).\n',
   );
   await browser.close();
   console.log('\nE2E passed.');

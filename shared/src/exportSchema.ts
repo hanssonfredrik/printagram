@@ -29,7 +29,7 @@ export interface RawPost {
 }
 
 export interface NormalizedMedia {
-  /** Stable id derived from the uri (sha-1 prefix in the API, plain uri hash in the browser). */
+  /** Stable id derived from the uri (64-bit hash), so re-importing the same export is idempotent. */
   key: string;
   uri: string;
   postKey: string;
@@ -113,8 +113,13 @@ export function isImageUri(uri: string): boolean {
 }
 
 /** Simple, fast, deterministic string hash (FNV-1a 32-bit) rendered as 8 hex chars. */
-export function fnv1a(str: string): string {
-  let h = 0x811c9dc5;
+/** 64-bit id from two independent FNV-1a passes: ~1 in 10^11 collision odds at 10 000 photos. */
+export function hash64(str: string): string {
+  return fnv1a(str) + fnv1a(str, 0x01000193 ^ 0x9e3779b9);
+}
+
+export function fnv1a(str: string, basis = 0x811c9dc5): string {
+  let h = basis >>> 0;
   for (let i = 0; i < str.length; i++) {
     h ^= str.charCodeAt(i);
     h = Math.imul(h, 0x01000193) >>> 0;
@@ -136,7 +141,7 @@ export function normalizePosts(posts: RawPost[]): NormalizedMedia[] {
       if (!m || typeof m.uri !== 'string') return;
       const ts = m.creation_timestamp ?? postTs;
       out.push({
-        key: `ex_${fnv1a(m.uri)}`,
+        key: `ex_${hash64(m.uri)}`,
         uri: m.uri,
         postKey,
         takenAt: new Date(ts * 1000).toISOString(),
