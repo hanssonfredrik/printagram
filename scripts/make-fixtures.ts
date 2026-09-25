@@ -108,6 +108,69 @@ async function main() {
       Buffer.from(await blob.arrayBuffer()),
     );
   }
+  // Multi-part export (Instagram splits big exports into several ZIPs):
+  // part 1 has the JSON, a JPEG and a HEIC file; part 2 has a PNG and the archived post's JPEG;
+  // one post points at a file that is in neither part.
+  {
+    const heic = new Uint8Array([
+      0, 0, 0, 24, 0x66, 0x74, 0x79, 0x70, 0x68, 0x65, 0x69, 0x63, 0, 0, 0, 0, 0x6d, 0x69, 0x66,
+      0x31, 0x68, 0x65, 0x69, 0x63,
+    ]);
+    const png = async () => {
+      const img = new Jimp({ width: 1080, height: 1350, color: 0x9fb8d6ff });
+      return new Uint8Array(await img.getBuffer('image/png'));
+    };
+    const multi = [
+      { uri: 'media/posts/202407/m1.jpg', t: ts(2024, 7, 1), title: 'Part one JPEG' },
+      { uri: 'media/posts/202407/m2.png', t: ts(2024, 7, 2), title: 'Part two PNG' },
+      { uri: 'media/posts/202407/m3.heic', t: ts(2024, 7, 3), title: 'HEIC photo' },
+      { uri: 'media/posts/202407/m4.jpg', t: ts(2024, 7, 4), title: 'Missing file' },
+    ];
+    const archived = [
+      {
+        media: [
+          {
+            uri: 'media/archived_posts/202406/a1.jpg',
+            creation_timestamp: ts(2024, 6, 1),
+            title: 'Archived',
+          },
+        ],
+      },
+    ];
+    const jsonPosts = multi.map((m) => ({
+      media: [{ uri: m.uri, creation_timestamp: m.t, title: m.title }],
+    }));
+
+    const part1 = new ZipWriter(new BlobWriter('application/zip'));
+    await part1.add(
+      'your_instagram_activity/media/posts_1.json',
+      new TextReader(JSON.stringify(jsonPosts)),
+    );
+    await part1.add(
+      'your_instagram_activity/media/archived_posts.json',
+      new TextReader(JSON.stringify(archived)),
+    );
+    await part1.add(
+      multi[0]!.uri,
+      new Uint8ArrayReader(await jpeg(1080, 1080, [190, 170, 150], 'm1')),
+    );
+    await part1.add(multi[2]!.uri, new Uint8ArrayReader(heic));
+    writeFileSync(
+      path.join(outDir, 'instagram-multi-part-1.zip'),
+      Buffer.from(await (await part1.close()).arrayBuffer()),
+    );
+
+    const part2 = new ZipWriter(new BlobWriter('application/zip'));
+    await part2.add(multi[1]!.uri, new Uint8ArrayReader(await png()));
+    await part2.add(
+      'media/archived_posts/202406/a1.jpg',
+      new Uint8ArrayReader(await jpeg(1080, 1080, [150, 180, 170], 'a1')),
+    );
+    writeFileSync(
+      path.join(outDir, 'instagram-multi-part-2.zip'),
+      Buffer.from(await (await part2.close()).arrayBuffer()),
+    );
+  }
   // HTML export
   {
     const writer = new ZipWriter(new BlobWriter('application/zip'));

@@ -183,6 +183,29 @@ async function main() {
   assert(!overflow, 'no horizontal scroll at phone width');
   ok('phone width renders without horizontal scroll');
 
+  // Multi-part export in a fresh session: both parts dropped together, with a HEIC photo,
+  // a post whose file is in neither part, and an archived post added on request.
+  {
+    const ctx2 = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const p2 = await ctx2.newPage();
+    p2.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
+    await p2.goto(APP + '/export/upload');
+    await p2.getByText('Drop the ZIP here').waitFor();
+    await p2.setInputFiles('input[type=file]', [
+      path.resolve('fixtures/instagram-multi-part-2.zip'),
+      path.resolve('fixtures/instagram-multi-part-1.zip'),
+    ]);
+    await p2.getByText('Found 2 photos from 2024').waitFor({ timeout: 60000 });
+    const notes = await p2.getByText(/Of the photos in your export/).innerText();
+    assert(/1 is in a part of the export/.test(notes), `missing note: ${notes}`);
+    assert(/1 uses a format we can't print/.test(notes), `unsupported note: ${notes}`);
+    await shot(p2, '06b-upload-multipart');
+    await p2.getByRole('button', { name: 'Add it too' }).click();
+    await p2.getByText('Added 1 new photo').waitFor({ timeout: 60000 });
+    await ctx2.close();
+    ok('multi-part export: both parts read, missing + HEIC reported, archived post added');
+  }
+
   const real = errors.filter(
     (e) =>
       // 402 is the intended response to the decline test card.

@@ -51,6 +51,8 @@ function fmtSize(bytes: number): string {
     : `${Math.max(1, Math.round(bytes / 1e6))} MB`;
 }
 
+const one = (n: number, singular: string, plural: string) => (n === 1 ? singular : plural);
+
 export function Upload() {
   const nav = useNavigate();
   const adding = useDraft((d) => d.adding);
@@ -146,12 +148,17 @@ export function Upload() {
   const notes: string[] = [];
   if (summary) {
     if (summary.alreadyThere > 0)
-      notes.push(`${summary.alreadyThere} were already in your library`);
+      notes.push(
+        `${summary.alreadyThere} ${one(summary.alreadyThere, 'was', 'were')} already in your library`,
+      );
     if (summary.missing > 0)
       notes.push(
-        `${summary.missing} are in a part of the export you didn't add — drop all the ZIP parts together`,
+        `${summary.missing} ${one(summary.missing, 'is', 'are')} in a part of the export you didn't add — drop all the ZIP parts together`,
       );
-    if (summary.unsupported > 0) notes.push(`${summary.unsupported} use a format we can't print`);
+    if (summary.unsupported > 0)
+      notes.push(
+        `${summary.unsupported} ${one(summary.unsupported, 'uses', 'use')} a format we can't print`,
+      );
     if (summary.failed > 0) notes.push(`${summary.failed} could not be read or uploaded`);
   }
 
@@ -295,9 +302,11 @@ export function Upload() {
                   <Button
                     size="sm"
                     variant="secondary"
-                    onClick={() => run(lastFiles.current, true, true)}
+                    // Not incremental: archived posts are usually older than the newest one
+                    // imported. Photos already in the library are still skipped.
+                    onClick={() => run(lastFiles.current, true, false)}
                   >
-                    Add them too
+                    {summary.archivedAvailable === 1 ? 'Add it too' : 'Add them too'}
                   </Button>
                 </div>
               </Banner>
