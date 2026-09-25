@@ -1,11 +1,55 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vitest/config';
+import { loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
 
-export default defineConfig(() => ({
+/**
+ * Search/social metadata that needs the public origin (VITE_SITE_URL, e.g. https://printagram.app):
+ * canonical + og:url + absolute og:image in index.html, and robots.txt / sitemap.xml in the build.
+ * Without it the build still works: relative og:image, robots.txt without a sitemap.
+ */
+function seo(siteUrl: string): Plugin {
+  const site = siteUrl.replace(/\/$/, '');
+  const pages = ['/'];
+  return {
+    name: 'printagram-seo',
+    transformIndexHtml(html) {
+      const image = `${site}/og-image.jpg`;
+      const tags = site
+        ? [
+            `<link rel="canonical" href="${site}/" />`,
+            `<meta property="og:url" content="${site}/" />`,
+          ].join('\n    ')
+        : '';
+      return html
+        .replace('<!-- seo -->', tags)
+        .replaceAll('%OG_IMAGE%', site ? image : '/og-image.jpg');
+    },
+    generateBundle() {
+      const robots = ['User-agent: *', 'Allow: /', 'Disallow: /api/', 'Disallow: /s/'];
+      if (site) robots.push('', `Sitemap: ${site}/sitemap.xml`);
+      this.emitFile({ type: 'asset', fileName: 'robots.txt', source: robots.join('\n') + '\n' });
+      if (site) {
+        const sitemap = [
+          '<?xml version="1.0" encoding="UTF-8"?>',
+          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+          ...pages.map((p) => `  <url><loc>${site}${p}</loc></url>`),
+          '</urlset>',
+        ];
+        this.emitFile({
+          type: 'asset',
+          fileName: 'sitemap.xml',
+          source: sitemap.join('\n') + '\n',
+        });
+      }
+    },
+  };
+}
+
+export default defineConfig(({ mode }) => ({
   // Tests swap the real API client for an in-memory test double (src/test/fakeApi.ts).
-  plugins: [react()],
+  plugins: [react(), seo(loadEnv(mode, process.cwd(), 'VITE_').VITE_SITE_URL ?? '')],
   resolve: {
     alias: {
       '@printagram/shared': fileURLToPath(new URL('../shared/src/index.ts', import.meta.url)),

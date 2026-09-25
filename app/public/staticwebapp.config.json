@@ -5,7 +5,7 @@
   },
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/api/*", "/assets/*", "/*.{ico,png,svg,txt,webmanifest,json,woff2}"]
+    "exclude": ["/api/*", "/assets/*", "/fonts/*", "/icc/*", "/samples/*", "/*.{ico,png,jpg,svg,txt,xml,webmanifest,json,woff2}"]
   },
   "routes": [
     { "route": "/.auth/*", "statusCode": 404 },

@@ -1,9 +1,10 @@
 import { useNavigate } from 'react-router';
 import { fmtEuro } from '@printagram/shared';
-import { Button, Placeholder, Card } from '@/components/ui';
+import { Button, Card } from '@/components/ui';
+import { PageRenderer } from '@/components/PageRenderer';
 import { useConfig, useSession } from '@/state/session';
 import { useDraft } from '@/state/draft';
-import { artGradient } from '@/components/art';
+import { SAMPLE_BY_ID, SAMPLE_PHOTOS, SAMPLE_SPREADS } from './samples';
 import s from './landing.module.css';
 
 const FAQ: { q: string; a: string }[] = [
@@ -33,11 +34,11 @@ const FAQ: { q: string; a: string }[] = [
   },
   {
     q: 'Can I edit the layout?',
-    a: 'You choose the photos, cover, title, format and whether captions appear. The page layout is automatic so it always prints cleanly.',
+    a: 'Yes. We lay the pages out for you, then you can pick a layout per page (one photo, two, three or four, or full‑bleed), drag photos between pages, add text pages and choose the cover, title, format and captions. The preview is exactly what prints.',
   },
 ];
 
-const PHONE_TILES = [0, 1, 2, 3, 0, 1, 2, 3, 0, 1, 2, 3];
+const PHONE_TILES = [...SAMPLE_PHOTOS, ...SAMPLE_PHOTOS].slice(0, 12);
 
 export function Landing() {
   const nav = useNavigate();
@@ -49,11 +50,29 @@ export function Landing() {
     nav('/start');
   };
   const signedIn = user?.authLevel === 'password' || user?.authLevel === 'email';
+  const testMode = cfg.payment.provider === 'fake';
+  const sampleProps = {
+    format: 'square' as const,
+    title: 'Our year · 2025',
+    dateSpan: 'Jan – Nov 2025',
+    photoCount: 84,
+    cover: SAMPLE_BY_ID.get('sunset') ?? null,
+    photosById: SAMPLE_BY_ID,
+    showMeta: true,
+    showLikes: false,
+  };
 
   return (
     <div className="screen">
       <header className={s.header}>
-        <span className="brand">Printagram</span>
+        <div className="row gap-8">
+          <span className="brand">Printagram</span>
+          {testMode && (
+            <span className={s.testPill} title="Payments are simulated. No money is taken.">
+              Test mode
+            </span>
+          )}
+        </div>
         <div className="row gap-8">
           {signedIn ? (
             <Button variant="ghost" size="md" onClick={() => nav('/books')}>
@@ -64,7 +83,7 @@ export function Landing() {
               Sign in
             </Button>
           )}
-          <Button size="md" onClick={start}>
+          <Button size="md" onClick={start} className={s.headerCta}>
             Start your book
           </Button>
         </div>
@@ -74,8 +93,8 @@ export function Landing() {
         <div className="stack stack-20">
           <h1 className="h1">Your Instagram, as a real book.</h1>
           <p className={s.lead}>
-            Pick the photos, we lay out the pages. A year, a trip, a first year — bound and printed,
-            or a PDF you keep forever.
+            Pick the photos, we lay out the pages. A year, a trip, a first year — as a print‑ready
+            PDF you keep forever. Printed books are coming soon.
           </p>
           <div className="row row-wrap gap-12">
             <Button size="xl" onClick={start}>
@@ -91,13 +110,16 @@ export function Landing() {
         </div>
         <div className={s.art} aria-hidden="true">
           <div className={s.book}>
-            <Placeholder className={s.bookCover}>cover photo</Placeholder>
-            <div className={s.bookTitle}>Our year · 2025</div>
+            <PageRenderer
+              page={{ type: 'cover', index: 0 }}
+              {...sampleProps}
+              className={s.bookPage}
+            />
           </div>
           <div className={s.phone}>
             <div className={s.phoneScreen}>
-              {PHONE_TILES.map((h, i) => (
-                <div key={i} style={{ background: artGradient(h) }} />
+              {PHONE_TILES.map((p, i) => (
+                <img key={i} src={p.thumbUrl} alt="" />
               ))}
             </div>
           </div>
@@ -136,46 +158,25 @@ export function Landing() {
           Sample spreads
         </h2>
         <p className="muted" style={{ marginBottom: 28 }}>
-          Clean layouts, one or two photos per page, captions if you want them.
+          Real pages from the layout engine: one to four photos per page, full‑bleed or framed, text
+          pages, captions if you want them.
         </p>
         <div className="grid-auto grid-auto--300" style={{ gap: 20 }}>
-          <div className="stack stack-10">
-            <div className={s.spread}>
-              <div className={`${s.page} ${s['page--left']}`}>
-                <div className={s.fill} style={{ background: artGradient(0) }} />
+          {SAMPLE_SPREADS.map((sp) => (
+            <div key={sp.label} className="stack stack-10">
+              <div className={s.spread} aria-hidden="true">
+                {sp.pages.map((pg, k) => (
+                  <PageRenderer
+                    key={k}
+                    page={pg}
+                    {...sampleProps}
+                    className={`${s.spreadPage} ${k === 0 ? s['page--left'] : s['page--right']}`}
+                  />
+                ))}
               </div>
-              <div className={`${s.page} ${s['page--right']}`}>
-                <div className={s.fill} style={{ background: artGradient(1) }} />
-                <div className={s.pageCaption}>Lisbon, March</div>
-              </div>
+              <div className="small muted">{sp.label}</div>
             </div>
-            <div className="small muted">A trip</div>
-          </div>
-          <div className="stack stack-10">
-            <div className={s.spread}>
-              <div className={`${s.page} ${s['page--left']} ${s['page--split']}`}>
-                <div style={{ background: artGradient(3), borderRadius: 3 }} />
-                <div style={{ background: artGradient(2), borderRadius: 3 }} />
-              </div>
-              <div className={`${s.page} ${s['page--right']}`}>
-                <div className={s.fill} style={{ background: artGradient(0) }} />
-              </div>
-            </div>
-            <div className="small muted">A first year</div>
-          </div>
-          <div className="stack stack-10">
-            <div className={s.spread}>
-              <div className={`${s.page} ${s['page--left']} ${s['page--text']}`}>
-                2025
-                <br />
-                in 84 photos
-              </div>
-              <div className={`${s.page} ${s['page--right']}`}>
-                <div className={s.fill} style={{ background: artGradient(1) }} />
-              </div>
-            </div>
-            <div className="small muted">A year in review</div>
-          </div>
+          ))}
         </div>
       </section>
 
@@ -198,13 +199,13 @@ export function Landing() {
           </Card>
           <Card bordered gap={6} className={s.priceCard}>
             <div className="semibold">Softcover book</div>
-            <div className={s.price}>from €29</div>
+            <div className={s.price}>from {fmtEuro(cfg.pricing.printedFrom.softcoverCents)}</div>
             <div className="muted">Printed and shipped to your door.</div>
             <div className={`${s.priceNote} muted`}>Coming soon</div>
           </Card>
           <Card bordered gap={6} className={s.priceCard}>
             <div className="semibold">Hardcover book</div>
-            <div className={s.price}>from €49</div>
+            <div className={s.price}>from {fmtEuro(cfg.pricing.printedFrom.hardcoverCents)}</div>
             <div className="muted">Linen‑wrapped, lay‑flat pages.</div>
             <div className={`${s.priceNote} muted`}>Coming soon</div>
           </Card>
