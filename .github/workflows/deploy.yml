@@ -34,7 +34,21 @@ jobs:
           npm run test -w shared
           npm run test -w app
 
+      - name: API route tests (Azurite)
+        env:
+          REQUIRE_AZURITE: '1'
+        run: |
+          npx azurite --silent --inMemoryPersistence --skipApiVersionCheck --loose --blobPort 10000 --queuePort 10001 --tablePort 10002 &
+          node scripts/wait-for.mjs tcp:127.0.0.1:10002 --timeout 60
+          npm run test -w api
+
+      - name: Print-ready PDF check
+        run: npx tsx scripts/pdf-check.ts /tmp/pdf-check.pdf
+
       - name: Build app
+        env:
+          # Public origin for canonical/og:url/sitemap (repository variable, optional).
+          VITE_SITE_URL: ${{ vars.SITE_URL }}
         run: npm run build -w app
 
       - name: Build API (esbuild bundle + production node_modules)
