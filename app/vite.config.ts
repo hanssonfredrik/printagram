@@ -3,17 +3,14 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
 
-export default defineConfig(({ mode }) => ({
+export default defineConfig(() => ({
+  // Tests swap the real API client for an in-memory test double (src/test/fakeApi.ts).
   plugins: [react()],
   resolve: {
     alias: {
       '@printagram/shared': fileURLToPath(new URL('../shared/src/index.ts', import.meta.url)),
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
-  },
-  define: {
-    // "real" mode talks to /api (served by the SWA CLI on :4280 or by Azure).
-    __API_MODE__: JSON.stringify(mode === 'real' || mode === 'production' ? 'real' : 'mock'),
   },
   server: {
     port: 5173,
@@ -50,6 +47,7 @@ export default defineConfig(({ mode }) => ({
     globals: false,
     include: ['src/**/*.test.{ts,tsx}'],
     setupFiles: ['./src/test-setup.ts'],
+    alias: [{ find: /^@\/services$/, replacement: fileURLToPath(new URL('./src/test/services.ts', import.meta.url)) }],
     css: { modules: { classNameStrategy: 'non-scoped' } },
   },
 }));

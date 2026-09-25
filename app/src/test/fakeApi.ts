@@ -18,7 +18,7 @@ import {
   type PdfUploadTarget,
   type RegisterResult,
   type ShareInfo,
-} from './api';
+} from '@/services/api';
 import { makeDemoPhotos } from './demoData';
 
 /** Toggles driven by the dev-only Demo bar (mirrors the design prototype's demo controls). */

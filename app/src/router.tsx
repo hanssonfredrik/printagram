@@ -14,7 +14,6 @@ import { SignIn } from './routes/auth/SignIn';
 import { ReturnLink } from './routes/auth/ReturnLink';
 import { ResetPassword } from './routes/auth/ResetPassword';
 import { Books } from './routes/books/Books';
-import { EmailPreview } from './routes/email/EmailPreview';
 import { Share } from './routes/share/Share';
 import { NotFound } from './routes/NotFound';
 
@@ -38,7 +37,6 @@ export const router = createBrowserRouter([
       { path: 'r/:token', element: <ReturnLink /> },
       { path: 'reset/:token', element: <ResetPassword /> },
       { path: 'books', element: <Books /> },
-      { path: 'email-preview', element: <EmailPreview /> },
       { path: 's/:token', element: <Share /> },
       { path: '*', element: <NotFound /> },
     ],

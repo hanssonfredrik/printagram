@@ -14,12 +14,11 @@ import {
   StepCard,
 } from '@/components/ui';
 import { FlowProgress } from '@/components/Progress';
-import { api, API_MODE } from '@/services';
-import { mockFlags } from '@/services/api.mock';
+import { api } from '@/services';
 import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
 import { useLibrary } from '@/state/library';
-import { demoCssGradient, DEMO_HUES } from '@/services/demoData';
+import { artGradient } from '@/components/art';
 
 type Conn = 'idle' | 'waiting' | 'error' | 'importing' | 'done';
 
@@ -172,29 +171,12 @@ export function Connect() {
     return () => window.clearTimeout(t);
   }, [params, setParams, runImport]);
 
-  const resolveMock = useCallback(
-    (kind: 'ok' | 'personal' | 'denied') => {
-      timers.current.forEach((t) => window.clearTimeout(t));
-      if (kind !== 'ok') {
-        setErr(kind);
-        setConn('error');
-        return;
-      }
-      void runImport(null);
-    },
-    [runImport],
-  );
-
   const startConnect = async () => {
     setErr(null);
     setConn('waiting');
     try {
       await ensureSession();
       const url = await api.instagramStartUrl();
-      if (API_MODE === 'mock' || url.startsWith('mock:')) {
-        timers.current.push(window.setTimeout(() => resolveMock(mockFlags.connectOutcome), 2800));
-        return;
-      }
       // Real OAuth: full-page redirect (the cookie session survives the round trip).
       window.location.assign(url);
     } catch (e) {
@@ -334,23 +316,6 @@ export function Connect() {
                 Nothing opened? Open Instagram again
               </button>
             </Card>
-            {API_MODE === 'mock' && (
-              <div
-                className="row row-wrap gap-6 micro muted"
-                style={{ paddingTop: 8, borderTop: '1px solid var(--border)' }}
-              >
-                Demo — simulate Instagram's answer:
-                <Button size="xs" variant="secondary" onClick={() => resolveMock('ok')}>
-                  Allowed
-                </Button>
-                <Button size="xs" variant="secondary" onClick={() => resolveMock('personal')}>
-                  Personal account
-                </Button>
-                <Button size="xs" variant="secondary" onClick={() => resolveMock('denied')}>
-                  Cancelled
-                </Button>
-              </div>
-            )}
           </>
         )}
 
@@ -389,7 +354,7 @@ export function Connect() {
                   width: 48,
                   height: 48,
                   borderRadius: '50%',
-                  background: demoCssGradient(DEMO_HUES[3]!),
+                  background: artGradient(3),
                   flex: 'none',
                 }}
               />

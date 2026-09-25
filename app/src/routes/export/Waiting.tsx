@@ -5,7 +5,7 @@ import { FlowProgress } from '@/components/Progress';
 import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
 import { api } from '@/services';
-import { demoCssGradient, DEMO_HUES } from '@/services/demoData';
+import { artGradient } from '@/components/art';
 
 export function Waiting() {
   const nav = useNavigate();
@@ -149,7 +149,7 @@ export function Waiting() {
                   width: 36,
                   height: 36,
                   borderRadius: 4,
-                  background: demoCssGradient(DEMO_HUES[0]!),
+                  background: artGradient(0),
                 }}
               />
               <div className="micro muted">Any cover photo</div>

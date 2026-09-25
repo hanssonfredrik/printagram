@@ -1,8 +1,6 @@
 import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router';
 import { useSession } from '@/state/session';
-import { DemoBar } from '@/components/DemoBar';
-import { DEMO_ENABLED } from '@/state/demo';
 
 export function AppShell() {
   const init = useSession((s) => s.init);
@@ -19,10 +17,5 @@ export function AppShell() {
 
   if (!ready) return null;
 
-  return (
-    <>
-      <Outlet />
-      {DEMO_ENABLED && <DemoBar />}
-    </>
-  );
+  return <Outlet />;
 }

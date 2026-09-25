@@ -2,7 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testi
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { router as appRouter } from '@/router';
-import { resetMockState, seedDemoExportLibrary, mockFlags } from '@/services/api.mock';
+import { resetMockState, seedDemoExportLibrary, mockFlags } from '@/test/fakeApi';
 import { useDraft } from '@/state/draft';
 import { useLibrary } from '@/state/library';
 import { useSession } from '@/state/session';
@@ -82,17 +82,17 @@ describe('screens (mock mode)', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Not sure' }));
     expect(await screen.findByText('A quick way to check')).toBeTruthy();
     fireEvent.click(screen.getByText("I see the button — it's Professional"));
-    fireEvent.click(await screen.findByText('Continue with Instagram'));
-    expect(await screen.findByText('Waiting for Instagram…')).toBeTruthy();
-    fireEvent.click(screen.getAllByRole('button', { name: 'Personal account' })[0]!);
+    expect(await screen.findByText('Continue with Instagram')).toBeTruthy();
+  });
+
+  it('connect: returning from Instagram with an error shows next steps', async () => {
+    renderAt('/connect?error=personal');
     expect(await screen.findByText("Instagram didn't let us connect")).toBeTruthy();
     expect(screen.getByText('Show me how to switch')).toBeTruthy();
   });
 
   it('connect: allowed → import progress → found photos', async () => {
-    const { router } = renderAt('/connect');
-    fireEvent.click(await screen.findByText('Continue with Instagram'));
-    fireEvent.click(await screen.findByText('Allowed'));
+    const { router } = renderAt('/connect?connected=1');
     expect(await screen.findByText('Copying your posts…')).toBeTruthy();
     expect(
       await screen.findByText(/Found \d+ photos from 2023–2025/, {}, { timeout: 15000 }),
@@ -102,19 +102,10 @@ describe('screens (mock mode)', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe('/select'));
   }, 20000);
 
-  it('upload: demo ZIP simulation and error states', async () => {
+  it('upload: shows the drop zone', async () => {
     renderAt('/export/upload');
-    fireEvent.click(await screen.findByText('HTML export'));
-    expect(
-      await screen.findByText('This export is in HTML format', {}, { timeout: 8000 }),
-    ).toBeTruthy();
-    fireEvent.click(screen.getByText('Too large'));
-    expect(await screen.findByText('File is too large')).toBeTruthy();
-    fireEvent.click(screen.getByText('Good ZIP'));
-    expect(
-      await screen.findByText(/Found \d+ photos from 2023–2025/, {}, { timeout: 8000 }),
-    ).toBeTruthy();
-  }, 20000);
+    expect(await screen.findByText('Drop the ZIP here')).toBeTruthy();
+  });
 
   it('select: grouping, filters, choose mode and footer price', async () => {
     const { photos } = await seedLibraryAndDraft();
@@ -247,12 +238,5 @@ describe('screens (mock mode)', () => {
     expect(within(dialog).getByText(/Delete \d+ photos and 1 draft\?/)).toBeTruthy();
     fireEvent.click(within(dialog).getByText('Keep my photos'));
     expect(await screen.findByText('New book from these photos')).toBeTruthy();
-  });
-
-  it('reminder email preview renders with the library count', async () => {
-    await seedLibraryAndDraft();
-    renderAt('/email-preview');
-    expect(await screen.findByText('Your photos are deleted in 7 days')).toBeTruthy();
-    expect(screen.getByText(/Still want your \d+ photos\?/)).toBeTruthy();
   });
 });

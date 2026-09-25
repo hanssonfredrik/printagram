@@ -4,7 +4,7 @@ import type { LibrarySummary, Order } from '@printagram/shared';
 import { fmtDate, fmtSpan } from '@printagram/shared';
 import { Banner, Button, Card, ProgressBar } from '@/components/ui';
 import { CoverThumb } from '@/components/PageRenderer';
-import { api, API_MODE } from '@/services';
+import { api } from '@/services';
 import { generatePdf, downloadBytes, slugify } from '@/services/pdf';
 import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
@@ -237,9 +237,7 @@ export function Done() {
               </h2>
               <p className="muted">
                 {order?.pageCount} pages, {formatLabel}.{' '}
-                {API_MODE === 'real'
-                  ? `We also sent the link to ${emailShown}.`
-                  : `We'll also email the link to ${emailShown}.`}
+                {`We also sent the link to ${emailShown}.`}
               </p>
             </div>
             <Button block size="xl" onClick={download}>

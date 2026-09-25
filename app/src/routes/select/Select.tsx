@@ -20,7 +20,6 @@ import {
 import { chosenPhotos, useDraft, visiblePhotos } from '@/state/draft';
 import { useLibrary } from '@/state/library';
 import { useConfig, useSession } from '@/state/session';
-import { useDemo } from '@/state/demo';
 import s from './select.module.css';
 
 export function Select() {
@@ -29,7 +28,6 @@ export function Select() {
   const d = useDraft();
   const lib = useLibrary();
   const libraries = useSession((x) => x.libraries);
-  const demoEmpty = useDemo((x) => x.empty);
 
   // Resolve which library to show: the draft's, else the most recent one.
   const targetId = d.libraryId ?? libraries[0]?.id ?? null;
@@ -45,7 +43,7 @@ export function Select() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetId]);
 
-  const photos = useMemo(() => (demoEmpty ? [] : lib.photos), [demoEmpty, lib.photos]);
+  const photos = lib.photos;
   const hasLikes = lib.library?.hasLikes ?? d.source === 'connect';
   const monthKeys = useMemo(
     () => [...new Set(photos.map((p) => monthKey(p.year, p.month)))].sort(),

@@ -3,7 +3,7 @@ import { fmtEuro } from '@printagram/shared';
 import { Button, Placeholder, Card } from '@/components/ui';
 import { useConfig, useSession } from '@/state/session';
 import { useDraft } from '@/state/draft';
-import { demoCssGradient, DEMO_HUES } from '@/services/demoData';
+import { artGradient } from '@/components/art';
 import s from './landing.module.css';
 
 const FAQ: { q: string; a: string }[] = [
@@ -97,7 +97,7 @@ export function Landing() {
           <div className={s.phone}>
             <div className={s.phoneScreen}>
               {PHONE_TILES.map((h, i) => (
-                <div key={i} style={{ background: demoCssGradient(DEMO_HUES[h]!) }} />
+                <div key={i} style={{ background: artGradient(h) }} />
               ))}
             </div>
           </div>
@@ -139,10 +139,10 @@ export function Landing() {
           <div className="stack stack-10">
             <div className={s.spread}>
               <div className={`${s.page} ${s['page--left']}`}>
-                <div className={s.fill} style={{ background: demoCssGradient(DEMO_HUES[0]!) }} />
+                <div className={s.fill} style={{ background: artGradient(0) }} />
               </div>
               <div className={`${s.page} ${s['page--right']}`}>
-                <div className={s.fill} style={{ background: demoCssGradient(DEMO_HUES[1]!) }} />
+                <div className={s.fill} style={{ background: artGradient(1) }} />
                 <div className={s.pageCaption}>Lisbon, March</div>
               </div>
             </div>
@@ -151,11 +151,11 @@ export function Landing() {
           <div className="stack stack-10">
             <div className={s.spread}>
               <div className={`${s.page} ${s['page--left']} ${s['page--split']}`}>
-                <div style={{ background: demoCssGradient(DEMO_HUES[3]!), borderRadius: 3 }} />
-                <div style={{ background: demoCssGradient(DEMO_HUES[2]!), borderRadius: 3 }} />
+                <div style={{ background: artGradient(3), borderRadius: 3 }} />
+                <div style={{ background: artGradient(2), borderRadius: 3 }} />
               </div>
               <div className={`${s.page} ${s['page--right']}`}>
-                <div className={s.fill} style={{ background: demoCssGradient(DEMO_HUES[0]!) }} />
+                <div className={s.fill} style={{ background: artGradient(0) }} />
               </div>
             </div>
             <div className="small muted">A first year</div>
@@ -168,7 +168,7 @@ export function Landing() {
                 in 84 photos
               </div>
               <div className={`${s.page} ${s['page--right']}`}>
-                <div className={s.fill} style={{ background: demoCssGradient(DEMO_HUES[1]!) }} />
+                <div className={s.fill} style={{ background: artGradient(1) }} />
               </div>
             </div>
             <div className="small muted">A year in review</div>

@@ -4,7 +4,6 @@ import { buildPages, fmtSpan, pageCount, price, type Page } from '@printagram/sh
 import { chosenPhotos, useDraft, visiblePhotos } from './draft';
 import { useLibrary } from './library';
 import { useConfig, useSession } from './session';
-import { useDemo } from './demo';
 
 export interface BookView {
   ready: boolean;
@@ -25,7 +24,6 @@ export function useBook(): BookView {
   const lib = useLibrary();
   const cfg = useConfig();
   const libraries = useSession((x) => x.libraries);
-  const demoEmpty = useDemo((x) => x.empty);
   const targetId = d.libraryId ?? libraries[0]?.id ?? null;
 
   useEffect(() => {
@@ -34,7 +32,7 @@ export function useBook(): BookView {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [targetId]);
 
-  const photos = useMemo(() => (demoEmpty ? [] : lib.photos), [demoEmpty, lib.photos]);
+  const photos = lib.photos;
   const hasLikes = lib.library?.hasLikes ?? d.source === 'connect';
 
   return useMemo(() => {

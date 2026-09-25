@@ -3,12 +3,11 @@ import { useNavigate } from 'react-router';
 import type { UploadErrorKind } from '@printagram/shared';
 import { Banner, Button, Card, ProgressBar, ScreenHeader, Spinner } from '@/components/ui';
 import { FlowProgress } from '@/components/Progress';
-import { api, API_MODE } from '@/services';
+import { api } from '@/services';
 import { ExportImportError, importExportZip, type ImportSummary } from '@/services/exportImport';
 import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
 import { useLibrary } from '@/state/library';
-import { seedDemoExportLibrary } from '@/services/api.mock';
 import s from './upload.module.css';
 
 type Up = 'idle' | 'uploading' | 'processing' | 'done';
@@ -118,46 +117,6 @@ export function Upload() {
       setErr(e instanceof ExportImportError ? e.kind : 'generic');
       setUp('idle');
     }
-  };
-
-  /** Demo shortcut (mock mode): fakes a ZIP upload with seeded photos, as in the design prototype. */
-  const simulate = async (kind: UploadErrorKind | 'ok') => {
-    const name = kind === 'html' ? 'instagram-mara-html.zip' : 'instagram-mara-2026-09-14.zip';
-    setFileName(name);
-    setFileSize('1.4 GB');
-    setErr(null);
-    if (kind === 'large') {
-      setErr('large');
-      return;
-    }
-    setUp('uploading');
-    for (let p = 0; p < 100; p += 4 + Math.random() * 10) {
-      setPct(Math.min(100, Math.round(p)));
-      await new Promise((r) => setTimeout(r, 90));
-    }
-    setPct(100);
-    setUp('processing');
-    await new Promise((r) => setTimeout(r, 1200));
-    if (kind !== 'ok') {
-      setErr(kind);
-      setUp('idle');
-      return;
-    }
-    await ensureSession();
-    const finished = seedDemoExportLibrary(name, adding);
-    const demo = await api.listPhotos(finished.id);
-    const stills = demo.filter((p) => !p.isVideo);
-    const years = [...new Set(demo.map((p) => p.year))].sort();
-    await finish({
-      library: finished,
-      photos: stills.length,
-      posts: new Set(demo.map((p) => p.postId)).size,
-      carousels: new Set(demo.filter((p) => p.carouselCount > 1).map((p) => p.postId)).size,
-      videos: demo.length - stills.length,
-      years: years.length > 1 ? `${years[0]}–${years[years.length - 1]}` : String(years[0] ?? ''),
-      skipped: adding ? Math.max(0, stills.length - 38) : 0,
-      fileName: name,
-    });
   };
 
   const onDrop = (e: DragEvent<HTMLLabelElement>) => {
@@ -301,29 +260,6 @@ export function Upload() {
           </span>
         </div>
 
-        {up === 'idle' && API_MODE === 'mock' && (
-          <div
-            className="row row-wrap gap-6 micro muted"
-            style={{ paddingTop: 8, borderTop: '1px solid var(--border)' }}
-          >
-            Demo — simulate:
-            <Button size="xs" variant="secondary" onClick={() => simulate('ok')}>
-              Good ZIP
-            </Button>
-            <Button size="xs" variant="secondary" onClick={() => simulate('html')}>
-              HTML export
-            </Button>
-            <Button size="xs" variant="secondary" onClick={() => simulate('empty')}>
-              No posts
-            </Button>
-            <Button size="xs" variant="secondary" onClick={() => simulate('corrupt')}>
-              Corrupted
-            </Button>
-            <Button size="xs" variant="secondary" onClick={() => simulate('large')}>
-              Too large
-            </Button>
-          </div>
-        )}
       </div>
     </div>
   );
