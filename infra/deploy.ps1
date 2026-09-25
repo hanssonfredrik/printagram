@@ -9,7 +9,7 @@
 
 .EXAMPLE
   # With Stripe + Resend configured
-  ./infra/deploy.ps1 -ResourceGroup printagram-rg -StripeSecretKey sk_live_... -StripePublishableKey pk_live_... -StripeWebhookSecret whsec_... -ResendApiKey re_... -EmailFrom "Printagram <hello@printagram.app>"
+  ./infra/deploy.ps1 -ResourceGroup printagram-rg -PaymentProvider stripe -StripeSecretKey sk_live_... -StripePublishableKey pk_live_... -StripeWebhookSecret whsec_... -ResendApiKey re_... -EmailFrom "Printagram <hello@printagram.app>"
 #>
 [CmdletBinding()]
 param(
@@ -21,6 +21,7 @@ param(
   [string] $AppBaseUrl = '',
   [string[]] $ExtraCorsOrigins = @(),
   [switch] $ConnectEnabled,
+  [ValidateSet('fake', 'stripe')] [string] $PaymentProvider = 'fake',
   [string] $StripeSecretKey = '',
   [string] $StripePublishableKey = '',
   [string] $StripeWebhookSecret = '',
@@ -54,7 +55,7 @@ $params = @{
   env = $Env; baseName = $BaseName; swaLocation = $SwaLocation; appBaseUrl = $AppBaseUrl
   extraCorsOrigins = $ExtraCorsOrigins; connectEnabled = [bool]$ConnectEnabled
   authJwtSecret = $secrets.authJwtSecret; tokenEncKey = $secrets.tokenEncKey; cronSecret = $secrets.cronSecret
-  stripeSecretKey = $StripeSecretKey; stripePublishableKey = $StripePublishableKey; stripeWebhookSecret = $StripeWebhookSecret
+  paymentProvider = $PaymentProvider; stripeSecretKey = $StripeSecretKey; stripePublishableKey = $StripePublishableKey; stripeWebhookSecret = $StripeWebhookSecret
   resendApiKey = $ResendApiKey; emailFrom = $EmailFrom; igAppId = $IgAppId; igAppSecret = $IgAppSecret
 }
 $paramFile = Join-Path $env:TEMP "printagram-params-$Env.json"

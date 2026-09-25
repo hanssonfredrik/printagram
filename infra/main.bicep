@@ -40,6 +40,10 @@ param tokenEncKey string
 @secure()
 param cronSecret string
 @secure()
+@description('Payment provider: fake (test payments, no money taken) or stripe (needs the three Stripe keys).')
+@allowed(['fake', 'stripe'])
+param paymentProvider string = 'fake'
+
 param stripeSecretKey string = ''
 param stripePublishableKey string = ''
 @secure()
@@ -164,10 +168,14 @@ resource swaSettings 'Microsoft.Web/staticSites/config@2023-12-01' = {
     REMINDER_DAYS_BEFORE: '7'
     MAX_PHOTOS_PER_LIBRARY: '10000'
     MAX_PHOTOS_PER_BOOK: '600'
+    PRICE_SOFTCOVER_FROM_CENTS: '2900'
+    PRICE_HARDCOVER_FROM_CENTS: '4900'
+    PRINT_BLEED_MM: '4'
     FEATURE_CONNECT_ENABLED: connectEnabled ? 'true' : 'false'
     IG_APP_ID: igAppId
     IG_APP_SECRET: igAppSecret
     IG_REDIRECT_URI: '${resolvedAppBaseUrl}/api/instagram/callback'
+    PAYMENT_PROVIDER: paymentProvider
     STRIPE_SECRET_KEY: stripeSecretKey
     STRIPE_PUBLISHABLE_KEY: stripePublishableKey
     STRIPE_WEBHOOK_SECRET: stripeWebhookSecret

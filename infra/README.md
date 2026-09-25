@@ -31,7 +31,10 @@ They are set by the Bicep deployment; change them in the portal or redeploy with
 | `APP_BASE_URL` | Public URL used in emails and OAuth redirects |
 | `STORAGE_CONNECTION_STRING` | Storage account (key-based; managed Functions have no managed identity) |
 | `AUTH_JWT_SECRET`, `TOKEN_ENC_KEY`, `CRON_SECRET` | Session signing, Instagram token encryption at rest, cron endpoint key |
-| `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` | Payments; when empty the API runs in mock-payment mode |
+| `PAYMENT_PROVIDER` | `fake` (default: test cards, no money taken) or `stripe`. Never inferred from the keys |
+| `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET` | Required when `PAYMENT_PROVIDER=stripe` |
+| `PRINT_BLEED_MM` | Bleed added around every PDF page (default 4; 3 for Cloudprinter) |
+| `PRICE_SOFTCOVER_FROM_CENTS`, `PRICE_HARDCOVER_FROM_CENTS` | "From" prices shown for printed books (coming soon) |
 | `EMAIL_PROVIDER` (`console`/`resend`), `RESEND_API_KEY`, `EMAIL_FROM` | Transactional email |
 | `FEATURE_CONNECT_ENABLED`, `IG_APP_ID`, `IG_APP_SECRET`, `IG_REDIRECT_URI` | Instagram connect (needs Meta App Review) |
 | `PRICE_*`, `LIBRARY_RETENTION_DAYS`, `REMINDER_DAYS_BEFORE`, `MAX_PHOTOS_*` | Product rules |

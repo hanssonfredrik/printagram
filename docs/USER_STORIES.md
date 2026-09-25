@@ -4,8 +4,8 @@ Status legend
 
 | Status | Meaning |
 | --- | --- |
-| ✅ UI | Implemented in the clickable app (mock mode and real mode) |
-| ✅ API | Implemented in the managed Functions backend and covered by `scripts/smoke.ts` / `scripts/e2e.ts` |
+| ✅ UI | Implemented in the app, running against the real API (locally on Azurite via `start-local.ps1`) |
+| ✅ API | Implemented in the managed Functions backend and covered by `api/test/routes.test.ts`, `scripts/smoke.ts` and/or `scripts/e2e.ts` |
 | 🟡 Partial | Built but blocked on an external prerequisite (noted) |
 | ⬜ Future | Specified, not built |
 
@@ -17,18 +17,19 @@ Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
-| 1.1 | As a visitor I want to understand what Printagram does in 10 seconds so I decide whether to start. | Hero headline, sub-line, primary CTA "Start your book", "PDF from €9". | ✅ UI |
+| 1.1 | As a visitor I want to understand what Printagram does in 10 seconds so I decide whether to start. | Hero headline, sub-line that promises a PDF today and printed books "coming soon", primary CTA "Start your book", "PDF from €9" from config; hero cover and phone rendered from sample images; "Test mode" pill while payments are simulated. | ✅ UI |
 | 1.2 | As a visitor I want to see how it works in three steps. | Bring in / Pick / Print cards. | ✅ UI |
-| 1.3 | As a visitor I want to see sample spreads so I trust the layout quality. | Three sample spreads (trip, first year, year in review). | ✅ UI |
-| 1.4 | As a visitor I want transparent pricing. | €9 PDF incl. 40 pages, €0,15 per extra page (from `/api/config`), softcover from €29 and hardcover from €49 marked "Coming soon". | ✅ UI ✅ API |
+| 1.3 | As a visitor I want to see sample spreads so I trust the layout quality. | Three spreads (trip, summer, year in review) rendered by the real `PageRenderer` and templates from CC0 illustrations in `app/public/samples`. | ✅ UI |
+| 1.4 | As a visitor I want transparent pricing. | €9 PDF incl. 40 pages, €0,15 per extra page (from `/api/config`), softcover/hardcover "from" prices (`pricing.printedFrom`) marked "Coming soon". | ✅ UI ✅ API |
 | 1.5 | As a visitor I want answers to safety, account-type, private-account, export-time, retention, deliverable and layout questions. | FAQ block with the seven questions from the design. | ✅ UI |
 | 1.6 | As a returning customer I want "Sign in" / "My books" in the header. | Header switches based on session. | ✅ UI |
+| 1.7 | As Ops I want the landing page to look right when shared and be indexable. | Open Graph/Twitter tags and `og-image.jpg`; the build emits `robots.txt`, and with `VITE_SITE_URL` also canonical, `og:url` and `sitemap.xml`. | ✅ UI |
 
 ## Epic 2 — Bring in photos: choose a source
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
-| 2.1 | As Mara I want to pick between connecting Instagram and uploading an export, with the trade-offs explained. | Two cards with pros/warnings; "Not sure which account you have?" hint. | ✅ UI |
+| 2.1 | As Mara I want to pick between connecting Instagram and uploading an export, with the trade-offs explained. | Two cards with pros/warnings (likes only via connect); "Not sure which account you have?" hint with a drawing of the Professional dashboard button. | ✅ UI |
 | 2.2 | As Ops I want to switch the Connect card to "Coming soon" until Meta approves the app. | `FEATURE_CONNECT_ENABLED` app setting → `/api/config.connectEnabled`; card shows waiting-for-approval note and hides the button. | ✅ UI ✅ API |
 | 2.3 | As a returning user adding photos I want to be told only newer posts are imported. | "Adding to your library" banner with current count; back goes to My books. | ✅ UI |
 
@@ -52,15 +53,19 @@ Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
-| 4.1 | As Mara I want phone and computer instructions for requesting the export with the right options. | Two tabs, six steps each, "What happens next" box. | ✅ UI |
+| 4.1 | As Mara I want phone and computer instructions for requesting the export with the right options. | Two tabs, six steps each with a simplified drawing of the screen (`guideArt`), "What happens next" box. | ✅ UI |
 | 4.2 | As Mara I want the steps emailed to me. | "Email me these steps" → `POST /api/auth/export-steps`. | ✅ UI ✅ API |
 | 4.3 | As Mara I want a return link so I can continue on any device when the ZIP arrives. | Waiting screen email form → `POST /api/auth/return-link` → magic link `/r/:token` (30 days, consumed on click, reusable 15 min). | ✅ UI ✅ API |
-| 4.4 | As Mara I want to drop the ZIP and have it read without uploading the whole archive. | zip.js in a Web Worker reads `posts_*.json` and only the referenced images; originals + 400 px thumbnails go straight to Blob Storage via per-blob SAS. Verified with a real ZIP in `scripts/e2e.ts`. | ✅ UI ✅ API |
+| 4.4 | As Mara I want to drop the ZIP and have it read without uploading the whole archive. | zip.js in a Web Worker reads `posts_*.json` and only the referenced images; originals + 400 px thumbnails go straight to Blob Storage via per-blob SAS, in batches of 24 (register → upload → confirm) so links never expire mid-import. Width, height and the real type (magic bytes) are stored. Verified with a real ZIP in `scripts/e2e.ts`. | ✅ UI ✅ API |
 | 4.5 | As Mara I want clear errors for HTML exports, exports without posts, corrupt files and files over 8 GB. | Four error banners with "Show the export steps again" where relevant. | ✅ UI |
 | 4.6 | As Mara I want captions with åäö and emoji to appear correctly. | Mojibake (UTF-8 as Latin-1, incl. cp1252 variants) reversed; unit-tested. | ✅ UI |
 | 4.7 | As Mara I want carousels and videos handled sensibly. | Carousel index/count kept; videos counted and skipped by default. | ✅ UI ✅ API |
 | 4.8 | As a returning user I want "Add more photos" to import only posts newer than my last import. | `register` with `incremental=true` skips posts older than `newestMediaAt` and already-ready photos. | ✅ UI ✅ API |
-| 4.9 | As Mara I want the import to survive a flaky connection. | Deterministic photo ids; re-running an import upserts and reports skipped items. | ✅ API |
+| 4.9 | As Mara I want the import to survive a flaky connection. | Deterministic 64-bit photo ids; each request retried 3× with backoff; re-running an import skips ready photos (route-tested). | ✅ UI ✅ API |
+| 4.10 | As Mara I want to drop all parts of a multi-part export at once. | Multiple files accepted (drop or picker); one index across parts, sorted by `part-N`; duplicates removed. | ✅ UI |
+| 4.11 | As Mara I want to know what was not imported and why. | Summary lists photos already in the library, missing from the dropped parts, in an unsupported format (HEIC/AVIF) or unreadable; JPEG, PNG and WebP accepted. | ✅ UI |
+| 4.12 | As Mara I want to stop an import and keep what's done, without losing it by closing the tab by accident. | "Stop here" finishes with the photos uploaded so far; `beforeunload` guard while reading/uploading. | ✅ UI |
+| 4.13 | As Mara I want to include archived posts if I choose to. | `archived_posts*.json` detected; "Add them too" re-runs incrementally with archived posts. | ✅ UI |
 
 ## Epic 5 — Photo library & retention
 
@@ -90,24 +95,24 @@ Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas
 | --- | --- | --- | --- |
 | 7.1 | As a user I want to page through my book before paying. | Cover, title page, photo pages, back cover; prev/next; "Page N of M". | ✅ UI |
 | 7.2 | As a user I want to set title, format (Square 21×21 / Portrait 21×28), cover photo and captions toggle. | All four controls; preview updates instantly. | ✅ UI |
-| 7.3 | As a user I want the preview to match the PDF exactly. | Both use `shared/layout.ts` (same page list and slot geometry). | ✅ UI |
-| 7.4 | As a user I want my draft saved so it appears in My books. | Draft upserted on Checkout (`POST/PATCH /api/books`). | ✅ UI ✅ API |
-| 7.5 | As a user I want more layout choices (1–4 photos per page, full-bleed, text pages). | — | ⬜ Future |
-| 7.6 | As a user I want to reorder photos or pages by drag and drop. | — | ⬜ Future |
+| 7.3 | As a user I want the preview to match the PDF exactly. | Preview and PDF both draw from `shared/layout.ts` in millimetres (`slotsFor`, `placePhoto`, `coverLayout`, `TEXT_PT`, `captionParts`); photos below 150 ppi get a Soft/Low resolution badge and a summary warning. | ✅ UI |
+| 7.4 | As a user I want my draft saved so it appears in My books. | Draft upserted on Checkout (`POST/PATCH /api/books`) with its pages and layout; reopening restores the exact pages; the version only changes when the content does. | ✅ UI ✅ API |
+| 7.5 | As a user I want more layout choices (1–4 photos per page, full-bleed, text pages). | Templates `1-margin`, `1-bleed`, `2-stack`, `2-side`, `3-hero`, `4-grid`, `text`; automatic layout by density (Mixed/One/Two, new page after a 24 h gap); per-page template picker; text pages; the server validates pages against the library. | ✅ UI ✅ API |
+| 7.6 | As a user I want to reorder photos or pages by drag and drop. | "Arrange pages" view (dnd-kit): drag photos within and between pages and move pages, by mouse, touch (200 ms hold) or keyboard, with screen-reader announcements; full pages push overflow onward; "Reset to automatic layout". | ✅ UI |
 
 ## Epic 8 — Checkout & payment
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
 | 8.1 | As a user I want to see the format options with softcover/hardcover marked coming soon. | Three option rows. | ✅ UI |
-| 8.2 | As a user I want to pay with Apple Pay, Google Pay or card. | Stripe Payment Element + Express Checkout Element; PaymentIntent created server-side with server-computed price. | ✅ UI ✅ API (test mode needs keys; mock form when unset) |
+| 8.2 | As a user I want to pay with Apple Pay, Google Pay or card. | `PAYMENT_PROVIDER=fake` (default): test banner and read-only test cards (4242 succeeds, …0002 declines, …9995 insufficient funds), outcome decided on the server by `POST /orders/{id}/pay-test`. `PAYMENT_PROVIDER=stripe`: Payment Element + Express Checkout, PaymentIntent server-side; never chosen implicitly from keys. | 🟡 Partial (fake provider live; Stripe dormant until keys and the switch) |
 | 8.3 | As a user I want an account created during checkout without a separate signup. | Email + password fields; registered before payment confirmation; "Sign in" link for existing accounts. | ✅ UI ✅ API |
 | 8.4 | As a user I want a clear order summary. | Cover thumb, pages/format/photos, base price, extra pages line, total. | ✅ UI |
-| 8.5 | As a user I want declined payments explained and retryable. | Error banner; state resets on edit. | ✅ UI ✅ API |
+| 8.5 | As a user I want declined payments explained and retryable. | Reason stored on the order (`failureReason`); retry reuses the same order; Done shows failed and refunded states with a way back. | ✅ UI ✅ API |
 | 8.6 | As Ops I want payment confirmation to be authoritative. | Stripe webhook (signature + event-id idempotency) marks paid; `/orders/{id}/sync` fallback polls Stripe. | ✅ API |
 | 8.7 | As Ops I never want a PDF issued for an unpaid order. | Write SAS for `pdfs/` only for `paid`/`ready` orders; `complete` verifies the blob. | ✅ API |
 | 8.8 | As a user I want a receipt email. | Stripe `receipt_email`. | ✅ API (Stripe-side) |
-| 8.9 | As a user I want discount codes / gift cards. | — | ⬜ Future |
+| 8.9 | As a user I want discount codes / gift cards. | "Have a discount code?" on Checkout → `POST /orders/{id}/promo`; percent or fixed, validity window, max redemptions (ETag-safe), once per user; 100 % → "Get my PDF" without payment (`confirm-free`). Codes managed with `scripts/promo.ts`. Gift cards not built. | ✅ UI ✅ API |
 
 ## Epic 9 — PDF generation & delivery
 
@@ -115,10 +120,10 @@ Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas
 | --- | --- | --- | --- |
 | 9.1 | As a user I want my PDF built right after payment with progress. | Web Worker + pdf-lib: fonts, images, pages, saving stages; uploaded via SAS; `complete` → `ready`. Verified: 6-page PDF, 21×21 cm, images on every photo page. | ✅ UI ✅ API |
 | 9.2 | As a user I want to download the PDF now and later. | Download button; later via My books → 15-min read SAS with filename. | ✅ UI ✅ API |
-| 9.3 | As a user I want to share a link to the PDF. | Share token → `/s/:token` public page. | ✅ UI ✅ API |
+| 9.3 | As a user I want to share a link to the PDF. | Share token → `/s/:token` public page; "Make a new link" on Done revokes the old one. | ✅ UI ✅ API |
 | 9.4 | As a user I want to be able to rebuild the PDF if my tab closed mid-way. | "Finish PDF" from My books; regenerate path issues a new version. | ✅ UI ✅ API |
 | 9.5 | As a user I want an email when the book is ready. | `order-ready` template. | ✅ API |
-| 9.6 | As a user I want print-shop-grade output (PDF/X-4, 4 mm bleed, ICC profile, 300 dpi upscaling). | Bleed parameter reserved in `shared/layout.ts`. | ⬜ Future |
+| 9.6 | As a user I want print-shop-grade output. | MediaBox = trim + 4 mm bleed (from config), TrimBox/BleedBox on every page, full-bleed photos extend into the bleed; sRGB OutputIntent + XMP; original JPEG bytes with EXIF orientation as a transform (WebP re-encoded); Noto Sans/Noto Emoji fallback per glyph; no upscaling (warn instead); the upload is refused unless it starts with `%PDF-`. Checked by `scripts/pdf-check.ts` and `scripts/e2e.ts`. Not claimed as PDF/X. | ✅ UI ✅ API |
 
 ## Epic 10 — Accounts & auth
 

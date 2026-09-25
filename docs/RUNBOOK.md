@@ -2,47 +2,72 @@
 
 ## Local development
 
-Prerequisites: Node 20 or 22 (the Functions worker rejects Node 24 — if your default is 24, keep a Node 22 install and point the host at it, see below), Azure Functions Core Tools v4 (`func`), Azure CLI (`az`), Docker not required.
+Prerequisites: Node 20 or 22 (the Functions worker rejects Node 24; with nvm, keep a 22 installed and `start-local.ps1` finds it), Azure Functions Core Tools v4 (`func`), PowerShell, Azure CLI (`az`) for provisioning. Docker is not required.
 
 ```bash
 npm install
 ```
 
-### Mock mode (no backend, zero setup)
+### Start everything (Windows, one command)
 
-```bash
-npm run dev            # http://localhost:5173 — in-memory API, seeded demo library, demo bar
+```powershell
+./start-local.ps1              # Azurite + API + web app → http://localhost:4280
+./start-local.ps1 -SeedPromo   # also creates the test codes WELCOME100 (100 %, once per user) and TEST20 (20 %)
+./start-local.ps1 -Reset       # wipe local storage (.azurite/) first
+./stop-local.ps1               # free the ports if something was left running
 ```
 
-Everything is clickable: connect (simulated), upload a **real** Instagram export ZIP (parsed in the browser), select, preview, mock payment, PDF generation and download.
+The script installs dependencies on first run, creates `api/local.settings.json` from the example with random secrets, finds a Node 20/22 for the Functions worker (via nvm or `NVM_HOME`; the worker rejects Node 24), checks the ports (10000–10002, 7071, 5173, 4280) and then runs, with prefixed logs:
 
-### Full stack (Azurite + Functions + SWA emulator)
+| Process | What |
+| --- | --- |
+| `azurite` | Blob :10000, Queue :10001, Table :10002, data in `.azurite/` |
+| `build` | esbuild watch → `api/dist/index.js` (the Functions host reloads on change) |
+| `func` | storage setup (tables, `pdfs` container, CORS), then `func start` on :7071 |
+| `vite` | the app on :5173 |
+| `web` | SWA CLI on :4280: the app plus `/api` proxied to :7071, like production |
+
+Ctrl+C stops everything. If any process fails, the others are stopped too. Emails (return links, "your book is ready", reminders) go to the console mailer and show up in the `func` log.
+
+Flags: `-NoBrowser`, `-Force` (stop whatever holds the ports without asking), `-Reset`, `-SeedPromo`.
+
+### Payments locally
+
+`PAYMENT_PROVIDER=fake` (the default everywhere): Checkout shows a "Test payment — no money is taken" banner and three read-only test cards. The server decides the outcome:
+
+| Card | Outcome |
+| --- | --- |
+| `4242 4242 4242 4242` | succeeds |
+| `4000 0000 0000 0002` | declined |
+| `4000 0000 0000 9995` | insufficient funds |
+
+To try Stripe instead, set `PAYMENT_PROVIDER=stripe` plus `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY` and `STRIPE_WEBHOOK_SECRET`, then forward webhooks with `stripe listen --forward-to http://localhost:7071/api/stripe/webhook`. The API refuses to start payments with `stripe` and missing keys. It never switches provider on its own.
+
+### Discount codes
 
 ```bash
-cp api/local.settings.example.json api/local.settings.json      # edit if needed
-npm run azurite &                                               # Blob :10000, Table :10002
-npm run storage:setup                                           # tables, pdfs container, CORS
-npm run dev:api                                                 # builds api/dist and runs `func start` on :7071
-npx swa start http://localhost:5173 --run "npm run dev:real -w app" --api-devserver-url http://localhost:7071
-# → http://localhost:4280 (SPA + /api proxied)
+npx tsx scripts/promo.ts list
+npx tsx scripts/promo.ts create SUMMER25 percent 25 --until 2026-12-31 --max 100
+npx tsx scripts/promo.ts create FIVEOFF fixed 500 --once     # 500 cents = €5, once per user
+npx tsx scripts/promo.ts disable SUMMER25
+npx tsx scripts/promo.ts seed          # WELCOME100 + TEST20
 ```
 
-If `func start` says *Incompatible Node.js version*, add to `api/local.settings.json` → `Values`:
-`"languageWorkers__node__defaultExecutablePath": "C:/path/to/node22/node.exe"`.
-
-Stripe webhooks locally: `stripe listen --forward-to http://localhost:7071/api/stripe/webhook` and copy the `whsec_…` into `STRIPE_WEBHOOK_SECRET`. Without Stripe keys the API runs in mock-payment mode (`POST /api/orders/{id}/mock-pay`).
+The script uses Azurite by default. Set `STORAGE_CONNECTION_STRING` to manage codes in a real storage account.
 
 ### Tests
 
 ```bash
 npm run lint && npm run typecheck
-npm test                              # shared (10), app screens in happy-dom (14), api (7)
+npm test                              # shared, app (happy-dom), api — API route tests need Azurite (skipped otherwise)
 npx tsx scripts/make-fixtures.ts      # fixture export ZIPs → fixtures/
-npx tsx scripts/smoke.ts              # API end-to-end against :7071 + Azurite (22 checks)
-npx tsx scripts/e2e.ts                # headless Chromium against :5173 (mock) — writes docs/screenshots
-APP_URL=http://localhost:4280 npx tsx scripts/e2e.ts   # same against the full stack
-CRON_URL=http://localhost:7071 CRON_SECRET=change-me-random npx tsx scripts/cron.ts
+npx tsx scripts/pdf-check.ts out.pdf  # builds a sample book with the real PDF code and checks boxes, OutputIntent, images
+npx tsx scripts/smoke.ts              # API end-to-end against the running stack
+npx tsx scripts/e2e.ts                # headless Chromium against :4280 — writes docs/screenshots
+CRON_URL=http://localhost:7071 CRON_SECRET=… npx tsx scripts/cron.ts
 ```
+
+CI runs lint, typecheck, all unit tests, the API route tests against an in-memory Azurite and `pdf-check.ts` before deploying.
 
 ## Provisioning (Azure)
 
@@ -54,11 +79,13 @@ az login
 Creates a Storage account and a Static Web App (Free), sets all app settings, and prints three GitHub secrets:
 `AZURE_STATIC_WEB_APPS_API_TOKEN`, `CRON_URL`, `CRON_SECRET`. Add them under *Settings → Secrets and variables → Actions*, then push `main`. PR builds get preview environments.
 
-To (re)configure services later, either rerun `deploy.ps1` with parameters (`-StripeSecretKey … -ResendApiKey … -ConnectEnabled`) or edit the Static Web App's environment variables in the portal / `az staticwebapp appsettings set`.
+To (re)configure services later, either rerun `deploy.ps1` with parameters (`-PaymentProvider stripe -StripeSecretKey … -ResendApiKey … -ConnectEnabled`) or edit the Static Web App's environment variables in the portal / `az staticwebapp appsettings set`.
 
 ## Third-party setup
 
 ### Stripe
+Stripe stays dormant until `PAYMENT_PROVIDER=stripe` is set together with the keys below.
+
 1. Create the account, copy `pk_…`/`sk_…` (test first).
 2. Webhook endpoint `https://<host>/api/stripe/webhook`, events `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, `charge.refunded`; copy the signing secret.
 3. *Payment method domains*: register the SWA hostname and every custom domain (Apple Pay / Google Pay).

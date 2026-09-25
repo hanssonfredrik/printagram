@@ -21,7 +21,8 @@ GitHub Actions: deploy on push · daily cron → POST /api/cron/run
 1. **Two Azure resources only** (Storage account + SWA Free). No queues, timers, identities or Key Vault.
 2. **Heavy bytes never touch Functions.** ZIP parsing, thumbnails, PDF rendering happen in the browser; photos and PDFs move browser ↔ Blob with short-lived SAS URLs. Functions do JSON, SAS minting, Stripe and bounded Instagram copy batches.
 3. **Every multi-step server process is client-driven, resumable and idempotent** (no background workers): Instagram import jobs with leases and per-batch persistence; cron tasks with a 25 s budget and `more` flag.
-4. **One mock, one real API client** behind the same TypeScript interface (`app/src/services/api.ts`). Mock mode is the clickable prototype; real mode is production.
+4. **One API client, one test double.** The app always talks to the real API (locally: Functions on Azurite). An in-memory implementation of the same interface exists only for component tests (`app/src/test/fakeApi.ts`).
+5. **The preview is the print.** Preview and PDF draw from the same millimetre geometry in `shared/layout.ts`.
 
 ## Repository
 
@@ -43,18 +44,18 @@ GitHub Actions: deploy on push · daily cron → POST /api/cron/run
 | `user` | email, authLevel (anonymous/email/password), passwordHash (scrypt), sessionVersion, status | one partition per user ⇒ delete account = delete partition |
 | `library_<id>` | source, status, photoCount, newestMediaAt, expiresAt, reminderSentAt, Instagram token (AES-GCM) | one Instagram + one export library per user at MVP |
 | `import_<id>` | cursor, since, counters, leaseUntil, pendingJson | resumable Instagram import |
-| `book_<id>` | title, format, showMeta, coverPhotoId, photoIds (chunked JSON), pageCount, version, status | drafts and ordered books |
-| `order_<id>` | frozen book snapshot, amountCents, status (created→paid→ready), Stripe PI id, pdfBlob/version, shareToken | price computed server-side |
+| `book_<id>` | title, format, showMeta, coverPhotoId, layout `{density, fullBleed}`, pages (chunked JSON `PageSpec[]`), manualLayout, photoIds (derived), pageCount, version, status | drafts and ordered books; `version` only changes when the content hash does |
+| `order_<id>` | frozen book snapshot incl. pages, contentHash, subtotal/discount/amount, promoCode, paymentProvider, status (created→paid→ready, retryable `failed`), failureReason, pdfBlob/version, shareToken | price computed server-side |
 
-**Photos** — `PK = libraryId`, `RK = <reverseMs(takenAt)>_<photoId>` (newest first; month ranges are RK ranges). Deterministic ids (`ex_<fnv1a(uri)>`, `ig_<mediaId>`) make re-imports idempotent.
+**Photos** — `PK = libraryId`, `RK = <reverseMs(takenAt)>_<photoId>` (newest first; month ranges are RK ranges). Deterministic ids (`ex_<64-bit fnv1a(uri)>`, `ig_<mediaId>`) make re-imports idempotent. Rows keep width, height and the sniffed mime type.
 
-**Lookups** — `PK = kind`: `email` (uniqueness via insert-if-absent), `token` (sha256 of magic/reset tokens), `share`, `stripe_evt` (webhook idempotency), `ig_user`, `rl` (rate-limit buckets).
+**Lookups** — `PK = kind`: `email` (uniqueness via insert-if-absent), `token` (sha256 of magic/reset tokens), `share`, `stripe_evt` (webhook idempotency), `ig_user`, `rl` (rate-limit buckets), `promo` (discount codes, redemptions counted with ETag concurrency), `promo_use` (`CODE:userId`, once-per-user codes).
 
 ## Blob layout & SAS policy
 
 | Container | Blobs | SAS |
 | --- | --- | --- |
-| `lib-<libraryId>` | `orig/<photoId>.jpg`, `thumb/<photoId>.jpg` | upload: per-blob `cw`, 1 h (server names the blob) · read: container `r`, day-aligned 2-day window (cacheable) |
+| `lib-<libraryId>` | `orig/<photoId>.<jpg\|png\|webp>`, `thumb/<photoId>.jpg` | upload: per-blob `cw`, 1 h (server names the blob) · read: container `r`, day-aligned 2-day window (cacheable) |
 | `pdfs` | `<orderId>/v<n>.pdf` | write: per-blob `cw` 1 h, only for paid orders · read: per-blob `r` 15 min with `Content-Disposition` |
 
 Blob CORS allows the app origins for `GET, HEAD, PUT, OPTIONS`. Lifecycle: `pdfs/` → Cool after 90 days, never deleted.
@@ -69,8 +70,36 @@ Blob CORS allows the app origins for `GET, HEAD, PUT, OPTIONS`. Lifecycle: `pdfs
 
 ## Payment gating
 
-`created` → (Stripe webhook / sync / mock-pay) → `paid` → (client uploads PDF, `complete` verifies blob) → `ready`.
-The write SAS for the PDF is only minted for `paid`/`ready` orders; the price and the page count come from the server-side book row, never the client.
+`created` ⇄ `failed` → (provider confirms) → `paid` → (client uploads PDF, `complete` checks size and the `%PDF-` header) → `ready`.
+The write SAS for the PDF is only minted for `paid`/`ready` orders; the price and the page count come from the server-side book row, never the client. Creating an order for unchanged book content reuses the open order.
+
+### Payment providers
+
+`api/src/lib/payments/` defines one interface (`prepare`, `status`) with two implementations, chosen only by `PAYMENT_PROVIDER` (default `fake`):
+
+- **fake**: no external calls. `POST /orders/{id}/pay-test {card}` (password-level account required; 404 for other providers) maps the published test cards to success, a decline or insufficient funds. The UI shows read-only test cards, never card fields.
+- **stripe**: PaymentIntent per order, webhook (signature + event-id idempotency) plus `/orders/{id}/sync` as a fallback.
+
+Discount codes reprice the open order (`POST /orders/{id}/promo`). A 0-total order is confirmed with `confirm-free`, and the redemption is recorded when the order is paid.
+
+## Page layout
+
+`shared/layout.ts` defines pages in millimetres: square 210×210 and portrait 210×280, 12 mm margins, 5 mm gutters, an 8 mm caption band and 10 mm safe area.
+
+- Templates: `1-margin`, `1-bleed`, `2-stack`, `2-side`, `3-hero`, `4-grid`, `text`. Each is a list of slots with `contain`/`cover` fit and a bleed flag.
+- `autoLayout(photos, {density, fullBleed})` groups photos by aspect ratio and time (new page after a 24 h gap). `reconcilePages` keeps hand-arranged pages valid when the selection changes.
+- `placePhoto` resolves a slot to an image rect, crop and caption rect. `effectivePpi` flags photos below 150 ppi (soft) or 100 ppi (low); nothing is upscaled.
+- The book is cover, title page, content pages and back cover (`buildPages`, `totalPages`).
+
+## PDF output
+
+Built in the browser (`app/src/workers/pdfBook.ts`, run by `pdf.worker.ts`):
+
+- MediaBox = BleedBox = trim + `PRINT_BLEED_MM` (default 4) on each side; TrimBox marks the cut. Full-bleed slots extend into the bleed.
+- sRGB IEC61966-2.1 OutputIntent (CC0 profile) and XMP metadata. RGB throughout; print providers convert. Not declared PDF/X.
+- JPEG originals are embedded byte-for-byte, with EXIF orientation applied as a transform. WebP is re-encoded as JPEG (q 0.92).
+- Text: Lora (titles, text pages) and Albert Sans (captions), falling back per glyph to Noto Sans and monochrome Noto Emoji. Fonts are embedded whole, because pdf-lib's subsetter drops composite glyphs; fallback fonts are embedded only when used.
+- If any photo cannot be loaded the PDF is not delivered. Uploads larger than 4 MB go in blocks (Put Block / Put Block List) with retries.
 
 ## Instagram import (bounded batches)
 

@@ -9,8 +9,7 @@ Your Instagram, as a real book. Pick the photos, Printagram lays out the pages a
 ## Quick start
 
 ```bash
-npm install
-npm run dev          # clickable app with an in-memory backend → http://localhost:5173
+./start-local.ps1    # Azurite + Functions + app → http://localhost:4280 (test payments)
 ```
 
 Full stack, tests, provisioning and third-party setup: `docs/RUNBOOK.md`.
@@ -39,11 +38,13 @@ scripts/  storage-setup, smoke (API), e2e (browser), fixtures, cron
 
 | Command | What |
 | --- | --- |
-| `npm run dev` | Vite in mock mode |
-| `npm run dev:api` | Build + run the Functions host on :7071 |
+| `./start-local.ps1` (`npm run dev`) | Whole local stack on Azurite; `-SeedPromo`, `-Reset`, `-NoBrowser` |
+| `./stop-local.ps1` | Free the local ports |
 | `npm run azurite` / `npm run storage:setup` | Local storage emulator + tables/containers/CORS |
 | `npm run lint` / `npm run typecheck` / `npm test` | Quality gates (also run in CI) |
 | `npx tsx scripts/smoke.ts` | API end-to-end |
 | `npx tsx scripts/e2e.ts` | Browser end-to-end (Playwright) |
+| `npx tsx scripts/pdf-check.ts` | Build and inspect a sample print PDF |
+| `npx tsx scripts/promo.ts` | Manage discount codes |
 
-Fonts Lora and Albert Sans are bundled under the SIL Open Font License (`app/public/fonts/`).
+Fonts Lora, Albert Sans, Noto Sans and Noto Emoji are bundled under the SIL Open Font License (`app/public/fonts/`); the sRGB profile (`app/public/icc/`) and the landing illustrations (`app/public/samples/`) are CC0.
