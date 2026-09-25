@@ -33,6 +33,11 @@ const ERRORS: Record<UploadErrorKind, { title: string; text: string; guide: bool
     text: 'The upload limit is 8 GB. Try requesting the export in parts (by year), or with Media quality: Medium.',
     guide: true,
   },
+  unsupported: {
+    title: 'Some photos use a format we can\'t read',
+    text: 'Those photos were skipped. Everything else was imported. Instagram exports normally contain JPEG and WebP files only.',
+    guide: false,
+  },
   generic: {
     title: 'Something went wrong',
     text: 'We could not import this file. Please try again, and if it keeps failing, request a new export.',

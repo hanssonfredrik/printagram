@@ -21,3 +21,51 @@
   background: var(--surface-3);
   color: var(--muted);
 }
+
+.testCard {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+  cursor: pointer;
+}
+
+.testCard input {
+  accent-color: var(--primary);
+}
+
+.testCard--on {
+  border: 2px solid var(--primary);
+  padding: 11px 13px;
+}
+
+.cardChip {
+  flex: none;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--warn-deep);
+  background: var(--warn-bg);
+  border-radius: 6px;
+  padding: 4px 6px;
+}
+
+.promoRow {
+  display: flex;
+  gap: 8px;
+}
+
+.promoApplied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  background: var(--primary-tint);
+  color: var(--primary-deep);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+}

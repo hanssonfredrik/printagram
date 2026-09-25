@@ -4,6 +4,7 @@ import type {
   BookSettings,
   LibrarySummary,
   Order,
+  PaymentProviderName,
   Photo,
   UserInfo,
 } from '@printagram/shared';
@@ -59,8 +60,15 @@ export interface InstagramStatus {
 
 export interface OrderCreateResult {
   order: Order;
+  /** Stripe only: secret for the Payment Element. */
   clientSecret: string | null;
-  mock: boolean;
+  provider: PaymentProviderName;
+}
+
+export interface PromoApplyResult {
+  order: Order;
+  clientSecret: string | null;
+  rejected?: { code: string; reason: string };
 }
 
 export interface PdfUploadTarget {
@@ -85,7 +93,7 @@ export interface MeResult {
 
 /**
  * Everything the SPA needs from a backend. Implemented twice:
- *  - api.mock.ts: in-memory, zero dependencies, seeded demo data
+ *  - src/test/fakeApi.ts: in-memory test double used by the unit tests only
  *  - api.real.ts: fetch() against /api served by Azure Static Web Apps
  */
 export interface Api {
@@ -144,7 +152,12 @@ export interface Api {
   createOrder(bookId: string): Promise<OrderCreateResult>;
   getOrder(id: string): Promise<Order>;
   syncOrder(id: string): Promise<Order>;
-  mockPay(id: string, outcome: 'ok' | 'fail'): Promise<Order>;
+  /** Fake payment provider only: pays with a published test card (outcome decided server-side). */
+  payTest(id: string, card: string): Promise<Order>;
+  /** Applies a discount code; an empty code removes it. */
+  applyPromo(id: string, code: string): Promise<PromoApplyResult>;
+  /** Confirms an order whose total is 0 (100 % discount). */
+  confirmFree(id: string): Promise<Order>;
   listOrders(): Promise<Order[]>;
   getPdfUploadTarget(orderId: string, regenerate?: boolean): Promise<PdfUploadTarget>;
   uploadPdf(

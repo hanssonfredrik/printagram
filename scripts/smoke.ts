@@ -1,3 +1,4 @@
+import { readFileSync } from 'node:fs';
 /**
  * End-to-end smoke test against a running API (func host + Azurite).
  *   npx tsx scripts/smoke.ts                 # http://localhost:7071
@@ -45,15 +46,27 @@ const JPEG = Buffer.from(
   'base64',
 );
 
+/** Cron secret: env var, else the one start-local.ps1 generated in api/local.settings.json. */
+function cronSecret(): string {
+  if (process.env.CRON_SECRET) return process.env.CRON_SECRET;
+  try {
+    const j = JSON.parse(readFileSync('api/local.settings.json', 'utf8').replace(/^﻿/, '')) as { Values: Record<string, string> };
+    return j.Values.CRON_SECRET ?? '';
+  } catch {
+    return '';
+  }
+}
+
 async function main() {
   const ok = (label: string) => console.log(`✓ ${label}`);
 
-  const cfg = await call<{ mockPayments: boolean; pricing: { baseCents: number } }>(
+  const cfg = await call<{ payment: { provider: string; testCards: { number: string }[] }; pricing: { baseCents: number } }>(
     'GET',
     '/config',
   );
   assert(cfg.status === 200 && cfg.body.pricing.baseCents === 900, 'config');
-  ok(`config (mockPayments=${cfg.body.mockPayments})`);
+  assert(cfg.body.payment.provider === 'fake' && cfg.body.payment.testCards.length === 3, 'fake provider with test cards');
+  ok(`config (payment provider=${cfg.body.payment.provider})`);
 
   const anon = await call<{ user: { id: string; authLevel: string } }>(
     'POST',
@@ -193,7 +206,7 @@ async function main() {
 
   const order = await call<{
     order: { id: string; status: string; amountCents: number };
-    mock: boolean;
+    provider: string;
     clientSecret: string | null;
   }>('POST', '/orders', { bookId: draft.body.id });
   assert(
@@ -202,7 +215,7 @@ async function main() {
       order.body.order.amountCents === 900,
     `order reuse ${JSON.stringify(order.body)}`,
   );
-  ok(`order ${order.body.order.id} €${order.body.order.amountCents / 100} mock=${order.body.mock}`);
+  ok(`order ${order.body.order.id} reused, €${order.body.order.amountCents / 100}, provider=${order.body.provider}`);
 
   const early = await call<{ error: { code: string } }>(
     'POST',
@@ -212,13 +225,36 @@ async function main() {
   assert(early.status === 403 && early.body.error.code === 'NOT_PAID', 'pdf gated before payment');
   ok('PDF upload gated until paid');
 
-  const paid = await call<{ status: string }>('POST', `/orders/${order.body.order.id}/mock-pay`, {
-    outcome: 'ok',
+  const oid = order.body.order.id;
+  const badCode = await call<{ rejected?: { code: string } }>('POST', `/orders/${oid}/promo`, { code: 'NOPE' });
+  assert(badCode.status === 200 && badCode.body.rejected?.code === 'not_found', 'unknown promo rejected');
+  const promo = await call<{ order: { amountCents: number; discountCents: number; promoCode: string } }>(
+    'POST',
+    `/orders/${oid}/promo`,
+    { code: 'test20' },
+  );
+  assert(
+    promo.status === 200 && promo.body.order.promoCode === 'TEST20' && promo.body.order.discountCents === 180 && promo.body.order.amountCents === 720,
+    `promo TEST20 ${JSON.stringify(promo.body)}`,
+  );
+  ok('discount code TEST20 applied: €9 → €7,20');
+
+  const declined = await call<{ error: { code: string; message: string } }>('POST', `/orders/${oid}/pay-test`, {
+    card: '4000 0000 0000 0002',
+  });
+  assert(declined.status === 402 && declined.body.error.code === 'CARD_DECLINED', `decline ${JSON.stringify(declined.body)}`);
+  const afterDecline = await call<{ status: string; failureReason: string }>('GET', `/orders/${oid}`);
+  assert(afterDecline.body.status === 'failed' && afterDecline.body.failureReason, 'failed order keeps its reason');
+  ok('test card 0002 is declined and the reason is stored');
+
+  const paid = await call<{ status: string; failureReason: string | null }>('POST', `/orders/${oid}/pay-test`, {
+    card: '4242 4242 4242 4242',
   });
   assert(
-    paid.status === 200 && paid.body.status === 'paid',
-    `mock pay ${JSON.stringify(paid.body)}`,
+    paid.status === 200 && paid.body.status === 'paid' && paid.body.failureReason === null,
+    `retry pay ${JSON.stringify(paid.body)}`,
   );
+  ok('retry with test card 4242 succeeds');
   const target = await call<{
     version: number;
     putUrl: string;
@@ -294,7 +330,7 @@ async function main() {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'x-cron-key': process.env.CRON_SECRET ?? 'change-me-random',
+      'x-cron-key': cronSecret(),
     },
     body: JSON.stringify({ task: 'cleanupTokens' }),
   });

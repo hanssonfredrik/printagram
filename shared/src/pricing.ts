@@ -5,6 +5,7 @@ export const DEFAULT_PRICING: PricingConfig = {
   includedPages: 40,
   extraPageCents: 15,
   currency: 'eur',
+  printedFrom: { softcoverCents: 2900, hardcoverCents: 4900 },
 };
 
 export const MAX_PHOTOS_PER_BOOK = 600;

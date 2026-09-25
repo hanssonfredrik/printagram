@@ -1,4 +1,11 @@
-import { pageCount, price } from '@printagram/shared';
+import {
+  discountCents,
+  normalizePromoCode,
+  pageCount,
+  price,
+  PROMO_MESSAGES,
+  promoRejection,
+} from '@printagram/shared';
 import {
   blobProperties,
   containerReadSas,
@@ -20,12 +27,20 @@ import {
   route,
 } from '../lib/http.js';
 import { newId, nowIso, randomToken } from '../lib/ids.js';
-import { markFailed, markPaid, notifyOrderReady } from '../lib/orderService.js';
-import { stripe, stripeEnabled } from '../lib/stripe.js';
-import { books, libraries, lookups, orders, photos, type OrderRow } from '../lib/tables.js';
+import { bookContentHash, markFailed, markPaid, notifyOrderReady } from '../lib/orderService.js';
+import { DECLINE_MESSAGES, testCardOutcome } from '../lib/payments/fake.js';
+import { paymentProvider } from '../lib/payments/provider.js';
+import {
+  books,
+  libraries,
+  lookups,
+  orders,
+  photos,
+  promos,
+  type BookRow,
+  type OrderRow,
+} from '../lib/tables.js';
 import { orderView, photoView } from '../lib/views.js';
-
-const ORDER_REUSE_MINUTES = 55;
 
 async function ownedOrder(userId: string, id: string): Promise<OrderRow> {
   const o = await orders.get(userId, id);
@@ -45,47 +60,79 @@ async function coverThumb(o: OrderRow): Promise<string | null> {
   return `${read.baseUrl}/${cover.thumbBlob}?${read.sas}`;
 }
 
-/** Creates an order for a draft: server-side price, frozen snapshot, Stripe PaymentIntent (or mock). */
+/** Price for a book at its current content, before any discount. */
+function subtotalFor(book: BookRow): { pages: number; subtotalCents: number } {
+  const pages = pageCount(book.photoIds.length, book.format);
+  return { pages, subtotalCents: price(pages, config.pricing).totalCents };
+}
+
+/** Recomputes the amount after a (possibly removed) discount and syncs the provider side. */
+async function reprice(
+  o: OrderRow,
+  promoCode: string | null,
+  discount: number,
+  email: string | null,
+): Promise<{ order: OrderRow; clientSecret: string | null }> {
+  const amountCents = Math.max(0, o.subtotalCents - discount);
+  let next: OrderRow = { ...o, promoCode, discountCents: discount, amountCents };
+  let clientSecret: string | null = null;
+  if (amountCents > 0) {
+    const started = await paymentProvider().prepare(next, email);
+    next = { ...next, stripePaymentIntentId: started.ref };
+    clientSecret = started.clientSecret;
+  }
+  await orders.merge(o.userId, o.orderId, {
+    promoCode,
+    discountCents: discount,
+    amountCents,
+    stripePaymentIntentId: next.stripePaymentIntentId,
+  });
+  return { order: next, clientSecret };
+}
+
+/**
+ * Opens (or reuses) the order for a draft. The price is computed here from the stored book, never
+ * by the browser. An open order is reused while the book content is unchanged.
+ */
 route(
   'ordersCreate',
   { methods: ['POST'], route: 'orders', auth: 'required' },
   async ({ req, user }) => {
-    // Anonymous sessions may open an order (the Payment Element needs a PaymentIntent before the
-    // account form is submitted); registering later upgrades the same user row in place.
+    const provider = paymentProvider();
     const body = await readJson<{ bookId?: unknown }>(req);
     const bookId = String(body.bookId ?? '');
     const book = await books.get(user.userId, bookId);
     if (!book) throw notFound('Book');
     if (book.photoIds.length === 0) throw badRequest('EMPTY_BOOK', 'Choose at least one photo.');
+    const contentHash = bookContentHash(book);
 
-    // Reuse an open order for the same book version so refreshes do not create duplicates.
-    const open = (await orders.list(user.userId)).find(
-      (o) =>
-        o.bookId === bookId &&
-        o.status === 'created' &&
-        o.bookVersion === book.version &&
-        Date.now() - new Date(o.createdAt).getTime() < ORDER_REUSE_MINUTES * 60_000,
-    );
+    const open = (await orders.list(user.userId))
+      .filter(
+        (o) =>
+          o.bookId === bookId &&
+          (o.status === 'created' || o.status === 'failed') &&
+          o.contentHash === contentHash &&
+          (o.paymentProvider ?? 'fake') === provider.name,
+      )
+      .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0];
     if (open) {
-      let clientSecret: string | null = null;
-      if (stripeEnabled() && open.stripePaymentIntentId) {
-        const pi = await stripe().paymentIntents.retrieve(open.stripePaymentIntentId);
-        clientSecret = pi.client_secret;
-      }
+      const started = open.amountCents > 0 ? await provider.prepare(open, user.email) : null;
+      if (started && started.ref !== open.stripePaymentIntentId)
+        await orders.merge(user.userId, open.orderId, { stripePaymentIntentId: started.ref });
       return json({
         order: orderView(open, await coverThumb(open)),
-        clientSecret,
-        mock: !stripeEnabled(),
+        clientSecret: started?.clientSecret ?? null,
+        provider: provider.name,
       });
     }
 
-    const pages = pageCount(book.photoIds.length, book.format);
-    const amountCents = price(pages, config.pricing).totalCents;
+    const { pages, subtotalCents } = subtotalFor(book);
     const row: OrderRow = {
       orderId: newId(),
       userId: user.userId,
       bookId,
       bookVersion: book.version,
+      contentHash,
       libraryId: book.libraryId,
       title: book.title,
       format: book.format,
@@ -94,9 +141,14 @@ route(
       photoIds: book.photoIds,
       pageCount: pages,
       photoCount: book.photoIds.length,
-      amountCents,
+      subtotalCents,
+      discountCents: 0,
+      promoCode: null,
+      amountCents: subtotalCents,
       currency: 'eur',
       status: 'created',
+      paymentProvider: provider.name,
+      failureReason: null,
       stripePaymentIntentId: null,
       paidAt: null,
       pdfBlob: null,
@@ -107,26 +159,15 @@ route(
       shareToken: null,
       createdAt: nowIso(),
     };
-
-    let clientSecret: string | null = null;
-    if (stripeEnabled()) {
-      const pi = await stripe().paymentIntents.create(
-        {
-          amount: amountCents,
-          currency: 'eur',
-          automatic_payment_methods: { enabled: true },
-          description: `Printagram PDF photo book — ${pages} pages`,
-          receipt_email: user.email ?? undefined,
-          metadata: { orderId: row.orderId, userId: user.userId, bookId },
-        },
-        { idempotencyKey: `order:${row.orderId}` },
-      );
-      row.stripePaymentIntentId = pi.id;
-      clientSecret = pi.client_secret;
-    }
+    const started = await provider.prepare(row, user.email);
+    row.stripePaymentIntentId = started.ref;
     await orders.upsert(row);
     return json(
-      { order: orderView(row, await coverThumb(row)), clientSecret, mock: !stripeEnabled() },
+      {
+        order: orderView(row, await coverThumb(row)),
+        clientSecret: started.clientSecret,
+        provider: provider.name,
+      },
       201,
     );
   },
@@ -134,7 +175,7 @@ route(
 
 route('ordersList', { methods: ['GET'], route: 'orders', auth: 'required' }, async ({ user }) => {
   const rows = (await orders.list(user.userId)).filter(
-    (o) => o.status !== 'created' || Date.now() - new Date(o.createdAt).getTime() < 3600_000,
+    (o) => o.status === 'paid' || o.status === 'ready' || o.status === 'refunded',
   );
   rows.sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1));
   const out = [];
@@ -151,41 +192,109 @@ route(
   },
 );
 
-/** Webhook fallback: ask Stripe directly whether the PaymentIntent succeeded. */
+/** Asks the payment provider directly (webhook fallback, and after a retried payment). */
 route(
   'ordersSync',
   { methods: ['POST'], route: 'orders/{id}/sync', auth: 'required' },
   async ({ req, user }) => {
     let o = await ownedOrder(user.userId, req.params.id ?? '');
-    if (o.status === 'created' && stripeEnabled() && o.stripePaymentIntentId) {
-      const pi = await stripe().paymentIntents.retrieve(o.stripePaymentIntentId);
-      if (pi.status === 'succeeded') o = await markPaid(o, pi.id);
-      else if (pi.status === 'canceled') {
-        await markFailed(o, 'failed');
-        o = { ...o, status: 'failed' };
-      }
+    if (o.status === 'created' || o.status === 'failed') {
+      const st = await paymentProvider().status(o);
+      if (st.status === 'succeeded') o = await markPaid(o, o.stripePaymentIntentId);
+      else if (st.status === 'failed' || st.status === 'canceled')
+        o = await markFailed(o, 'failed', st.reason);
     }
     return json(orderView(o, await coverThumb(o)));
   },
 );
 
-/** Development/mock payments: only available when Stripe is not configured. */
+/**
+ * Fake provider only: "pays" with one of the published test cards. The outcome is decided here
+ * on the server. Requires a real account so the download link can be emailed.
+ */
 route(
-  'ordersMockPay',
-  { methods: ['POST'], route: 'orders/{id}/mock-pay', auth: 'required' },
+  'ordersPayTest',
+  { methods: ['POST'], route: 'orders/{id}/pay-test', auth: 'required' },
   async ({ req, user }) => {
-    if (stripeEnabled())
-      throw forbidden('MOCK_DISABLED', 'Mock payments are disabled when Stripe is configured.');
-    const o = await ownedOrder(user.userId, req.params.id ?? '');
-    const body = await readJson<{ outcome?: unknown }>(req);
-    if (body.outcome === 'fail') {
-      await markFailed(o, 'failed');
-      throw new HttpError(
-        402,
-        'CARD_DECLINED',
-        'Your card was declined. Try another card or Apple Pay / Google Pay.',
+    if (paymentProvider().name !== 'fake') throw notFound('Route');
+    if (user.authLevel !== 'password')
+      throw forbidden(
+        'ACCOUNT_REQUIRED',
+        'Create your account first so we can send your download link.',
       );
+    const o = await ownedOrder(user.userId, req.params.id ?? '');
+    if (o.status === 'paid' || o.status === 'ready') return json(orderView(o, await coverThumb(o)));
+    if (o.status !== 'created' && o.status !== 'failed')
+      throw conflict('ORDER_CLOSED', 'This order can no longer be paid.');
+    const body = await readJson<{ card?: unknown }>(req);
+    const card = testCardOutcome(String(body.card ?? ''));
+    if (!card)
+      throw badRequest('UNKNOWN_TEST_CARD', 'Use one of the test cards shown on the page.');
+    if (card.outcome !== 'succeeded') {
+      const reason = DECLINE_MESSAGES[card.outcome];
+      await markFailed(o, 'failed', reason);
+      throw new HttpError(402, card.outcome.toUpperCase(), reason);
     }
+    const paid = await markPaid(o, `fake_${o.orderId}`);
+    return json(orderView(paid, await coverThumb(paid)));
+  },
+);
+
+/** Applies (or removes, with an empty code) a discount code on an open order. */
+route(
+  'ordersPromo',
+  { methods: ['POST'], route: 'orders/{id}/promo', auth: 'required' },
+  async ({ req, user }) => {
+    const o = await ownedOrder(user.userId, req.params.id ?? '');
+    if (o.status !== 'created' && o.status !== 'failed')
+      throw conflict('ORDER_CLOSED', 'This order can no longer be changed.');
+    const body = await readJson<{ code?: unknown }>(req);
+    const raw = typeof body.code === 'string' ? body.code : '';
+    if (!raw.trim()) {
+      const { order, clientSecret } = await reprice(o, null, 0, user.email);
+      return json({ order: orderView(order, await coverThumb(order)), clientSecret });
+    }
+    const code = normalizePromoCode(raw).slice(0, 40);
+    if (!(await lookups.rateLimit('promo', user.userId, 10)))
+      throw new HttpError(429, 'RATE_LIMITED', 'Too many attempts. Please wait a minute and try again.');
+    const promo = await promos.get(code);
+    let rejection = promoRejection(promo);
+    if (
+      !rejection &&
+      promo!.perUserOnce &&
+      (await lookups.get('promo_use', `${code}:${user.userId}`))
+    )
+      rejection = 'already_used';
+    if (rejection) {
+      return json({
+        order: orderView(o, await coverThumb(o)),
+        clientSecret: null,
+        rejected: { code: rejection, reason: PROMO_MESSAGES[rejection] },
+      });
+    }
+    const { order, clientSecret } = await reprice(
+      o,
+      code,
+      discountCents(o.subtotalCents ?? o.amountCents, promo!),
+      user.email,
+    );
+    return json({ order: orderView(order, await coverThumb(order)), clientSecret });
+  },
+);
+
+/** A 0-total order (100 % discount) is confirmed without any payment step. */
+route(
+  'ordersConfirmFree',
+  { methods: ['POST'], route: 'orders/{id}/confirm-free', auth: 'required' },
+  async ({ req, user }) => {
+    if (user.authLevel !== 'password')
+      throw forbidden(
+        'ACCOUNT_REQUIRED',
+        'Create your account first so we can send your download link.',
+      );
+    const o = await ownedOrder(user.userId, req.params.id ?? '');
+    if (o.status === 'paid' || o.status === 'ready') return json(orderView(o, await coverThumb(o)));
+    if (o.amountCents !== 0) throw conflict('NOT_FREE', 'This order needs a payment.');
     const paid = await markPaid(o, null);
     return json(orderView(paid, await coverThumb(paid)));
   },

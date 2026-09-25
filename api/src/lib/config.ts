@@ -46,6 +46,10 @@ export const config = {
       includedPages: int('PRICE_INCLUDED_PAGES', 40),
       extraPageCents: int('PRICE_EXTRA_PAGE_CENTS', 15),
       currency: 'eur',
+      printedFrom: {
+        softcoverCents: int('PRICE_SOFTCOVER_FROM_CENTS', 2900),
+        hardcoverCents: int('PRICE_HARDCOVER_FROM_CENTS', 4900),
+      },
     };
   },
   get retentionDays() {
@@ -73,6 +77,18 @@ export const config = {
       appSecret: process.env.IG_APP_SECRET ?? '',
       redirectUri: process.env.IG_REDIRECT_URI ?? `${this.appBaseUrl}/api/instagram/callback`,
     };
+  },
+  /**
+   * Payment provider, chosen explicitly (never inferred from which keys happen to be set).
+   * "fake" takes no money and is the default until real payments are switched on.
+   */
+  get paymentProvider(): 'fake' | 'stripe' {
+    const v = (process.env.PAYMENT_PROVIDER ?? 'fake').trim().toLowerCase();
+    if (v !== 'fake' && v !== 'stripe') throw new Error(`PAYMENT_PROVIDER must be "fake" or "stripe", got "${v}"`);
+    return v;
+  },
+  get bleedMm() {
+    return int('PRINT_BLEED_MM', 4);
   },
   get stripe() {
     return {

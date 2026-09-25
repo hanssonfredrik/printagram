@@ -4,14 +4,21 @@ import type { LibrarySummary, Order } from '@printagram/shared';
 import { fmtDate, fmtSpan } from '@printagram/shared';
 import { Banner, Button, Card, ProgressBar } from '@/components/ui';
 import { CoverThumb } from '@/components/PageRenderer';
-import { api } from '@/services';
+import { ApiClientError, api } from '@/services';
 import { generatePdf, downloadBytes, slugify } from '@/services/pdf';
 import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
 import { useLibrary } from '@/state/library';
 
 type Stage =
-  'loading' | 'waiting-payment' | 'generating' | 'uploading' | 'ready' | 'error' | 'failed';
+  | 'loading'
+  | 'waiting-payment'
+  | 'generating'
+  | 'uploading'
+  | 'ready'
+  | 'error'
+  | 'failed'
+  | 'refunded';
 
 export function Done() {
   const nav = useNavigate();
@@ -32,9 +39,13 @@ export function Done() {
   const localPdf = useRef<Uint8Array | null>(null);
   const started = useRef(false);
 
-  const library: LibrarySummary | undefined =
-    libraries.find((l) => l.id === d.libraryId) ?? libraries[0];
-  const libraryDeleted = !library;
+  // The library shown is the one this order was made from (not whatever the draft points at).
+  const library: LibrarySummary | undefined = order
+    ? libraries.find((l) => l.id === order.libraryId)
+    : undefined;
+  const libraryDeleted = !!order && (!library || library.status !== 'ready');
+  const libraryRef = useRef(library);
+  libraryRef.current = library;
 
   const produce = useCallback(
     async (o: Order, regenerate = false) => {
@@ -51,7 +62,7 @@ export function Done() {
             title: target.book.title,
             format: target.book.format,
             showMeta: target.book.showMeta,
-            showLikes: library?.hasLikes ?? false,
+            showLikes: libraryRef.current?.hasLikes ?? false,
             coverPhotoId: target.book.coverPhotoId,
             dateSpan: first && last ? fmtSpan(first.takenAt, last.takenAt) : '',
           },
@@ -71,7 +82,7 @@ export function Done() {
         setMsg(e instanceof Error ? e.message : 'Could not create the PDF.');
       }
     },
-    [library, refreshLibraries],
+    [refreshLibraries],
   );
 
   // Poll the order until paid (webhook) or use sync as a fallback, then produce the PDF.
@@ -94,7 +105,11 @@ export function Done() {
         if (o.status === 'paid') await produce(o);
         else if (o.status === 'ready') setStage('ready');
         else if (o.status === 'failed' || o.status === 'expired') setStage('failed');
-        else setStage('waiting-payment');
+        else if (o.status === 'refunded') setStage('refunded');
+        else {
+          setStage('error');
+          setMsg('We could not confirm your payment yet. Refresh this page in a minute.');
+        }
       } catch (e) {
         setStage('error');
         setMsg(e instanceof Error ? e.message : 'Could not load your order.');
@@ -118,11 +133,16 @@ export function Done() {
         window.location.assign(url);
       }
       setDownloaded(true);
-    } catch {
-      // The PDF was generated on another device: build it again here.
-      await produce(order, true);
-      if (localPdf.current) downloadBytes(localPdf.current, name);
-      setDownloaded(true);
+    } catch (e) {
+      // Only rebuild when the stored PDF is really missing; other errors are shown as they are.
+      if (e instanceof ApiClientError && (e.code === 'PDF_MISSING' || e.status === 404)) {
+        await produce(order, true);
+        if (localPdf.current) downloadBytes(localPdf.current, name);
+        setDownloaded(true);
+      } else {
+        setStage('error');
+        setMsg(e instanceof Error ? e.message : 'Could not download the PDF.');
+      }
     }
   };
 
@@ -163,7 +183,7 @@ export function Done() {
     stage === 'generating' ||
     stage === 'uploading';
   const formatLabel = order?.format === 'portrait' ? 'Portrait' : 'Square';
-  const emailShown = user?.email ?? d.email ?? 'your email';
+  const emailShown = user?.email || d.email || 'your email';
 
   return (
     <div
@@ -207,9 +227,22 @@ export function Done() {
               </div>
             )}
           </>
+        ) : stage === 'refunded' ? (
+          <>
+            <h2 className="h2">This order was refunded</h2>
+            <p className="muted">The PDF is no longer available for this order.</p>
+            <Button block size="xl" to="/books">
+              My books
+            </Button>
+          </>
         ) : stage === 'failed' ? (
           <>
             <h2 className="h2">Payment didn't go through</h2>
+            {order?.failureReason && (
+              <Banner tone="error" tight>
+                {order.failureReason}
+              </Banner>
+            )}
             <p className="muted">
               Nothing was charged. You can try again with another card or wallet.
             </p>

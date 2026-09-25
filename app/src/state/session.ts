@@ -31,8 +31,8 @@ const FALLBACK_CONFIG: AppConfig = {
     maxPhotosPerLibrary: MAX_PHOTOS_PER_LIBRARY,
     maxExportBytes: MAX_EXPORT_BYTES,
   },
-  stripePublishableKey: null,
-  mockPayments: true,
+  payment: { provider: 'fake', stripePublishableKey: null, testCards: [] },
+  print: { bleedMm: 4 },
 };
 
 export const useSession = create<SessionState>((set, get) => ({

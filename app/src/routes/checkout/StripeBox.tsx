@@ -107,12 +107,23 @@ function Inner({
     <div className="stack stack-10">
       <ExpressCheckoutElement
         options={{ buttonHeight: 48, buttonTheme: { applePay: 'black', googlePay: 'white' } }}
-        onConfirm={async () => {
-          if (!(await beforePay())) return;
+        onConfirm={async (event) => {
+          if (!stripe || !elements) {
+            event.paymentFailed({ reason: 'fail' });
+            return;
+          }
+          if (!(await beforePay())) {
+            // Close the wallet sheet so the user can fix the account fields.
+            event.paymentFailed({ reason: 'fail' });
+            return;
+          }
           setProcessing(true);
-          const { error } = await stripe!.confirmPayment({
-            elements: elements!,
-            confirmParams: { return_url: `${window.location.origin}/done/${orderId}` },
+          const { error } = await stripe.confirmPayment({
+            elements,
+            confirmParams: {
+              return_url: `${window.location.origin}/done/${orderId}`,
+              receipt_email: email || undefined,
+            },
             redirect: 'if_required',
           });
           if (error) {

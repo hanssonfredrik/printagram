@@ -15,6 +15,7 @@ import type {
   LibraryStatus,
   OrderStatus,
   PhotoSource,
+  PromoDefinition,
 } from '@printagram/shared';
 import { config } from './config.js';
 import { nowIso } from './ids.js';
@@ -102,9 +103,16 @@ export interface OrderRow {
   photoIds: string[];
   pageCount: number;
   photoCount: number;
+  /** Hash of the book content this order was priced for (reuse open orders only when unchanged). */
+  contentHash: string;
+  subtotalCents: number;
+  discountCents: number;
+  promoCode: string | null;
   amountCents: number;
   currency: 'eur';
   status: OrderStatus;
+  paymentProvider: 'fake' | 'stripe';
+  failureReason: string | null;
   stripePaymentIntentId: string | null;
   paidAt: string | null;
   pdfBlob: string | null;
@@ -137,7 +145,15 @@ export interface PhotoRow {
   importedAt: string;
 }
 
-export type LookupKind = 'email' | 'token' | 'share' | 'stripe_evt' | 'ig_user' | 'rl';
+export type LookupKind =
+  | 'email'
+  | 'token'
+  | 'share'
+  | 'stripe_evt'
+  | 'ig_user'
+  | 'rl'
+  | 'promo'
+  | 'promo_use';
 
 export interface LookupRow {
   kind: LookupKind;
@@ -283,6 +299,8 @@ const ORDER_NULLABLE: (keyof OrderRow)[] = [
   'pdfPages',
   'readyAt',
   'shareToken',
+  'promoCode',
+  'failureReason',
 ];
 const PHOTO_NULLABLE: (keyof PhotoRow)[] = ['likes', 'width', 'height'];
 const LOOKUP_NULLABLE: (keyof LookupRow)[] = ['userId', 'value', 'purpose', 'expiresAt', 'usedAt'];
@@ -654,3 +672,55 @@ export const lookups = {
 };
 
 export { nowIso };
+
+/* ------------------------------------------------------------------ */
+/* Promo codes (Lookups table, PK = "promo", RK = CODE)                  */
+/* ------------------------------------------------------------------ */
+
+const PROMO_NULLABLE: (keyof PromoDefinition)[] = ['validFrom', 'validUntil', 'maxRedemptions'];
+
+export const promos = {
+  async get(code: string): Promise<(PromoDefinition & { etag: string }) | null> {
+    try {
+      const e = await client(TABLE_LOOKUPS).getEntity<Record<string, unknown>>('promo', code);
+      const row = fromEntity<PromoDefinition>(e, PROMO_NULLABLE);
+      return { ...row, code, etag: String(e.etag) };
+    } catch (e) {
+      if (is404(e)) return null;
+      throw e;
+    }
+  },
+  async upsert(p: PromoDefinition) {
+    await client(TABLE_LOOKUPS).upsertEntity(toEntity('promo', p.code, p), 'Replace');
+  },
+  async list(): Promise<PromoDefinition[]> {
+    const out: PromoDefinition[] = [];
+    const iter = client(TABLE_LOOKUPS).listEntities<Record<string, unknown>>({
+      queryOptions: { filter: odata`PartitionKey eq ${'promo'}` },
+    });
+    for await (const e of iter) out.push({ ...fromEntity<PromoDefinition>(e, PROMO_NULLABLE), code: String(e.rowKey) });
+    return out;
+  },
+  /**
+   * Increments the redemption counter with optimistic concurrency so parallel checkouts cannot
+   * exceed maxRedemptions. Returns false when the code is used up.
+   */
+  async redeem(code: string): Promise<boolean> {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const p = await this.get(code);
+      if (!p) return false;
+      if (p.maxRedemptions !== null && p.redemptions >= p.maxRedemptions) return false;
+      try {
+        await client(TABLE_LOOKUPS).updateEntity(
+          toEntity('promo', code, { redemptions: p.redemptions + 1 }),
+          'Merge',
+          { etag: p.etag },
+        );
+        return true;
+      } catch (e) {
+        if (!is409(e)) throw e;
+      }
+    }
+    return false;
+  },
+};

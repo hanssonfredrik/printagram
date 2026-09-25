@@ -38,7 +38,7 @@ beforeEach(() => {
 
 afterEach(() => cleanup());
 
-describe('screens (mock mode)', () => {
+describe('screens (against the in-memory test API)', () => {
   it('renders the landing page with pricing and FAQ', async () => {
     renderAt('/');
     expect(await screen.findByText('Your Instagram, as a real book.')).toBeTruthy();
@@ -148,24 +148,14 @@ describe('screens (mock mode)', () => {
     expect(screen.getByRole('button', { name: 'Checkout' })).toBeTruthy();
   });
 
-  it('checkout: validation, account creation and mock payment → done', async () => {
+  it('checkout (test payment): account validation, test card → done', async () => {
     await seedLibraryAndDraft();
     const { router } = renderAt('/checkout');
-    expect(await screen.findByText('Choose a format')).toBeTruthy();
-    expect(
-      await screen.findByText('Card number', { selector: 'input' }).catch(() => null),
-    ).toBeNull();
-    const card = await screen.findByPlaceholderText('Card number');
-    const payButtons = await screen.findAllByRole('button', { name: /^Pay €/ });
-    fireEvent.click(payButtons[0]!);
-    expect(await screen.findByText('Please complete all card details.')).toBeTruthy();
-    fireEvent.change(card, { target: { value: '4242 4242 4242 4242' } });
-    fireEvent.change(screen.getByPlaceholderText('MM / YY'), { target: { value: '12/30' } });
-    fireEvent.change(screen.getByPlaceholderText('CVC'), { target: { value: '123' } });
-    fireEvent.change(screen.getByPlaceholderText('Name on card'), {
-      target: { value: 'Mara Linde' },
-    });
-    fireEvent.click(payButtons[0]!);
+    expect(await screen.findByText('Test payment — no money is taken')).toBeTruthy();
+    // No editable card fields in test mode.
+    expect(screen.queryByPlaceholderText('Card number')).toBeNull();
+    const place = await screen.findByRole('button', { name: 'Place test order' });
+    fireEvent.click(place);
     expect(
       await screen.findByText('Please enter an email address so we can send your download link.'),
     ).toBeTruthy();
@@ -175,29 +165,48 @@ describe('screens (mock mode)', () => {
     fireEvent.change(screen.getByPlaceholderText('Create a password (8+ characters)'), {
       target: { value: 'hunter2hunter2' },
     });
-    fireEvent.click(payButtons[0]!);
+    fireEvent.click(place);
     await waitFor(() => expect(router.state.location.pathname).toMatch(/^\/done\//), {
       timeout: 8000,
     });
   }, 20000);
 
-  it('checkout: declined card shows the error banner', async () => {
+  it('checkout (test payment): the decline card shows the reason and can be retried', async () => {
     await seedLibraryAndDraft();
-    mockFlags.payFails = true;
     renderAt('/checkout');
-    const card = await screen.findByPlaceholderText('Card number');
-    fireEvent.change(card, { target: { value: '4000 0000 0000 0002' } });
-    fireEvent.change(screen.getByPlaceholderText('MM / YY'), { target: { value: '12/30' } });
-    fireEvent.change(screen.getByPlaceholderText('CVC'), { target: { value: '123' } });
-    fireEvent.change(screen.getByPlaceholderText('Name on card'), { target: { value: 'Mara' } });
+    fireEvent.click(await screen.findByLabelText(/4000 0000 0000 0002/));
     fireEvent.change(screen.getByPlaceholderText('Email'), {
       target: { value: 'mara@example.com' },
     });
     fireEvent.change(screen.getByPlaceholderText('Create a password (8+ characters)'), {
       target: { value: 'hunter2hunter2' },
     });
-    fireEvent.click((await screen.findAllByRole('button', { name: /^Pay €/ }))[0]!);
+    fireEvent.click(await screen.findByRole('button', { name: 'Place test order' }));
     expect(await screen.findByText(/Your card was declined/, {}, { timeout: 8000 })).toBeTruthy();
+  }, 20000);
+
+  it('checkout: a 100 % discount code skips payment', async () => {
+    await seedLibraryAndDraft();
+    const { router } = renderAt('/checkout');
+    await screen.findByText('Test payment — no money is taken');
+    fireEvent.click(await screen.findByText('Have a discount code?'));
+    fireEvent.change(screen.getByLabelText('Discount code'), { target: { value: 'nope' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
+    expect(await screen.findByText(/That code doesn't exist/)).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Discount code'), { target: { value: 'welcome100' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
+    expect(await screen.findByText(/no payment needed/)).toBeTruthy();
+    expect(screen.getByText(/Code/).textContent).toContain('WELCOME100');
+    fireEvent.change(screen.getByPlaceholderText('Email'), {
+      target: { value: 'mara@example.com' },
+    });
+    fireEvent.change(screen.getByPlaceholderText('Create a password (8+ characters)'), {
+      target: { value: 'hunter2hunter2' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Get my PDF' }));
+    await waitFor(() => expect(router.state.location.pathname).toMatch(/^\/done\//), {
+      timeout: 8000,
+    });
   }, 20000);
 
   it('sign in, my books (empty), return link and share pages render', async () => {

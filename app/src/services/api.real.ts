@@ -7,6 +7,7 @@ import {
   type MeResult,
   type OrderCreateResult,
   type PdfUploadTarget,
+  type PromoApplyResult,
   type RegisterResult,
   type ShareInfo,
 } from './api';
@@ -171,7 +172,9 @@ export const realApi: Api = {
   createOrder: (bookId) => post<OrderCreateResult>('/orders', { bookId }),
   getOrder: (id) => get<Order>(`/orders/${id}`),
   syncOrder: (id) => post<Order>(`/orders/${id}/sync`),
-  mockPay: (id, outcome) => post<Order>(`/orders/${id}/mock-pay`, { outcome }),
+  payTest: (id, card) => post<Order>(`/orders/${id}/pay-test`, { card }),
+  applyPromo: (id, code) => post<PromoApplyResult>(`/orders/${id}/promo`, { code }),
+  confirmFree: (id) => post<Order>(`/orders/${id}/confirm-free`),
   listOrders: () => get<Order[]>('/orders'),
   async getPdfUploadTarget(orderId, regenerate = false) {
     const t = await post<PdfUploadTarget & { read: ReadSas | null }>(

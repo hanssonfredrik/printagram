@@ -17,6 +17,17 @@ export type OrderStatus = 'created' | 'paid' | 'ready' | 'failed' | 'expired' | 
 
 export type ImportJobStatus = 'running' | 'done' | 'failed';
 
+export type PaymentProviderName = 'fake' | 'stripe';
+
+/** Test cards understood by the fake payment provider (same numbers as Stripe's test mode). */
+export interface TestCard {
+  number: string;
+  label: string;
+  outcome: 'succeeded' | 'card_declined' | 'insufficient_funds';
+}
+
+export type PromoType = 'percent' | 'fixed';
+
 export interface Photo {
   id: string;
   /** Stable id of the Instagram post this photo belongs to. */
@@ -78,13 +89,22 @@ export interface Book extends BookSettings {
 export interface Order {
   id: string;
   bookId: string;
+  libraryId: string;
   status: OrderStatus;
   title: string;
   format: BookFormat;
   pageCount: number;
   photoCount: number;
+  /** Price before discount. */
+  subtotalCents: number;
+  discountCents: number;
+  promoCode: string | null;
+  /** What the customer pays: subtotal − discount (never below 0). */
   amountCents: number;
   currency: 'eur';
+  paymentProvider: PaymentProviderName;
+  /** Last payment failure shown to the user (e.g. card declined); cleared on success. */
+  failureReason: string | null;
   createdAt: string;
   paidAt: string | null;
   readyAt: string | null;
@@ -105,6 +125,8 @@ export interface PricingConfig {
   includedPages: number;
   extraPageCents: number;
   currency: 'eur';
+  /** "From" prices shown for printed books (not orderable yet). */
+  printedFrom: { softcoverCents: number; hardcoverCents: number };
 }
 
 export interface AppConfig {
@@ -116,8 +138,19 @@ export interface AppConfig {
     maxPhotosPerLibrary: number;
     maxExportBytes: number;
   };
-  stripePublishableKey: string | null;
-  mockPayments: boolean;
+  payment: {
+    provider: PaymentProviderName;
+    stripePublishableKey: string | null;
+    /** Only for the fake provider. */
+    testCards: TestCard[];
+  };
+  print: { bleedMm: number };
+}
+
+export interface PromoResult {
+  order: Order;
+  /** Present when the code was rejected; the order is returned unchanged. */
+  rejected?: { code: string; reason: string };
 }
 
 export interface ApiError {
@@ -126,4 +159,4 @@ export interface ApiError {
 
 export type ConnectError = 'personal' | 'denied' | 'expired' | 'unknown';
 
-export type UploadErrorKind = 'html' | 'empty' | 'corrupt' | 'large' | 'generic';
+export type UploadErrorKind = 'html' | 'empty' | 'corrupt' | 'large' | 'unsupported' | 'generic';

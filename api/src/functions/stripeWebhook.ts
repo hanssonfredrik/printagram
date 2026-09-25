@@ -13,7 +13,7 @@ route(
   'stripeWebhook',
   { methods: ['POST'], route: 'stripe/webhook', auth: 'none', allowCrossOrigin: true },
   async ({ req, ctx }) => {
-    if (!stripeEnabled() || !config.stripe.webhookSecret)
+    if (config.paymentProvider !== 'stripe' || !stripeEnabled() || !config.stripe.webhookSecret)
       return json({ error: { code: 'DISABLED', message: 'Stripe is not configured.' } }, 503);
     const sig = req.headers.get('stripe-signature') ?? '';
     const raw = await req.text();
@@ -50,8 +50,15 @@ route(
             await markPaid(o, paymentIntentId);
             break;
           case 'payment_intent.payment_failed':
+            // Not terminal: the same PaymentIntent can be retried and later succeed.
+            await markFailed(
+              o,
+              'failed',
+              (pi as Stripe.PaymentIntent).last_payment_error?.message ?? 'The payment failed.',
+            );
+            break;
           case 'payment_intent.canceled':
-            await markFailed(o, 'failed');
+            await markFailed(o, 'failed', 'The payment was cancelled.');
             break;
           case 'charge.refunded':
             await markFailed(o, 'refunded');

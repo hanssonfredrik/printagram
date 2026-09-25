@@ -14,6 +14,7 @@ import {
 import { newId, nowIso } from '../lib/ids.js';
 import { books, libraries, type BookRow } from '../lib/tables.js';
 import { bookView } from '../lib/views.js';
+import { bookContentHash } from '../lib/orderService.js';
 
 interface BookInput {
   libraryId?: unknown;
@@ -116,9 +117,11 @@ route(
             : null,
       photoIds,
       pageCount: pageCount(photoIds.length, format),
-      version: b.version + 1,
       updatedAt: nowIso(),
     };
+    // Only real content changes bump the version (an unchanged save must not invalidate open orders).
+    const changed = bookContentHash({ ...b, ...patch } as BookRow) !== bookContentHash(b);
+    patch.version = changed ? b.version + 1 : b.version;
     await books.merge(user.userId, b.bookId, patch);
     return json(bookView({ ...b, ...patch }));
   },

@@ -1,5 +1,5 @@
 import type { AppConfig } from '@printagram/shared';
-import { MAX_EXPORT_BYTES } from '@printagram/shared';
+import { MAX_EXPORT_BYTES, TEST_CARDS } from '@printagram/shared';
 import { createAnonymousUser, issueSession, sessionCookie, toUserInfo } from '../lib/auth.js';
 import { config } from '../lib/config.js';
 import { json, route } from '../lib/http.js';
@@ -16,8 +16,12 @@ route('config', { methods: ['GET'], route: 'config', auth: 'none' }, async () =>
       maxPhotosPerLibrary: config.maxPhotosPerLibrary,
       maxExportBytes: MAX_EXPORT_BYTES,
     },
-    stripePublishableKey: config.stripe.enabled ? config.stripe.publishableKey : null,
-    mockPayments: !config.stripe.enabled,
+    payment: {
+      provider: config.paymentProvider,
+      stripePublishableKey: config.paymentProvider === 'stripe' ? config.stripe.publishableKey : null,
+      testCards: config.paymentProvider === 'fake' ? TEST_CARDS : [],
+    },
+    print: { bleedMm: config.bleedMm },
   };
   return json(body, 200, { headers: { 'Cache-Control': 'public, max-age=60' } });
 });

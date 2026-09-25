@@ -127,10 +127,11 @@ export function Books() {
   };
 
   const cards: BookCard[] = [];
-  const orderByBook = new Map(orders.map((o) => [o.bookId, o]));
   for (const b of books ?? []) {
+    // The book's own order first; otherwise its newest paid order (the list is newest-first).
     const o =
-      orderByBook.get(b.id) ?? (b.orderId ? orders.find((x) => x.id === b.orderId) : undefined);
+      (b.orderId ? orders.find((x) => x.id === b.orderId) : undefined) ??
+      orders.find((x) => x.bookId === b.id);
     const fmt = b.format === 'square' ? 'Square' : 'Portrait';
     const meta = `${b.pageCount} pages · ${fmt} · ${b.photoIds.length} photos`;
     const cover =

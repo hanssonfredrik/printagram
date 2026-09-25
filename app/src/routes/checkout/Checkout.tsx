@@ -1,23 +1,14 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import type { Order } from '@printagram/shared';
+import type { Order, PaymentProviderName } from '@printagram/shared';
 import { fmtEuro, price } from '@printagram/shared';
-import {
-  Banner,
-  Button,
-  Card,
-  FieldInput,
-  FieldRow,
-  Fieldset,
-  Label,
-  Pill,
-  Spinner,
-} from '@/components/ui';
+import { Banner, Button, Card, FieldInput, Fieldset, Input, Label, Pill, Spinner } from '@/components/ui';
 import { CoverThumb } from '@/components/PageRenderer';
 import { ApiClientError, api } from '@/services';
 import { useDraft } from '@/state/draft';
 import { useBook } from '@/state/useBook';
 import { useConfig, useSession } from '@/state/session';
+import { FakePayment } from './FakePayment';
 import s from './checkout.module.css';
 
 const StripeBox = lazy(() => import('./StripeBox'));
@@ -35,26 +26,32 @@ export function Checkout() {
 
   const [order, setOrder] = useState<Order | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [mock, setMock] = useState(true);
+  const [provider, setProvider] = useState<PaymentProviderName | null>(null);
   const [pay, setPay] = useState<PayState>('idle');
   const [payMsg, setPayMsg] = useState('');
   const [password, setPassword] = useState('');
-  const [card, setCard] = useState({ number: '', exp: '', cvc: '', name: '' });
+  const [promoOpen, setPromoOpen] = useState(false);
+  const [promoInput, setPromoInput] = useState('');
+  const [promoBusy, setPromoBusy] = useState(false);
+  const [promoMsg, setPromoMsg] = useState<string | null>(null);
   const creating = useRef(false);
 
   const hasAccount = user?.authLevel === 'password';
-  const pr = price(book.total, cfg.pricing);
+  // Until the server answers, show the locally computed price; afterwards the order is the truth.
+  const local = price(book.total, cfg.pricing);
+  const subtotal = order?.subtotalCents ?? local.totalCents;
+  const discount = order?.discountCents ?? 0;
+  const total = order?.amountCents ?? local.totalCents;
 
-  // Make sure a draft exists and an order is open for it.
+  // Make sure the draft is saved and an order is open for it (reused while the book is unchanged).
   useEffect(() => {
     if (!book.ready || book.chosen.length === 0 || !book.libraryId || creating.current) return;
     creating.current = true;
     (async () => {
       try {
         await ensureSession();
-        let bookId = d.draftBookId;
         const saved = await api.saveDraft({
-          id: bookId,
+          id: d.draftBookId,
           libraryId: book.libraryId!,
           settings: {
             title: d.title,
@@ -64,12 +61,16 @@ export function Checkout() {
           },
           photoIds: book.chosen.map((p) => p.id),
         });
-        bookId = saved.id;
-        d.setBook({ draftBookId: bookId });
-        const res = await api.createOrder(bookId);
+        d.setBook({ draftBookId: saved.id });
+        const res = await api.createOrder(saved.id);
         setOrder(res.order);
         setClientSecret(res.clientSecret);
-        setMock(res.mock);
+        setProvider(res.provider);
+        if (res.order.promoCode) setPromoOpen(true);
+        if (res.order.status === 'failed' && res.order.failureReason) {
+          setPay('error');
+          setPayMsg(res.order.failureReason);
+        }
       } catch (e) {
         setPay('error');
         setPayMsg(e instanceof Error ? e.message : 'Could not start checkout.');
@@ -108,9 +109,7 @@ export function Checkout() {
     } catch (e) {
       setPay('error');
       if (e instanceof ApiClientError && e.code === 'EMAIL_TAKEN') {
-        setPayMsg(
-          'That email already has a Printagram account. Sign in below to continue with this book.',
-        );
+        setPayMsg('That email already has a Printagram account. Sign in to continue with this book.');
       } else {
         setPayMsg(e instanceof Error ? e.message : 'Could not create your account.');
       }
@@ -123,54 +122,81 @@ export function Checkout() {
     nav(`/done/${o.id}`);
   };
 
-  const mockPayCard = async () => {
+  const run = async (fn: () => Promise<Order>) => {
     if (!order || pay === 'processing') return;
-    if (
-      card.number.replace(/\s/g, '').length < 12 ||
-      !card.exp ||
-      card.cvc.length < 3 ||
-      !card.name
-    ) {
-      setPay('error');
-      setPayMsg('Please complete all card details.');
-      return;
-    }
     if (!(await ensureAccount())) return;
     setPay('processing');
     try {
-      finishPaid(await api.mockPay(order.id, 'ok'));
+      finishPaid(await fn());
     } catch (e) {
       setPay('error');
       setPayMsg(e instanceof Error ? e.message : 'Payment failed.');
     }
   };
 
-  const mockPayWallet = async () => {
-    if (!order || pay === 'processing') return;
-    if (!d.email) d.setEmail('you@example.com');
-    if (!hasAccount && password.length < 8) setPassword('demo-password');
-    setPay('processing');
+  const applyPromo = async (code: string) => {
+    if (!order) return;
+    setPromoBusy(true);
+    setPromoMsg(null);
     try {
-      // Wallets carry the email; the account gets a generated password the user can reset later.
-      if (!hasAccount)
-        setUser(
-          await api.register(
-            d.email || 'you@example.com',
-            password.length >= 8 ? password : 'demo-password',
-          ),
-        );
-      finishPaid(await api.mockPay(order.id, 'ok'));
+      const res = await api.applyPromo(order.id, code);
+      setOrder(res.order);
+      if (res.clientSecret) setClientSecret(res.clientSecret);
+      if (res.rejected) setPromoMsg(res.rejected.reason);
+      else setPromoInput('');
     } catch (e) {
-      setPay('error');
-      setPayMsg(
-        e instanceof Error && e.message.includes('declined')
-          ? 'The wallet payment was cancelled. Please try again.'
-          : e instanceof Error
-            ? e.message
-            : 'Payment failed.',
-      );
+      setPromoMsg(e instanceof Error ? e.message : 'Could not apply the code.');
+    } finally {
+      setPromoBusy(false);
     }
   };
+
+  const promo = (
+    <div className="stack stack-8">
+      {order?.promoCode ? (
+        <div className={s.promoApplied}>
+          <span>
+            Code <strong>{order.promoCode}</strong> applied · −{fmtEuro(discount)}
+          </span>
+          <button type="button" className="link-button" onClick={() => applyPromo('')} disabled={promoBusy}>
+            Remove
+          </button>
+        </div>
+      ) : promoOpen ? (
+        <form
+          className={s.promoRow}
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (promoInput.trim()) void applyPromo(promoInput);
+          }}
+        >
+          <Input
+            placeholder="Discount code"
+            value={promoInput}
+            onChange={(e) => {
+              setPromoInput(e.target.value);
+              setPromoMsg(null);
+            }}
+            aria-label="Discount code"
+            autoCapitalize="characters"
+            style={{ flex: 1 }}
+          />
+          <Button type="submit" variant="secondary" size="md" disabled={promoBusy || !order || !promoInput.trim()}>
+            {promoBusy ? 'Checking…' : 'Apply'}
+          </Button>
+        </form>
+      ) : (
+        <button type="button" className="link-button" style={{ alignSelf: 'flex-start' }} onClick={() => setPromoOpen(true)}>
+          Have a discount code?
+        </button>
+      )}
+      {promoMsg && (
+        <div className="tiny" role="alert" style={{ color: 'var(--error-text)' }}>
+          {promoMsg}
+        </div>
+      )}
+    </div>
+  );
 
   const summary = (
     <Card bordered pad="wide" gap={14} style={{ padding: 20 }}>
@@ -181,41 +207,37 @@ export function Checkout() {
             {d.title}
           </div>
           <div className="tiny muted">
-            {book.total} pages · {d.format === 'square' ? 'Square' : 'Portrait'} ·{' '}
+            {order?.pageCount ?? book.total} pages · {d.format === 'square' ? 'Square' : 'Portrait'} ·{' '}
             {book.chosen.length} photos
           </div>
         </div>
       </div>
       <div className="divider" />
       <div className="row between" style={{ fontSize: 15 }}>
-        <span>Digital PDF ({pr.includedPages} pages included)</span>
-        <span>{fmtEuro(pr.baseCents)}</span>
+        <span>Digital PDF ({local.includedPages} pages included)</span>
+        <span>{fmtEuro(local.baseCents)}</span>
       </div>
       <div className="row between muted" style={{ fontSize: 15 }}>
         <span>
-          {pr.extraPages} extra pages × {fmtEuro(pr.extraPageCents)}
+          {local.extraPages} extra pages × {fmtEuro(local.extraPageCents)}
         </span>
-        <span>{fmtEuro(pr.extraCents)}</span>
+        <span>{fmtEuro(subtotal - local.baseCents)}</span>
       </div>
+      {discount > 0 && (
+        <div className="row between" style={{ fontSize: 15, color: 'var(--primary-deep)' }}>
+          <span>Discount ({order?.promoCode})</span>
+          <span>−{fmtEuro(discount)}</span>
+        </div>
+      )}
       <div className="divider" />
       <div className="row between semibold" style={{ fontSize: 18 }}>
         <span>Total</span>
-        <span>{fmtEuro(pr.totalCents)}</span>
+        <span>{fmtEuro(total)}</span>
       </div>
-      {mock && (
-        <Button
-          block
-          size="xl"
-          onClick={mockPayCard}
-          disabled={pay === 'processing' || !order}
-          style={{ opacity: pay === 'processing' ? 0.7 : 1 }}
-        >
-          {pay === 'processing' ? 'Processing…' : `Pay ${fmtEuro(pr.totalCents)}`}
-        </Button>
-      )}
+      {promo}
       <p className="tiny muted center pretty">
-        In this version you receive a downloadable, print‑ready PDF. Printed books ship later —
-        we'll email you when they're ready.
+        You receive a downloadable, print‑ready PDF. Printed books ship later — we'll email you when
+        they're ready.
       </p>
     </Card>
   );
@@ -277,6 +299,58 @@ export function Checkout() {
     </>
   );
 
+  let payment: React.ReactNode = null;
+  if (order && total === 0) {
+    payment = (
+      <div className="stack stack-10">
+        <Banner tone="info" tight>
+          Your discount covers the whole book — no payment needed.
+        </Banner>
+        {accountForm}
+        <Button block size="xl" onClick={() => run(() => api.confirmFree(order.id))} disabled={pay === 'processing'}>
+          {pay === 'processing' ? 'One moment…' : 'Get my PDF'}
+        </Button>
+      </div>
+    );
+  } else if (order && provider === 'fake') {
+    payment = (
+      <FakePayment
+        cards={cfg.payment.testCards}
+        amountCents={total}
+        processing={pay === 'processing'}
+        onPay={(card) => run(() => api.payTest(order.id, card))}
+        accountForm={accountForm}
+      />
+    );
+  } else if (order && provider === 'stripe' && clientSecret && cfg.payment.stripePublishableKey) {
+    payment = (
+      <Suspense fallback={<Spinner />}>
+        <StripeBox
+          publishableKey={cfg.payment.stripePublishableKey}
+          clientSecret={clientSecret}
+          amountCents={total}
+          orderId={order.id}
+          email={d.email}
+          beforePay={ensureAccount}
+          onPaid={async () => finishPaid(await api.syncOrder(order.id))}
+          onError={(m) => {
+            setPay('error');
+            setPayMsg(m);
+          }}
+          processing={pay === 'processing'}
+          setProcessing={(p) => setPay(p ? 'processing' : 'idle')}
+          accountForm={accountForm}
+        />
+      </Suspense>
+    );
+  } else if (order && provider === 'stripe') {
+    payment = (
+      <Banner tone="error" tight>
+        Payments are not configured correctly on this server.
+      </Banner>
+    );
+  }
+
   return (
     <div className="screen" style={{ paddingBottom: 40 }}>
       <header className="container row gap-12" style={{ padding: '14px var(--gutter)' }}>
@@ -296,7 +370,7 @@ export function Checkout() {
                 <div className="tiny muted">Download instantly, print anywhere</div>
               </div>
               <div className="serif" style={{ fontSize: 20 }}>
-                {fmtEuro(pr.totalCents)}
+                {fmtEuro(total)}
               </div>
             </button>
             <div className={`${s.option} ${s['option--soon']}`}>
@@ -307,7 +381,7 @@ export function Checkout() {
                 <div className="tiny">Printing & shipping</div>
               </div>
               <div className="serif" style={{ fontSize: 20 }}>
-                from €29
+                from {fmtEuro(cfg.pricing.printedFrom.softcoverCents)}
               </div>
             </div>
             <div className={`${s.option} ${s['option--soon']}`}>
@@ -318,7 +392,7 @@ export function Checkout() {
                 <div className="tiny">Linen cover, lay‑flat</div>
               </div>
               <div className="serif" style={{ fontSize: 20 }}>
-                from €49
+                from {fmtEuro(cfg.pricing.printedFrom.hardcoverCents)}
               </div>
             </div>
           </div>
@@ -327,108 +401,10 @@ export function Checkout() {
             <Label>Payment</Label>
             {!order && pay !== 'error' && (
               <div className="row gap-10 small muted">
-                <Spinner variant="inline" /> Preparing secure checkout…
+                <Spinner variant="inline" /> Preparing checkout…
               </div>
             )}
-            {order && mock && (
-              <>
-                <div className="grid-2">
-                  <Button
-                    variant="dark"
-                    size="lg"
-                    onClick={mockPayWallet}
-                    disabled={pay === 'processing'}
-                  >
-                    Pay
-                  </Button>
-                  <Button
-                    variant="dark-outline"
-                    size="lg"
-                    onClick={mockPayWallet}
-                    disabled={pay === 'processing'}
-                  >
-                    G Pay
-                  </Button>
-                </div>
-                <div className="row gap-12 muted tiny">
-                  <div className="divider" style={{ flex: 1 }} />
-                  or pay by card
-                  <div className="divider" style={{ flex: 1 }} />
-                </div>
-                <Fieldset>
-                  <FieldInput
-                    placeholder="Card number"
-                    inputMode="numeric"
-                    autoComplete="cc-number"
-                    value={card.number}
-                    onChange={(e) => {
-                      setCard({ ...card, number: e.target.value });
-                      clearError();
-                    }}
-                    aria-label="Card number"
-                  />
-                  <FieldRow>
-                    <FieldInput
-                      placeholder="MM / YY"
-                      autoComplete="cc-exp"
-                      value={card.exp}
-                      onChange={(e) => {
-                        setCard({ ...card, exp: e.target.value });
-                        clearError();
-                      }}
-                      aria-label="Expiry"
-                    />
-                    <FieldInput
-                      placeholder="CVC"
-                      inputMode="numeric"
-                      autoComplete="cc-csc"
-                      value={card.cvc}
-                      onChange={(e) => {
-                        setCard({ ...card, cvc: e.target.value });
-                        clearError();
-                      }}
-                      aria-label="CVC"
-                    />
-                  </FieldRow>
-                  <FieldInput
-                    placeholder="Name on card"
-                    autoComplete="cc-name"
-                    value={card.name}
-                    onChange={(e) => {
-                      setCard({ ...card, name: e.target.value });
-                      clearError();
-                    }}
-                    aria-label="Name on card"
-                  />
-                </Fieldset>
-                {accountForm}
-              </>
-            )}
-            {order && !mock && clientSecret && cfg.stripePublishableKey && (
-              <Suspense fallback={<Spinner />}>
-                <StripeBox
-                  publishableKey={cfg.stripePublishableKey}
-                  clientSecret={clientSecret}
-                  amountCents={pr.totalCents}
-                  orderId={order.id}
-                  email={d.email}
-                  beforePay={ensureAccount}
-                  onPaid={async () => finishPaid(await api.syncOrder(order.id))}
-                  onError={(m) => {
-                    setPay('error');
-                    setPayMsg(m);
-                  }}
-                  processing={pay === 'processing'}
-                  setProcessing={(p) => setPay(p ? 'processing' : 'idle')}
-                  accountForm={accountForm}
-                />
-              </Suspense>
-            )}
-            {order && !mock && !cfg.stripePublishableKey && (
-              <Banner tone="error" tight>
-                Payments are not configured on this server (missing Stripe publishable key).
-              </Banner>
-            )}
+            {payment}
             {!order && pay === 'error' && (
               <Banner tone="error" tight>
                 {payMsg}

@@ -26,7 +26,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "npm run test -ws --if-present",
-    "cron": "tsx scripts/cron.ts"
+    "cron": "tsx scripts/cron.ts",
+    "local:seed-promo": "node scripts/wait-for.mjs tcp:127.0.0.1:10002 && tsx scripts/promo.ts seed",
+    "promo": "tsx scripts/promo.ts"
   },
   "devDependencies": {
     "@azure/static-web-apps-cli": "^2.0.10",

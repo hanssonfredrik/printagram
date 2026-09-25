@@ -7,6 +7,10 @@ import {
   MAX_PHOTOS_PER_LIBRARY,
   pageCount,
   price,
+  discountCents,
+  normalizePromoCode,
+  PROMO_MESSAGES,
+  TEST_CARDS,
 } from '@printagram/shared';
 import {
   ApiClientError,
@@ -130,6 +134,26 @@ function extendKeptUntil(l: LibrarySummary) {
   l.keptUntil = addMonths(base, 3).toISOString();
 }
 
+const MOCK_PROMOS: Record<string, { type: 'percent' | 'fixed'; value: number }> = {
+  WELCOME100: { type: 'percent', value: 100 },
+  TEST20: { type: 'percent', value: 20 },
+};
+
+function markMockPaid(o: Order): Order {
+  o.status = 'paid';
+  o.paidAt = nowIso();
+  o.failureReason = null;
+  const book = state.books.find((b) => b.id === o.bookId);
+  if (book) {
+    book.status = 'ordered';
+    book.orderId = o.id;
+    const l = state.libraries.find((x) => x.id === book.libraryId);
+    if (l) extendKeptUntil(l);
+  }
+  save();
+  return toOrderView(o);
+}
+
 function toOrderView(o: Order): Order {
   return { ...o };
 }
@@ -201,8 +225,12 @@ export const mockApi: Api = {
         maxPhotosPerLibrary: MAX_PHOTOS_PER_LIBRARY,
         maxExportBytes: MAX_EXPORT_BYTES,
       },
-      stripePublishableKey: null,
-      mockPayments: true,
+      payment: {
+        provider: 'fake',
+        stripePublishableKey: null,
+        testCards: TEST_CARDS,
+      },
+      print: { bleedMm: 4 },
     };
   },
 
@@ -537,19 +565,28 @@ export const mockApi: Api = {
   async createOrder(bookId): Promise<OrderCreateResult> {
     await sleep();
     const book = await this.getBook(bookId);
-    const open = state.orders.find((o) => o.bookId === bookId && o.status === 'created');
-    if (open) return { order: toOrderView(open), clientSecret: null, mock: true };
+    const open = state.orders.find(
+      (o) => o.bookId === bookId && (o.status === 'created' || o.status === 'failed'),
+    );
+    if (open) return { order: toOrderView(open), clientSecret: null, provider: 'fake' };
     const pages = pageCount(book.photoIds.length, book.format);
+    const subtotal = price(pages).totalCents;
     const order: Order = {
       id: uid('ord'),
       bookId,
+      libraryId: book.libraryId,
       status: 'created',
       title: book.title,
       format: book.format,
       pageCount: pages,
       photoCount: book.photoIds.length,
-      amountCents: price(pages).totalCents,
+      subtotalCents: subtotal,
+      discountCents: 0,
+      promoCode: null,
+      amountCents: subtotal,
       currency: 'eur',
+      paymentProvider: 'fake',
+      failureReason: null,
       createdAt: nowIso(),
       paidAt: null,
       readyAt: null,
@@ -560,7 +597,7 @@ export const mockApi: Api = {
     };
     state.orders = [order, ...state.orders];
     save();
-    return { order: toOrderView(order), clientSecret: null, mock: true };
+    return { order: toOrderView(order), clientSecret: null, provider: 'fake' };
   },
 
   async getOrder(id) {
@@ -573,28 +610,47 @@ export const mockApi: Api = {
     return this.getOrder(id);
   },
 
-  async mockPay(id, outcome) {
-    await sleep(1200);
+  async payTest(id, card) {
+    await sleep(300);
     const o = state.orders.find((x) => x.id === id);
     if (!o) throw new ApiClientError('NOT_FOUND', 'Order not found', 404);
-    if (outcome === 'fail' || mockFlags.payFails) {
-      throw new ApiClientError(
-        'CARD_DECLINED',
-        'Your card was declined. Try another card or Apple Pay / Google Pay.',
-        402,
-      );
+    const outcome = TEST_CARDS.find((c) => c.number === card)?.outcome;
+    if (!outcome) throw new ApiClientError('UNKNOWN_TEST_CARD', 'Use one of the test cards.', 400);
+    if (outcome !== 'succeeded' || mockFlags.payFails) {
+      o.status = 'failed';
+      o.failureReason = 'Your card was declined. Try another card.';
+      throw new ApiClientError('CARD_DECLINED', o.failureReason, 402);
     }
-    o.status = 'paid';
-    o.paidAt = nowIso();
-    const book = state.books.find((b) => b.id === o.bookId);
-    if (book) {
-      book.status = 'ordered';
-      book.orderId = o.id;
-      const l = state.libraries.find((x) => x.id === book.libraryId);
-      if (l) extendKeptUntil(l);
+    return markMockPaid(o);
+  },
+
+  async applyPromo(id, code) {
+    const o = state.orders.find((x) => x.id === id);
+    if (!o) throw new ApiClientError('NOT_FOUND', 'Order not found', 404);
+    const c = normalizePromoCode(code);
+    if (!c) {
+      Object.assign(o, { promoCode: null, discountCents: 0, amountCents: o.subtotalCents });
+      return { order: toOrderView(o), clientSecret: null };
     }
+    const def = MOCK_PROMOS[c];
+    if (!def) {
+      return {
+        order: toOrderView(o),
+        clientSecret: null,
+        rejected: { code: 'not_found', reason: PROMO_MESSAGES.not_found },
+      };
+    }
+    const discount = discountCents(o.subtotalCents, def);
+    Object.assign(o, { promoCode: c, discountCents: discount, amountCents: o.subtotalCents - discount });
     save();
-    return toOrderView(o);
+    return { order: toOrderView(o), clientSecret: null };
+  },
+
+  async confirmFree(id) {
+    const o = state.orders.find((x) => x.id === id);
+    if (!o) throw new ApiClientError('NOT_FOUND', 'Order not found', 404);
+    if (o.amountCents !== 0) throw new ApiClientError('NOT_FREE', 'This order needs a payment.', 409);
+    return markMockPaid(o);
   },
 
   async listOrders() {

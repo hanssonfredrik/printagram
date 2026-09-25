@@ -131,7 +131,8 @@ $settings.Values | Add-Member -NotePropertyName 'languageWorkers__node__defaultE
 if (-not $settings.Values.PSObject.Properties['PAYMENT_PROVIDER']) {
   $settings.Values | Add-Member -NotePropertyName 'PAYMENT_PROVIDER' -NotePropertyValue 'fake'
 }
-$settings | ConvertTo-Json -Depth 5 | Set-Content $settingsPath -Encoding UTF8
+# UTF-8 without BOM (Windows PowerShell 5.1's -Encoding UTF8 adds one, which breaks JSON readers).
+[System.IO.File]::WriteAllText($settingsPath, ($settings | ConvertTo-Json -Depth 5), (New-Object System.Text.UTF8Encoding($false)))
 
 # ---------------------------------------------------------------- ports & storage
 $owners = Get-PortOwners
