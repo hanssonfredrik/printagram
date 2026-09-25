@@ -19,7 +19,8 @@ import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
 import { useLibrary } from '@/state/library';
 import { artGradient } from '@/components/art';
-import { GuideScreen, PROFESSIONAL_DASHBOARD, SWITCH_SCREENS } from '@/components/guideArt';
+import { GuideScreen } from '@/components/guideArt';
+import { PROFESSIONAL_DASHBOARD, SWITCH_SCREENS } from '@/components/guideScreens';
 
 type Conn = 'idle' | 'waiting' | 'error' | 'importing' | 'done';
 
