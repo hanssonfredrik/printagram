@@ -746,4 +746,15 @@ export const mockApi: Api = {
       downloadUrl: state.pdfs[o.id] ?? '',
     };
   },
+
+  async rotateShare(orderId) {
+    const o = state.orders.find((x) => x.id === orderId);
+    if (!o) throw new ApiClientError('NOT_FOUND', 'Order not found', 404);
+    for (const [t, id] of Object.entries(state.shares)) if (id === orderId) delete state.shares[t];
+    const token = uid('share');
+    state.shares[token] = orderId;
+    o.shareToken = token;
+    save();
+    return token;
+  },
 };

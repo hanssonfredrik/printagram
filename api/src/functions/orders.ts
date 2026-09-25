@@ -447,7 +447,7 @@ route(
     const shareToken = randomToken(18);
     await lookups.upsert('share', shareToken, { userId: o.userId, value: o.orderId });
     await orders.merge(user.userId, o.orderId, { shareToken });
-    return json({ shareUrl: `${config.appBaseUrl}/s/${shareToken}` });
+    return json({ shareUrl: `${config.appBaseUrl}/s/${shareToken}`, shareToken });
   },
 );
 

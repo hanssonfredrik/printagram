@@ -266,4 +266,7 @@ export const realApi: Api = {
     return (await get<{ url: string }>(`/orders/${orderId}/download-url`)).url;
   },
   getShare: (token) => get<ShareInfo>(`/share/${token}`),
+  async rotateShare(orderId) {
+    return (await post<{ shareToken: string }>(`/orders/${orderId}/share/rotate`)).shareToken;
+  },
 };

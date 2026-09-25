@@ -155,6 +155,22 @@ export function Done() {
     }
   };
 
+  const [rotating, setRotating] = useState(false);
+  const [rotated, setRotated] = useState(false);
+  const newShareLink = async () => {
+    if (!order) return;
+    setRotating(true);
+    try {
+      const shareToken = await api.rotateShare(order.id);
+      setOrder({ ...order, shareToken });
+      setRotated(true);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setRotating(false);
+    }
+  };
+
   const share = async () => {
     if (!order?.shareToken) return;
     const url = `${window.location.origin}/s/${order.shareToken}`;
@@ -303,6 +319,19 @@ export function Done() {
                 Make another book
               </Button>
             </div>
+            {order?.shareToken && (
+              <div className="tiny muted center">
+                Anyone with the share link can download this PDF.{' '}
+                <button
+                  type="button"
+                  className="link-button"
+                  onClick={newShareLink}
+                  disabled={rotating}
+                >
+                  {rotated ? 'New link made, the old one no longer works' : 'Make a new link'}
+                </button>
+              </div>
+            )}
             <Card
               bordered
               pad="mid"

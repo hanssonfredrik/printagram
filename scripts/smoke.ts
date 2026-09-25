@@ -356,6 +356,17 @@ async function main() {
   );
   ok('download + share links work');
 
+  const rotated = await call<{ shareToken: string }>(
+    'POST',
+    `/orders/${order.body.order.id}/share/rotate`,
+    {},
+  );
+  assert(rotated.status === 200 && rotated.body.shareToken, 'rotate share link');
+  const oldLink = await call('GET', `/share/${done.body.shareToken}`);
+  const newLink = await call('GET', `/share/${rotated.body.shareToken}`);
+  assert(oldLink.status === 404 && newLink.status === 200, 'old share link revoked');
+  ok('new share link issued, the old one stops working');
+
   const books = await call<{ id: string; status: string }[]>('GET', '/books');
   assert(
     books.body.find((b) => b.id === draft.body.id)?.status === 'ordered',

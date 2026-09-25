@@ -178,4 +178,6 @@ export interface Api {
   completePdf(orderId: string, version: number, bytes: number, pages: number): Promise<Order>;
   downloadUrl(orderId: string): Promise<string>;
   getShare(token: string): Promise<ShareInfo>;
+  /** Replaces the order's share link; the old one stops working. Returns the new token. */
+  rotateShare(orderId: string): Promise<string>;
 }
