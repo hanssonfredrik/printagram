@@ -84,7 +84,8 @@ export const config = {
    */
   get paymentProvider(): 'fake' | 'stripe' {
     const v = (process.env.PAYMENT_PROVIDER ?? 'fake').trim().toLowerCase();
-    if (v !== 'fake' && v !== 'stripe') throw new Error(`PAYMENT_PROVIDER must be "fake" or "stripe", got "${v}"`);
+    if (v !== 'fake' && v !== 'stripe')
+      throw new Error(`PAYMENT_PROVIDER must be "fake" or "stripe", got "${v}"`);
     return v;
   },
   get bleedMm() {

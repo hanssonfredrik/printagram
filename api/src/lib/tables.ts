@@ -146,14 +146,7 @@ export interface PhotoRow {
 }
 
 export type LookupKind =
-  | 'email'
-  | 'token'
-  | 'share'
-  | 'stripe_evt'
-  | 'ig_user'
-  | 'rl'
-  | 'promo'
-  | 'promo_use';
+  'email' | 'token' | 'share' | 'stripe_evt' | 'ig_user' | 'rl' | 'promo' | 'promo_use';
 
 export interface LookupRow {
   kind: LookupKind;
@@ -698,7 +691,8 @@ export const promos = {
     const iter = client(TABLE_LOOKUPS).listEntities<Record<string, unknown>>({
       queryOptions: { filter: odata`PartitionKey eq ${'promo'}` },
     });
-    for await (const e of iter) out.push({ ...fromEntity<PromoDefinition>(e, PROMO_NULLABLE), code: String(e.rowKey) });
+    for await (const e of iter)
+      out.push({ ...fromEntity<PromoDefinition>(e, PROMO_NULLABLE), code: String(e.rowKey) });
     return out;
   },
   /**

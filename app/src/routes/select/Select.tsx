@@ -63,7 +63,10 @@ export function Select() {
     }),
     [d.photosOnly, d.favsOnly, d.carouselAll, d.rangeFrom, d.rangeTo],
   );
-  const visible = useMemo(() => visiblePhotos(photos, filters, hasLikes), [photos, filters, hasLikes]);
+  const visible = useMemo(
+    () => visiblePhotos(photos, filters, hasLikes),
+    [photos, filters, hasLikes],
+  );
   const chosen = useMemo(
     () => chosenPhotos(visible, d.mode, d.selected),
     [visible, d.mode, d.selected],

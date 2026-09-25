@@ -3,13 +3,27 @@ import { config } from './config.js';
 import { mailer, templates } from './email.js';
 import { nowIso } from './ids.js';
 import { extendedExpiry } from './libraryService.js';
-import { books, libraries, lookups, orders, promos, users, type BookRow, type OrderRow } from './tables.js';
+import {
+  books,
+  libraries,
+  lookups,
+  orders,
+  promos,
+  users,
+  type BookRow,
+  type OrderRow,
+} from './tables.js';
 
 /**
  * Hash of everything that affects the price and the printed result. An open order is reused only
  * while this is unchanged, so revisiting Checkout never creates duplicate orders or payments.
  */
-export function bookContentHash(b: Pick<BookRow, 'photoIds' | 'format' | 'showMeta' | 'title' | 'coverPhotoId'> & { pages?: unknown; layout?: unknown }): string {
+export function bookContentHash(
+  b: Pick<BookRow, 'photoIds' | 'format' | 'showMeta' | 'title' | 'coverPhotoId'> & {
+    pages?: unknown;
+    layout?: unknown;
+  },
+): string {
   return createHash('sha256')
     .update(
       JSON.stringify({

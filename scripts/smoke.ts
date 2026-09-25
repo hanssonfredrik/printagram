@@ -50,7 +50,9 @@ const JPEG = Buffer.from(
 function cronSecret(): string {
   if (process.env.CRON_SECRET) return process.env.CRON_SECRET;
   try {
-    const j = JSON.parse(readFileSync('api/local.settings.json', 'utf8').replace(/^﻿/, '')) as { Values: Record<string, string> };
+    const j = JSON.parse(
+      readFileSync('api/local.settings.json', 'utf8').replace(String.fromCharCode(0xfeff), ''),
+    ) as { Values: Record<string, string> };
     return j.Values.CRON_SECRET ?? '';
   } catch {
     return '';
@@ -60,12 +62,15 @@ function cronSecret(): string {
 async function main() {
   const ok = (label: string) => console.log(`✓ ${label}`);
 
-  const cfg = await call<{ payment: { provider: string; testCards: { number: string }[] }; pricing: { baseCents: number } }>(
-    'GET',
-    '/config',
-  );
+  const cfg = await call<{
+    payment: { provider: string; testCards: { number: string }[] };
+    pricing: { baseCents: number };
+  }>('GET', '/config');
   assert(cfg.status === 200 && cfg.body.pricing.baseCents === 900, 'config');
-  assert(cfg.body.payment.provider === 'fake' && cfg.body.payment.testCards.length === 3, 'fake provider with test cards');
+  assert(
+    cfg.body.payment.provider === 'fake' && cfg.body.payment.testCards.length === 3,
+    'fake provider with test cards',
+  );
   ok(`config (payment provider=${cfg.body.payment.provider})`);
 
   const anon = await call<{ user: { id: string; authLevel: string } }>(
@@ -215,7 +220,9 @@ async function main() {
       order.body.order.amountCents === 900,
     `order reuse ${JSON.stringify(order.body)}`,
   );
-  ok(`order ${order.body.order.id} reused, €${order.body.order.amountCents / 100}, provider=${order.body.provider}`);
+  ok(
+    `order ${order.body.order.id} reused, €${order.body.order.amountCents / 100}, provider=${order.body.provider}`,
+  );
 
   const early = await call<{ error: { code: string } }>(
     'POST',
@@ -226,30 +233,53 @@ async function main() {
   ok('PDF upload gated until paid');
 
   const oid = order.body.order.id;
-  const badCode = await call<{ rejected?: { code: string } }>('POST', `/orders/${oid}/promo`, { code: 'NOPE' });
-  assert(badCode.status === 200 && badCode.body.rejected?.code === 'not_found', 'unknown promo rejected');
-  const promo = await call<{ order: { amountCents: number; discountCents: number; promoCode: string } }>(
-    'POST',
-    `/orders/${oid}/promo`,
-    { code: 'test20' },
-  );
+  const badCode = await call<{ rejected?: { code: string } }>('POST', `/orders/${oid}/promo`, {
+    code: 'NOPE',
+  });
   assert(
-    promo.status === 200 && promo.body.order.promoCode === 'TEST20' && promo.body.order.discountCents === 180 && promo.body.order.amountCents === 720,
+    badCode.status === 200 && badCode.body.rejected?.code === 'not_found',
+    'unknown promo rejected',
+  );
+  const promo = await call<{
+    order: { amountCents: number; discountCents: number; promoCode: string };
+  }>('POST', `/orders/${oid}/promo`, { code: 'test20' });
+  assert(
+    promo.status === 200 &&
+      promo.body.order.promoCode === 'TEST20' &&
+      promo.body.order.discountCents === 180 &&
+      promo.body.order.amountCents === 720,
     `promo TEST20 ${JSON.stringify(promo.body)}`,
   );
   ok('discount code TEST20 applied: €9 → €7,20');
 
-  const declined = await call<{ error: { code: string; message: string } }>('POST', `/orders/${oid}/pay-test`, {
-    card: '4000 0000 0000 0002',
-  });
-  assert(declined.status === 402 && declined.body.error.code === 'CARD_DECLINED', `decline ${JSON.stringify(declined.body)}`);
-  const afterDecline = await call<{ status: string; failureReason: string }>('GET', `/orders/${oid}`);
-  assert(afterDecline.body.status === 'failed' && afterDecline.body.failureReason, 'failed order keeps its reason');
+  const declined = await call<{ error: { code: string; message: string } }>(
+    'POST',
+    `/orders/${oid}/pay-test`,
+    {
+      card: '4000 0000 0000 0002',
+    },
+  );
+  assert(
+    declined.status === 402 && declined.body.error.code === 'CARD_DECLINED',
+    `decline ${JSON.stringify(declined.body)}`,
+  );
+  const afterDecline = await call<{ status: string; failureReason: string }>(
+    'GET',
+    `/orders/${oid}`,
+  );
+  assert(
+    afterDecline.body.status === 'failed' && afterDecline.body.failureReason,
+    'failed order keeps its reason',
+  );
   ok('test card 0002 is declined and the reason is stored');
 
-  const paid = await call<{ status: string; failureReason: string | null }>('POST', `/orders/${oid}/pay-test`, {
-    card: '4242 4242 4242 4242',
-  });
+  const paid = await call<{ status: string; failureReason: string | null }>(
+    'POST',
+    `/orders/${oid}/pay-test`,
+    {
+      card: '4242 4242 4242 4242',
+    },
+  );
   assert(
     paid.status === 200 && paid.body.status === 'paid' && paid.body.failureReason === null,
     `retry pay ${JSON.stringify(paid.body)}`,

@@ -31,7 +31,10 @@ export function FakePayment({
       </Banner>
       <div className="stack stack-8" role="radiogroup" aria-label="Test card">
         {cards.map((c) => (
-          <label key={c.number} className={`${s.testCard} ${card === c.number ? s['testCard--on'] : ''}`}>
+          <label
+            key={c.number}
+            className={`${s.testCard} ${card === c.number ? s['testCard--on'] : ''}`}
+          >
             <input
               type="radio"
               name="test-card"

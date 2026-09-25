@@ -11,7 +11,8 @@ export const fakeProvider: PaymentProvider = {
     return { ref: `fake_${order.orderId}`, clientSecret: null };
   },
   async status(order) {
-    if (order.status === 'paid' || order.status === 'ready') return { status: 'succeeded', reason: null };
+    if (order.status === 'paid' || order.status === 'ready')
+      return { status: 'succeeded', reason: null };
     if (order.status === 'failed') return { status: 'failed', reason: order.failureReason };
     return { status: 'pending', reason: null };
   },

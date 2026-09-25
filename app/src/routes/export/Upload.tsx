@@ -34,7 +34,7 @@ const ERRORS: Record<UploadErrorKind, { title: string; text: string; guide: bool
     guide: true,
   },
   unsupported: {
-    title: 'Some photos use a format we can\'t read',
+    title: "Some photos use a format we can't read",
     text: 'Those photos were skipped. Everything else was imported. Instagram exports normally contain JPEG and WebP files only.',
     guide: false,
   },
@@ -264,7 +264,6 @@ export function Upload() {
             at any time. We never see your Instagram login.
           </span>
         </div>
-
       </div>
     </div>
   );

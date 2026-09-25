@@ -641,7 +641,11 @@ export const mockApi: Api = {
       };
     }
     const discount = discountCents(o.subtotalCents, def);
-    Object.assign(o, { promoCode: c, discountCents: discount, amountCents: o.subtotalCents - discount });
+    Object.assign(o, {
+      promoCode: c,
+      discountCents: discount,
+      amountCents: o.subtotalCents - discount,
+    });
     save();
     return { order: toOrderView(o), clientSecret: null };
   },
@@ -649,7 +653,8 @@ export const mockApi: Api = {
   async confirmFree(id) {
     const o = state.orders.find((x) => x.id === id);
     if (!o) throw new ApiClientError('NOT_FOUND', 'Order not found', 404);
-    if (o.amountCents !== 0) throw new ApiClientError('NOT_FREE', 'This order needs a payment.', 409);
+    if (o.amountCents !== 0)
+      throw new ApiClientError('NOT_FREE', 'This order needs a payment.', 409);
     return markMockPaid(o);
   },
 

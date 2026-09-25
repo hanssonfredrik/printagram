@@ -19,7 +19,9 @@ const tIdx = args.indexOf('--timeout');
 const timeoutMs = (tIdx >= 0 ? Number(args[tIdx + 1]) : 180) * 1000;
 
 if (!target) {
-  console.error('usage: wait-for.mjs tcp:host:port | file:path | http(s)://url [--open url] [--timeout s]');
+  console.error(
+    'usage: wait-for.mjs tcp:host:port | file:path | http(s)://url [--open url] [--timeout s]',
+  );
   process.exit(2);
 }
 

@@ -47,7 +47,12 @@ export default defineConfig(() => ({
     globals: false,
     include: ['src/**/*.test.{ts,tsx}'],
     setupFiles: ['./src/test-setup.ts'],
-    alias: [{ find: /^@\/services$/, replacement: fileURLToPath(new URL('./src/test/services.ts', import.meta.url)) }],
+    alias: [
+      {
+        find: /^@\/services$/,
+        replacement: fileURLToPath(new URL('./src/test/services.ts', import.meta.url)),
+      },
+    ],
     css: { modules: { classNameStrategy: 'non-scoped' } },
   },
 }));

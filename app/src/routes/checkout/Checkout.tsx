@@ -2,7 +2,17 @@ import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router';
 import type { Order, PaymentProviderName } from '@printagram/shared';
 import { fmtEuro, price } from '@printagram/shared';
-import { Banner, Button, Card, FieldInput, Fieldset, Input, Label, Pill, Spinner } from '@/components/ui';
+import {
+  Banner,
+  Button,
+  Card,
+  FieldInput,
+  Fieldset,
+  Input,
+  Label,
+  Pill,
+  Spinner,
+} from '@/components/ui';
 import { CoverThumb } from '@/components/PageRenderer';
 import { ApiClientError, api } from '@/services';
 import { useDraft } from '@/state/draft';
@@ -109,7 +119,9 @@ export function Checkout() {
     } catch (e) {
       setPay('error');
       if (e instanceof ApiClientError && e.code === 'EMAIL_TAKEN') {
-        setPayMsg('That email already has a Printagram account. Sign in to continue with this book.');
+        setPayMsg(
+          'That email already has a Printagram account. Sign in to continue with this book.',
+        );
       } else {
         setPayMsg(e instanceof Error ? e.message : 'Could not create your account.');
       }
@@ -158,7 +170,12 @@ export function Checkout() {
           <span>
             Code <strong>{order.promoCode}</strong> applied · −{fmtEuro(discount)}
           </span>
-          <button type="button" className="link-button" onClick={() => applyPromo('')} disabled={promoBusy}>
+          <button
+            type="button"
+            className="link-button"
+            onClick={() => applyPromo('')}
+            disabled={promoBusy}
+          >
             Remove
           </button>
         </div>
@@ -181,12 +198,22 @@ export function Checkout() {
             autoCapitalize="characters"
             style={{ flex: 1 }}
           />
-          <Button type="submit" variant="secondary" size="md" disabled={promoBusy || !order || !promoInput.trim()}>
+          <Button
+            type="submit"
+            variant="secondary"
+            size="md"
+            disabled={promoBusy || !order || !promoInput.trim()}
+          >
             {promoBusy ? 'Checking…' : 'Apply'}
           </Button>
         </form>
       ) : (
-        <button type="button" className="link-button" style={{ alignSelf: 'flex-start' }} onClick={() => setPromoOpen(true)}>
+        <button
+          type="button"
+          className="link-button"
+          style={{ alignSelf: 'flex-start' }}
+          onClick={() => setPromoOpen(true)}
+        >
           Have a discount code?
         </button>
       )}
@@ -207,8 +234,8 @@ export function Checkout() {
             {d.title}
           </div>
           <div className="tiny muted">
-            {order?.pageCount ?? book.total} pages · {d.format === 'square' ? 'Square' : 'Portrait'} ·{' '}
-            {book.chosen.length} photos
+            {order?.pageCount ?? book.total} pages · {d.format === 'square' ? 'Square' : 'Portrait'}{' '}
+            · {book.chosen.length} photos
           </div>
         </div>
       </div>
@@ -307,7 +334,12 @@ export function Checkout() {
           Your discount covers the whole book — no payment needed.
         </Banner>
         {accountForm}
-        <Button block size="xl" onClick={() => run(() => api.confirmFree(order.id))} disabled={pay === 'processing'}>
+        <Button
+          block
+          size="xl"
+          onClick={() => run(() => api.confirmFree(order.id))}
+          disabled={pay === 'processing'}
+        >
           {pay === 'processing' ? 'One moment…' : 'Get my PDF'}
         </Button>
       </div>

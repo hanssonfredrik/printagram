@@ -256,7 +256,11 @@ route(
     }
     const code = normalizePromoCode(raw).slice(0, 40);
     if (!(await lookups.rateLimit('promo', user.userId, 10)))
-      throw new HttpError(429, 'RATE_LIMITED', 'Too many attempts. Please wait a minute and try again.');
+      throw new HttpError(
+        429,
+        'RATE_LIMITED',
+        'Too many attempts. Please wait a minute and try again.',
+      );
     const promo = await promos.get(code);
     let rejection = promoRejection(promo);
     if (

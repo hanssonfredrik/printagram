@@ -18,7 +18,8 @@ route('config', { methods: ['GET'], route: 'config', auth: 'none' }, async () =>
     },
     payment: {
       provider: config.paymentProvider,
-      stripePublishableKey: config.paymentProvider === 'stripe' ? config.stripe.publishableKey : null,
+      stripePublishableKey:
+        config.paymentProvider === 'stripe' ? config.stripe.publishableKey : null,
       testCards: config.paymentProvider === 'fake' ? TEST_CARDS : [],
     },
     print: { bleedMm: config.bleedMm },

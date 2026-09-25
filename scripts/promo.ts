@@ -19,7 +19,12 @@ function flag(args: string[], name: string): string | null {
   return i >= 0 ? (args[i + 1] ?? null) : null;
 }
 
-function define(code: string, type: PromoType, value: number, extra: Partial<PromoDefinition> = {}): PromoDefinition {
+function define(
+  code: string,
+  type: PromoType,
+  value: number,
+  extra: Partial<PromoDefinition> = {},
+): PromoDefinition {
   if (type === 'percent' && (value < 1 || value > 100)) throw new Error('percent must be 1–100');
   if (type === 'fixed' && value < 1) throw new Error('fixed value is in cents and must be ≥ 1');
   return {
@@ -54,7 +59,8 @@ async function main() {
     }
     case 'create': {
       const [code, type, value] = args;
-      if (!code || (type !== 'percent' && type !== 'fixed') || !value) throw new Error('usage: create CODE percent|fixed VALUE');
+      if (!code || (type !== 'percent' && type !== 'fixed') || !value)
+        throw new Error('usage: create CODE percent|fixed VALUE');
       const until = flag(args, '--until');
       const max = flag(args, '--max');
       const p = define(code, type, Number(value), {

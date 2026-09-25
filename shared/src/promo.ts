@@ -14,7 +14,8 @@ export interface PromoDefinition {
   active: boolean;
 }
 
-export type PromoRejection = 'not_found' | 'inactive' | 'not_started' | 'expired' | 'used_up' | 'already_used';
+export type PromoRejection =
+  'not_found' | 'inactive' | 'not_started' | 'expired' | 'used_up' | 'already_used';
 
 export const PROMO_MESSAGES: Record<PromoRejection, string> = {
   not_found: "That code doesn't exist. Check the spelling and try again.",
@@ -40,7 +41,10 @@ export function promoRejection(p: PromoDefinition | null, now = new Date()): Pro
 }
 
 /** Discount in cents for a subtotal, clamped to [0, subtotal] and rounded to whole cents. */
-export function discountCents(subtotalCents: number, p: Pick<PromoDefinition, 'type' | 'value'>): number {
+export function discountCents(
+  subtotalCents: number,
+  p: Pick<PromoDefinition, 'type' | 'value'>,
+): number {
   const raw =
     p.type === 'percent'
       ? Math.round((subtotalCents * Math.min(100, Math.max(0, p.value))) / 100)

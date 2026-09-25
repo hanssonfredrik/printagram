@@ -45,7 +45,9 @@ export function Done() {
     : undefined;
   const libraryDeleted = !!order && (!library || library.status !== 'ready');
   const libraryRef = useRef(library);
-  libraryRef.current = library;
+  useEffect(() => {
+    libraryRef.current = library;
+  }, [library]);
 
   const produce = useCallback(
     async (o: Order, regenerate = false) => {
@@ -269,8 +271,7 @@ export function Done() {
                 Your book is ready
               </h2>
               <p className="muted">
-                {order?.pageCount} pages, {formatLabel}.{' '}
-                {`We also sent the link to ${emailShown}.`}
+                {order?.pageCount} pages, {formatLabel}. {`We also sent the link to ${emailShown}.`}
               </p>
             </div>
             <Button block size="xl" onClick={download}>
