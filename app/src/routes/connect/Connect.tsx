@@ -19,34 +19,27 @@ import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
 import { useLibrary } from '@/state/library';
 import { artGradient } from '@/components/art';
+import { GuideScreen, PROFESSIONAL_DASHBOARD, SWITCH_SCREENS } from '@/components/guideArt';
 
 type Conn = 'idle' | 'waiting' | 'error' | 'importing' | 'done';
 
-const SWITCH_STEPS: [string, string, string][] = [
+const SWITCH_STEPS: [string, string][] = [
   [
     'Open Settings and activity',
     'In the Instagram app, go to your profile, tap the menu (☰) top right, then Settings and activity.',
-    'screenshot: Settings and activity',
   ],
-  [
-    'Account type and tools',
-    'Scroll down to For professionals and tap Account type and tools.',
-    'screenshot: For professionals',
-  ],
+  ['Account type and tools', 'Scroll down to For professionals and tap Account type and tools.'],
   [
     'Switch to professional account',
     'Tap Switch to professional account and continue through the intro screens.',
-    'screenshot: Switch to professional',
   ],
   [
     'Pick a category',
     'Choose whatever fits — Photographer, Blogger, Personal blog. You can hide it from your profile.',
-    'screenshot: category',
   ],
   [
     'Choose Creator',
     "Creator is the simplest fit for a personal profile; Business works too. Skip the contact details and the Facebook link if you're asked.",
-    'screenshot: Creator',
   ],
 ];
 
@@ -256,8 +249,14 @@ export function Connect() {
                   to stay private? Use the export instead — it works for every account.
                 </Banner>
                 <div className="stack stack-12">
-                  {SWITCH_STEPS.map(([title, text, shot], i) => (
-                    <StepCard key={title} n={i + 1} title={title} text={text} shot={shot} />
+                  {SWITCH_STEPS.map(([title, text], i) => (
+                    <StepCard
+                      key={title}
+                      n={i + 1}
+                      title={title}
+                      text={text}
+                      shot={<GuideScreen spec={SWITCH_SCREENS[i]!} />}
+                    />
                   ))}
                 </div>
                 <Banner tone="info" title="Good to know">
@@ -282,7 +281,7 @@ export function Connect() {
                 <StepCard
                   title="A quick way to check"
                   text="Open your own profile in the Instagram app. If there's a Professional dashboard button under your bio, you have a Creator or Business account. If there isn't, it's personal."
-                  shot="screenshot: Professional dashboard"
+                  shot={<GuideScreen spec={PROFESSIONAL_DASHBOARD} />}
                 />
                 <div
                   className="grid-auto"

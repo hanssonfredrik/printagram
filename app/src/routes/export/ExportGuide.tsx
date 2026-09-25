@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
 import { Banner, Button, ScreenHeader, Segmented, StepCard } from '@/components/ui';
 import { FlowProgress } from '@/components/Progress';
+import { EXPORT_SCREENS, GuideScreen } from '@/components/guideArt';
 import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
 import { api } from '@/services';
@@ -11,64 +12,52 @@ const GUIDE = {
     [
       'Open your profile and the menu',
       'Tap your profile picture (bottom right), then the menu (☰) top right, then Settings and activity.',
-      'screenshot: Settings and activity',
     ],
     [
       'Accounts Center',
       'Tap Accounts Center at the top of the list, then Your information and permissions.',
-      'screenshot: Accounts Center',
     ],
     [
       'Export your information',
       'Tap Export your information, then Create export. On older app versions this is called Download your information → Download or transfer information.',
-      'screenshot: Create export',
     ],
     [
       'Pick your profile and destination',
       'Select your Instagram profile (untick any Facebook account), then choose Export to device.',
-      'screenshot: Export to device',
     ],
     [
       'Choose Posts only',
       'Tap Customize information (or Some of your information), untick everything, and tick Posts under Your Instagram activity.',
-      'screenshot: Posts checkbox',
     ],
     [
       'Set the options and start',
       'Date range: All time. Format: JSON. Media quality: Higher. Check the notification email, tap Start export and confirm with your Instagram password.',
-      'screenshot: options',
     ],
   ],
   desktop: [
     [
       'Open Instagram settings',
       'Go to instagram.com, click More (bottom of the left sidebar), then Settings.',
-      'screenshot: sidebar',
     ],
     [
       'Accounts Center',
       'Click Accounts Center, then Your information and permissions in the left column. You can also go straight to accountscenter.instagram.com.',
-      'screenshot: Accounts Center',
     ],
     [
       'Export your information',
       'Click Export your information, then Create export. Older versions call this Download your information → Download or transfer information.',
-      'screenshot: Create export',
     ],
     [
       'Pick your profile and destination',
       'Select your Instagram profile only, then choose Export to device.',
-      'screenshot: Export to device',
     ],
     [
       'Choose Posts only',
       'Under Customize information (or Some of your information), untick everything except Posts in Your Instagram activity.',
-      'screenshot: Posts checkbox',
     ],
     [
       'Set the options and start',
       'Date range: All time. Format: JSON. Media quality: Higher. Click Start export and confirm with your Instagram password.',
-      'screenshot: options',
     ],
   ],
 } as const;
@@ -119,14 +108,14 @@ export function ExportGuide() {
           ]}
         />
         <div className="stack stack-12">
-          {GUIDE[tab].map(([title, text, shot], i) => (
+          {GUIDE[tab].map(([title, text], i) => (
             <StepCard
               key={title}
               n={i + 1}
               title={title}
               text={text}
-              shot={shot}
-              shotAspect={tab === 'mobile' ? '9 / 16' : '16 / 10'}
+              shot={<GuideScreen spec={EXPORT_SCREENS[tab][i]!} />}
+              shotAspect={tab === 'mobile' ? '9 / 16' : '4 / 3'}
             />
           ))}
         </div>

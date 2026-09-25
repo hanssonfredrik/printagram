@@ -471,16 +471,16 @@
   border-radius: var(--radius-lg);
   padding: 16px;
   display: grid;
-  grid-template-columns: 32px minmax(0, 1fr) 88px;
+  grid-template-columns: 32px minmax(0, 1fr) 104px;
   gap: 14px;
   align-items: start;
 }
 .stepCard--noNum {
-  grid-template-columns: minmax(0, 1fr) 88px;
+  grid-template-columns: minmax(0, 1fr) 104px;
   border: 1px solid var(--border);
 }
 .shot {
-  width: 88px;
+  width: 104px;
   border-radius: 8px;
   background: repeating-linear-gradient(
     135deg,
@@ -497,43 +497,12 @@
   padding: 4px;
 }
 
-/* ---------- Demo bar ---------- */
-.demo {
-  position: fixed;
-  right: 12px;
-  z-index: 20;
-  display: flex;
-  gap: 6px;
-  align-items: center;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  max-width: calc(100vw - 24px);
-  background: rgba(42, 38, 34, 0.88);
-  color: #fff;
-  border-radius: var(--radius-pill);
-  padding: 6px 8px;
-  font-size: 11px;
-  backdrop-filter: blur(8px);
-  transition: bottom 0.2s;
-}
-.demo__label {
-  opacity: 0.6;
-  padding: 0 4px;
-}
-.demo__btn {
-  background: rgba(255, 255, 255, 0.14);
-  color: #fff;
+/* A drawn illustration instead of the striped placeholder. */
+.shot--art {
+  background: none;
   border: 0;
-  border-radius: var(--radius-pill);
-  padding: 5px 9px;
-  font-size: 11px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-.demo__btn--on {
-  background: var(--error-strong);
-}
-.demo__btn--ghost {
-  background: transparent;
-  opacity: 0.7;
+  display: block;
+  padding: 0;
+  text-align: left;
+  font-family: inherit;
 }

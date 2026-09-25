@@ -384,7 +384,8 @@ export function StepCard({
   n?: number;
   title: string;
   text: ReactNode;
-  shot: string;
+  /** A drawing (GuideScreen) or, while none exists, a placeholder label. */
+  shot: ReactNode;
   shotAspect?: string;
 }) {
   return (
@@ -394,7 +395,10 @@ export function StepCard({
         <div className="semibold">{title}</div>
         <div className="small muted pretty">{text}</div>
       </div>
-      <div className={s.shot} style={{ aspectRatio: shotAspect }}>
+      <div
+        className={cx(s.shot, typeof shot !== 'string' && s['shot--art'])}
+        style={{ aspectRatio: shotAspect }}
+      >
         {shot}
       </div>
     </div>

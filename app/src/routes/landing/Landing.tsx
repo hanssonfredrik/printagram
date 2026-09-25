@@ -114,7 +114,10 @@ export function Landing() {
               'Bring in your photos',
               'Connect your Instagram in seconds, or upload the export Instagram sends you. Either way, we never see your password.',
             ],
-            ['Pick', 'Choose by month, year or most liked. Carousels included.'],
+            [
+              'Pick',
+              'Choose by month or year (or most liked, when you connect). Carousels included.',
+            ],
             ['Print', 'Preview every page, then download your print‑ready PDF.'],
           ].map(([title, text], i) => (
             <Card key={title} gap={8}>
