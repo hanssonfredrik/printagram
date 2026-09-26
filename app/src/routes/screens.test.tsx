@@ -43,9 +43,9 @@ describe('screens (against the in-memory test API)', () => {
   it('renders the landing page with pricing and FAQ', async () => {
     renderAt('/');
     expect(await screen.findByText('Your Instagram, as a real book.')).toBeTruthy();
-    expect(screen.getByText('PDF from €9')).toBeTruthy();
+    expect(screen.getByText('PDF €9')).toBeTruthy();
     expect(
-      screen.getByText('Every price includes 40 pages. Extra pages are €0,15 each.'),
+      screen.getByText('One price for the PDF, however many photos and pages your book has.'),
     ).toBeTruthy();
     expect(screen.getByText('Is it safe?')).toBeTruthy();
   });
@@ -113,11 +113,14 @@ describe('screens (against the in-memory test API)', () => {
     renderAt('/select');
     expect(await screen.findByText('Choose your photos')).toBeTruthy();
     expect(screen.getByText('2025')).toBeTruthy();
-    const stills = photos.filter((p) => !p.isVideo && p.carouselIdx === 0).length;
-    expect(screen.getByText(`${stills} photos selected`)).toBeTruthy();
-    // Carousels: all images increases the count.
-    fireEvent.click(screen.getByText('Carousels: first image'));
+    // Carousels show all images by default; videos are never offered.
     const all = photos.filter((p) => !p.isVideo).length;
+    expect(screen.getByText(`${all} photos selected`)).toBeTruthy();
+    expect(screen.queryByText('Photos only')).toBeNull();
+    fireEvent.click(screen.getByText('Carousels: all images'));
+    const stills = photos.filter((p) => !p.isVideo && p.carouselIdx === 0).length;
+    expect(await screen.findByText(`${stills} photos selected`)).toBeTruthy();
+    fireEvent.click(screen.getByText('Carousels: first image'));
     expect(await screen.findByText(`${all} photos selected`)).toBeTruthy();
     // Choose mode: deselect a whole year.
     fireEvent.click(screen.getByRole('tab', { name: 'Choose photos' }));

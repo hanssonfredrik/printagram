@@ -1,4 +1,4 @@
-import type { PricingConfig } from '@printagram/shared';
+import { MAX_PHOTOS_PER_BOOK, type PricingConfig } from '@printagram/shared';
 
 function env(name: string, fallback?: string): string {
   const v = process.env[name];
@@ -43,8 +43,6 @@ export const config = {
   get pricing(): PricingConfig {
     return {
       baseCents: int('PRICE_BASE_CENTS', 900),
-      includedPages: int('PRICE_INCLUDED_PAGES', 40),
-      extraPageCents: int('PRICE_EXTRA_PAGE_CENTS', 15),
       currency: 'eur',
       printedFrom: {
         softcoverCents: int('PRICE_SOFTCOVER_FROM_CENTS', 2900),
@@ -62,7 +60,7 @@ export const config = {
     return int('MAX_PHOTOS_PER_LIBRARY', 10_000);
   },
   get maxPhotosPerBook() {
-    return int('MAX_PHOTOS_PER_BOOK', 600);
+    return MAX_PHOTOS_PER_BOOK;
   },
   get connectEnabled() {
     return (

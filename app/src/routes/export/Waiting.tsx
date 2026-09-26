@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Button, Card, Input, ScreenHeader, Spinner } from '@/components/ui';
+import { Button, Card, Input, ScreenHeader, Spinner, WizardBar } from '@/components/ui';
 import { FlowProgress } from '@/components/Progress';
 import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
@@ -47,8 +47,8 @@ export function Waiting() {
   };
 
   return (
-    <div className="screen screen--padded">
-      <ScreenHeader title="Almost there" onBack={() => nav('/export')}>
+    <div className="screen screen--bar">
+      <ScreenHeader title="Almost there">
         <FlowProgress screen="waiting" />
       </ScreenHeader>
       <div
@@ -181,6 +181,7 @@ export function Waiting() {
           I have my ZIP — upload it
         </Button>
       </div>
+      <WizardBar onBack={() => nav('/export')} />
     </div>
   );
 }

@@ -12,6 +12,7 @@ import {
   Segmented,
   Spinner,
   StepCard,
+  WizardBar,
 } from '@/components/ui';
 import { FlowProgress } from '@/components/Progress';
 import { api } from '@/services';
@@ -192,8 +193,8 @@ export function Connect() {
   };
 
   return (
-    <div className="screen screen--padded">
-      <ScreenHeader title="Connect your Instagram" onBack={() => nav('/start')}>
+    <div className="screen screen--bar">
+      <ScreenHeader title="Connect your Instagram">
         <FlowProgress screen="connect" />
       </ScreenHeader>
 
@@ -461,6 +462,7 @@ export function Connect() {
         </div>
         {libraryId && conn === 'done' && <span className="sr-only">Library {libraryId} ready</span>}
       </div>
+      <WizardBar onBack={() => nav('/start')} />
     </div>
   );
 }

@@ -100,7 +100,7 @@ export function Landing() {
             <Button size="xl" onClick={start}>
               Start your book
             </Button>
-            <span className="muted small">PDF from {fmtEuro(cfg.pricing.baseCents)}</span>
+            <span className="muted small">PDF {fmtEuro(cfg.pricing.baseCents)}</span>
           </div>
           <div className="row gap-10 muted small">
             <span className="check check--big">✓</span>
@@ -185,8 +185,7 @@ export function Landing() {
           Pricing
         </h2>
         <p className="muted" style={{ marginBottom: 28 }}>
-          Every price includes {cfg.pricing.includedPages} pages. Extra pages are{' '}
-          {fmtEuro(cfg.pricing.extraPageCents)} each.
+          One price for the PDF, however many photos and pages your book has.
         </p>
         <div className="grid-auto grid-auto--260">
           <Card primary gap={6} className={s.priceCard}>

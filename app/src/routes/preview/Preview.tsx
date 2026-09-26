@@ -5,6 +5,8 @@ import {
   aspectOf,
   effectivePpi,
   fmtEuro,
+  effectiveFullBleed,
+  fullBleedApplies,
   MAX_TEXT_LENGTH,
   pageLabel,
   placePhoto,
@@ -13,7 +15,7 @@ import {
   TEMPLATE_LABELS,
   templatesFor,
 } from '@printagram/shared';
-import { Banner, Button, Input, Label, Segmented, ToggleRow } from '@/components/ui';
+import { Banner, Button, Input, Label, Segmented, ToggleRow, WizardBar } from '@/components/ui';
 import { PageRenderer } from '@/components/PageRenderer';
 import { useDraft } from '@/state/draft';
 import { saveCurrentDraft, useBook } from '@/state/useBook';
@@ -67,7 +69,9 @@ export function Preview() {
 
   /** Any hand edit switches the book to a manual layout. */
   const edit = (pages: PageSpec[]) =>
-    d.setManualPages(normalizePages(pages, book.photosById, d.format, d.layout.fullBleed));
+    d.setManualPages(
+      normalizePages(pages, book.photosById, d.format, effectiveFullBleed(d.layout)),
+    );
 
   const checkout = async () => {
     if (!book.libraryId) return;
@@ -83,6 +87,9 @@ export function Preview() {
     }
   };
 
+  // With two or more photos per page there are no single-photo pages for "full page" to apply to.
+  const multiOnly = !fullBleedApplies(d.layout.density);
+
   const goToContent = (i: number) => {
     d.setPageIdx(i + 2);
     setView('pages');
@@ -94,12 +101,7 @@ export function Preview() {
         className="container row between gap-12 row-wrap"
         style={{ padding: '14px var(--gutter)' }}
       >
-        <div className="row gap-12">
-          <button type="button" className="back" onClick={() => nav('/select')} aria-label="Back">
-            ←
-          </button>
-          <div className="h4">Preview your book</div>
-        </div>
+        <div className="h4">Preview your book</div>
         <Segmented
           value={view}
           onChange={setView}
@@ -116,7 +118,7 @@ export function Preview() {
             content={book.content}
             photosById={book.photosById}
             format={d.format}
-            fullBleed={d.layout.fullBleed}
+            fullBleed={effectiveFullBleed(d.layout)}
             onChange={edit}
             onOpenPage={goToContent}
           />
@@ -301,6 +303,8 @@ export function Preview() {
                   { value: 'auto', label: 'Mixed' },
                   { value: '1', label: 'One' },
                   { value: '2', label: 'Two' },
+                  { value: '3', label: 'Three' },
+                  { value: '4', label: 'Four' },
                 ]}
               />
               {book.manual && (
@@ -313,9 +317,14 @@ export function Preview() {
               )}
             </div>
             <ToggleRow
-              on={d.layout.fullBleed}
+              on={d.layout.fullBleed && !multiOnly}
+              disabled={multiOnly}
               title="Full-page photos"
-              hint="Single photos fill the page edge to edge (can print a little soft)"
+              hint={
+                multiOnly
+                  ? 'Only for pages with one photo'
+                  : 'Single photos fill the page edge to edge (can print a little soft)'
+              }
               onToggle={() => {
                 d.setLayout({ fullBleed: !d.layout.fullBleed });
                 d.resetLayout();
@@ -370,19 +379,19 @@ export function Preview() {
         </div>
       )}
 
-      <div className="footer-bar">
-        <div className="footer-bar__inner">
-          <div>
-            <div className="semibold">
-              {book.total} pages · {d.format === 'square' ? 'Square' : 'Portrait'}
-            </div>
-            <div className="tiny muted">PDF {fmtEuro(book.priceCents)}</div>
-          </div>
+      <WizardBar
+        onBack={() => nav('/select')}
+        action={
           <Button onClick={checkout} disabled={saving || book.chosen.length === 0}>
             {saving ? 'Saving…' : 'Checkout'}
           </Button>
+        }
+      >
+        <div className="semibold">
+          {book.total} pages · {d.format === 'square' ? 'Square' : 'Portrait'}
         </div>
-      </div>
+        <div className="tiny muted">PDF {fmtEuro(book.priceCents)}</div>
+      </WizardBar>
     </div>
   );
 }

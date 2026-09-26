@@ -132,8 +132,6 @@ export interface UserInfo {
 
 export interface PricingConfig {
   baseCents: number;
-  includedPages: number;
-  extraPageCents: number;
   currency: 'eur';
   /** "From" prices shown for printed books (not orderable yet). */
   printedFrom: { softcoverCents: number; hardcoverCents: number };

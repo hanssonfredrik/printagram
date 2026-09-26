@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
 import type { Order, PaymentProviderName } from '@printagram/shared';
-import { fmtEuro, price } from '@printagram/shared';
+import { fmtEuro, pdfPriceCents } from '@printagram/shared';
 import {
   Banner,
   Button,
@@ -12,6 +12,7 @@ import {
   Label,
   Pill,
   Spinner,
+  WizardBar,
 } from '@/components/ui';
 import { CoverThumb } from '@/components/PageRenderer';
 import { ApiClientError, api } from '@/services';
@@ -48,10 +49,10 @@ export function Checkout() {
 
   const hasAccount = user?.authLevel === 'password';
   // Until the server answers, show the locally computed price; afterwards the order is the truth.
-  const local = price(book.total, cfg.pricing);
-  const subtotal = order?.subtotalCents ?? local.totalCents;
+  const local = pdfPriceCents(cfg.pricing);
+  const subtotal = order?.subtotalCents ?? local;
   const discount = order?.discountCents ?? 0;
-  const total = order?.amountCents ?? local.totalCents;
+  const total = order?.amountCents ?? local;
 
   // Make sure the draft is saved and an order is open for it (reused while the book is unchanged).
   useEffect(() => {
@@ -230,14 +231,8 @@ export function Checkout() {
       </div>
       <div className="divider" />
       <div className="row between" style={{ fontSize: 15 }}>
-        <span>Digital PDF ({local.includedPages} pages included)</span>
-        <span>{fmtEuro(local.baseCents)}</span>
-      </div>
-      <div className="row between muted" style={{ fontSize: 15 }}>
-        <span>
-          {local.extraPages} extra pages × {fmtEuro(local.extraPageCents)}
-        </span>
-        <span>{fmtEuro(subtotal - local.baseCents)}</span>
+        <span>Digital PDF</span>
+        <span>{fmtEuro(subtotal)}</span>
       </div>
       {discount > 0 && (
         <div className="row between" style={{ fontSize: 15, color: 'var(--primary-deep)' }}>
@@ -373,11 +368,8 @@ export function Checkout() {
   }
 
   return (
-    <div className="screen" style={{ paddingBottom: 40 }}>
+    <div className="screen screen--bar">
       <header className="container row gap-12" style={{ padding: '14px var(--gutter)' }}>
-        <button type="button" className="back" onClick={() => nav('/preview')} aria-label="Back">
-          ←
-        </button>
         <div className="h4">Checkout</div>
       </header>
 
@@ -436,6 +428,11 @@ export function Checkout() {
 
         {summary}
       </div>
+
+      <WizardBar onBack={() => nav('/preview')}>
+        <div className="semibold">Total {fmtEuro(total)}</div>
+        <div className="tiny muted">Digital PDF</div>
+      </WizardBar>
     </div>
   );
 }

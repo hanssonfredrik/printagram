@@ -23,7 +23,6 @@ export interface DraftState {
   // Selection
   mode: SelectMode;
   selected: string[];
-  photosOnly: boolean;
   favsOnly: boolean;
   carouselAll: boolean;
   rangeFrom: string | null;
@@ -54,9 +53,7 @@ export interface DraftState {
   setMode: (m: SelectMode, visibleIds?: string[]) => void;
   toggleIds: (ids: string[], on: boolean) => void;
   setFilter: (
-    patch: Partial<
-      Pick<DraftState, 'photosOnly' | 'favsOnly' | 'carouselAll' | 'rangeFrom' | 'rangeTo'>
-    >,
+    patch: Partial<Pick<DraftState, 'favsOnly' | 'carouselAll' | 'rangeFrom' | 'rangeTo'>>,
   ) => void;
   setBook: (
     patch: Partial<
@@ -88,9 +85,8 @@ const initial = {
   libraryId: null,
   mode: 'all' as SelectMode,
   selected: [],
-  photosOnly: true,
   favsOnly: false,
-  carouselAll: false,
+  carouselAll: true,
   rangeFrom: null,
   rangeTo: null,
   draftBookId: null,
@@ -173,8 +169,6 @@ export const useDraft = create<DraftState>()(
 
       openBook(book, libraryPhotos) {
         const keys = [...new Set(libraryPhotos.map((p) => monthKey(p.year, p.month)))].sort();
-        const inBook = new Set(book.photoIds);
-        const needsCarousel = libraryPhotos.some((p) => inBook.has(p.id) && p.carouselIdx > 0);
         set({
           libraryId: book.libraryId,
           draftBookId: book.status === 'draft' ? book.id : null,
@@ -187,9 +181,8 @@ export const useDraft = create<DraftState>()(
           // Select exactly the book's photos, with filters wide enough to show all of them.
           mode: 'choose',
           selected: [...book.photoIds],
-          photosOnly: true,
           favsOnly: false,
-          carouselAll: needsCarousel,
+          carouselAll: true,
           rangeFrom: keys[0] ?? null,
           rangeTo: keys[keys.length - 1] ?? null,
           pageIdx: 0,
@@ -207,12 +200,21 @@ export const useDraft = create<DraftState>()(
           manualPages: null,
           title: title ?? get().title,
           favsOnly: false,
+          carouselAll: true,
         });
       },
 
       resetAll: () => set({ ...initial }),
     }),
-    { name: 'printagram.draft.v2' },
+    {
+      name: 'printagram.draft.v2',
+      // v1: videos are always hidden and carousels show all images by default.
+      version: 1,
+      migrate: (persisted) => {
+        const { photosOnly: _photosOnly, ...rest } = (persisted ?? {}) as Record<string, unknown>;
+        return { ...rest, carouselAll: true } as unknown as DraftState;
+      },
+    },
   ),
 );
 
@@ -227,7 +229,6 @@ export function favThreshold(photos: Photo[]): number {
 }
 
 export interface Filters {
-  photosOnly: boolean;
   favsOnly: boolean;
   carouselAll: boolean;
   rangeFrom: string | null;
@@ -240,7 +241,8 @@ export function visiblePhotos(photos: Photo[], f: Filters, hasLikes: boolean): P
     const k = monthKey(p.year, p.month);
     if (f.rangeFrom && k < f.rangeFrom) return false;
     if (f.rangeTo && k > f.rangeTo) return false;
-    if (f.photosOnly && p.isVideo) return false;
+    // Videos can't be printed, so they are never offered.
+    if (p.isVideo) return false;
     if (thr !== null && (p.likes ?? -1) < thr) return false;
     if (!f.carouselAll && p.carouselIdx !== 0) return false;
     return true;

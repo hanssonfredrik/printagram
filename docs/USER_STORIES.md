@@ -20,7 +20,7 @@ Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas
 | 1.1 | As a visitor I want to understand what Printagram does in 10 seconds so I decide whether to start. | Hero headline, sub-line that promises a PDF today and printed books "coming soon", primary CTA "Start your book", "PDF from €9" from config; hero cover and phone rendered from sample images; "Test mode" pill while payments are simulated. | ✅ UI |
 | 1.2 | As a visitor I want to see how it works in three steps. | Bring in / Pick / Print cards. | ✅ UI |
 | 1.3 | As a visitor I want to see sample spreads so I trust the layout quality. | Three spreads (trip, summer, year in review) rendered by the real `PageRenderer` and templates from CC0 illustrations in `app/public/samples`. | ✅ UI |
-| 1.4 | As a visitor I want transparent pricing. | €9 PDF incl. 40 pages, €0,15 per extra page (from `/api/config`), softcover/hardcover "from" prices (`pricing.printedFrom`) marked "Coming soon". | ✅ UI ✅ API |
+| 1.4 | As a visitor I want transparent pricing. | Flat €9 per PDF, whatever the number of photos or pages (`PRICE_BASE_CENTS`, from `/api/config`), softcover/hardcover "from" prices (`pricing.printedFrom`) marked "Coming soon". | ✅ UI ✅ API |
 | 1.5 | As a visitor I want answers to safety, account-type, private-account, export-time, retention, deliverable and layout questions. | FAQ block with the seven questions from the design. | ✅ UI |
 | 1.6 | As a returning customer I want "Sign in" / "My books" in the header. | Header switches based on session. | ✅ UI |
 | 1.7 | As Ops I want the landing page to look right when shared and be indexable. | Open Graph/Twitter tags and `og-image.jpg`; the build emits `robots.txt`, and with `VITE_SITE_URL` also canonical, `og:url` and `sitemap.xml`. | ✅ UI |
@@ -59,7 +59,7 @@ Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas
 | 4.4 | As Mara I want to drop the ZIP and have it read without uploading the whole archive. | zip.js in a Web Worker reads `posts_*.json` and only the referenced images; originals + 400 px thumbnails go straight to Blob Storage via per-blob SAS, in batches of 24 (register → upload → confirm) so links never expire mid-import. Width, height and the real type (magic bytes) are stored. Verified with a real ZIP in `scripts/e2e.ts`. | ✅ UI ✅ API |
 | 4.5 | As Mara I want clear errors for HTML exports, exports without posts, corrupt files and files over 8 GB. | Four error banners with "Show the export steps again" where relevant. | ✅ UI |
 | 4.6 | As Mara I want captions with åäö and emoji to appear correctly. | Mojibake (UTF-8 as Latin-1, incl. cp1252 variants) reversed; unit-tested. | ✅ UI |
-| 4.7 | As Mara I want carousels and videos handled sensibly. | Carousel index/count kept; videos counted and skipped by default. | ✅ UI ✅ API |
+| 4.7 | As Mara I want carousels and videos handled sensibly. | Carousel index/count kept; carousels show all images by default; videos are counted, never offered and never printed. | ✅ UI ✅ API |
 | 4.8 | As a returning user I want "Add more photos" to import only posts newer than my last import. | `register` with `incremental=true` skips posts older than `newestMediaAt` and already-ready photos. | ✅ UI ✅ API |
 | 4.9 | As Mara I want the import to survive a flaky connection. | Deterministic 64-bit photo ids; each request retried 3× with backoff; re-running an import skips ready photos (route-tested). | ✅ UI ✅ API |
 | 4.10 | As Mara I want to drop all parts of a multi-part export at once. | Multiple files accepted (drop or picker); one index across parts, sorted by `part-N`; duplicates removed. | ✅ UI |
@@ -84,8 +84,8 @@ Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas
 | --- | --- | --- | --- |
 | 6.1 | As a user I want my photos grouped by year and month, newest first. | Year headers with counts, month sections, square tiles. | ✅ UI |
 | 6.2 | As a user I want "All photos" or "Choose photos" modes with select/deselect per year and month. | Segmented control; per-group toggle links; per-tile checkmarks. | ✅ UI |
-| 6.3 | As a user I want filters: photos only, most liked (connect source), carousels first/all, month range. | Chips + two month selects; range auto-corrects. | ✅ UI |
-| 6.4 | As a user I want to see the running page count and price. | Footer "N photos selected · ~P pages · €X"; Continue disabled at 0 or above the 600-photo cap. | ✅ UI |
+| 6.3 | As a user I want filters: most liked (connect source), carousels all/first, month range. | Chips + two month selects; range auto-corrects. | ✅ UI |
+| 6.4 | As a user I want to see the running page count and price. | Footer "N photos selected · ~P pages · €X"; Back on the left; Continue disabled at 0 or above the 999-photo cap. | ✅ UI |
 | 6.5 | As a user with no posts I want a helpful empty state. | "No photos found" with guidance and back button. | ✅ UI |
 | 6.6 | As a user I want my selection to survive a refresh or a return link. | Draft persisted in localStorage per library. | ✅ UI |
 
@@ -97,7 +97,7 @@ Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas
 | 7.2 | As a user I want to set title, format (Square 21×21 / Portrait 21×28), cover photo and captions toggle. | All four controls; preview updates instantly. | ✅ UI |
 | 7.3 | As a user I want the preview to match the PDF exactly. | Preview and PDF both draw from `shared/layout.ts` in millimetres (`slotsFor`, `placePhoto`, `coverLayout`, `TEXT_PT`, `captionParts`); photos below 150 ppi get a Soft/Low resolution badge and a summary warning. | ✅ UI |
 | 7.4 | As a user I want my draft saved so it appears in My books. | Draft upserted on Checkout (`POST/PATCH /api/books`) with its pages and layout; reopening restores the exact pages; the version only changes when the content does. | ✅ UI ✅ API |
-| 7.5 | As a user I want more layout choices (1–4 photos per page, full-bleed, text pages). | Templates `1-margin`, `1-bleed`, `2-stack`, `2-side`, `3-hero`, `4-grid`, `text`; automatic layout by density (Mixed/One/Two, new page after a 24 h gap); per-page template picker; text pages; the server validates pages against the library. | ✅ UI ✅ API |
+| 7.5 | As a user I want more layout choices (1–4 photos per page, full-bleed, text pages). | Templates `1-margin`, `1-bleed`, `2-stack`, `2-side`, `3-hero`, `4-grid`, `text`; automatic layout by density (Mixed/One/Two/Three/Four; Mixed starts a new page after a 24 h gap); full-bleed only offered for One and Mixed; per-page template picker; text pages; the server validates pages against the library. | ✅ UI ✅ API |
 | 7.6 | As a user I want to reorder photos or pages by drag and drop. | "Arrange pages" view (dnd-kit): drag photos within and between pages and move pages, by mouse, touch (200 ms hold) or keyboard, with screen-reader announcements; full pages push overflow onward; "Reset to automatic layout". | ✅ UI |
 
 ## Epic 8 — Checkout & payment
@@ -107,7 +107,7 @@ Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas
 | 8.1 | As a user I want to see the format options with softcover/hardcover marked coming soon. | Three option rows. | ✅ UI |
 | 8.2 | As a user I want to pay with Apple Pay, Google Pay or card. | `PAYMENT_PROVIDER=fake` (default): test banner and read-only test cards (4242 succeeds, …0002 declines, …9995 insufficient funds), outcome decided on the server by `POST /orders/{id}/pay-test`. `PAYMENT_PROVIDER=stripe`: Payment Element + Express Checkout, PaymentIntent server-side; never chosen implicitly from keys. | 🟡 Partial (fake provider live; Stripe dormant until keys and the switch) |
 | 8.3 | As a user I want an account created during checkout without a separate signup. | Email + password fields; registered before payment confirmation; "Sign in" link for existing accounts. | ✅ UI ✅ API |
-| 8.4 | As a user I want a clear order summary. | Cover thumb, pages/format/photos, base price, extra pages line, total. | ✅ UI |
+| 8.4 | As a user I want a clear order summary. | Cover thumb, pages/format/photos, PDF price, discount, total; Back to the preview. | ✅ UI |
 | 8.5 | As a user I want declined payments explained and retryable. | Reason stored on the order (`failureReason`); retry reuses the same order; Done shows failed and refunded states with a way back. | ✅ UI ✅ API |
 | 8.6 | As Ops I want payment confirmation to be authoritative. | Stripe webhook (signature + event-id idempotency) marks paid; `/orders/{id}/sync` fallback polls Stripe. | ✅ API |
 | 8.7 | As Ops I never want a PDF issued for an unpaid order. | Write SAS for `pdfs/` only for `paid`/`ready` orders; `complete` verifies the blob. | ✅ API |

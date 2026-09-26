@@ -195,11 +195,13 @@ export function ToggleRow({
   title,
   hint,
   onToggle,
+  disabled,
 }: {
   on: boolean;
   title: string;
   hint: string;
   onToggle: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
@@ -208,6 +210,7 @@ export function ToggleRow({
       onClick={onToggle}
       role="switch"
       aria-checked={on}
+      disabled={disabled}
     >
       <div>
         <div className="medium">{title}</div>
@@ -369,6 +372,31 @@ export function ScreenHeader({
       </div>
       {children}
     </header>
+  );
+}
+
+/* ---------- Wizard bar ---------- */
+
+/** Bottom bar of every wizard step: Back on the left, an optional summary, the next step on the right. */
+export function WizardBar({
+  onBack,
+  children,
+  action,
+}: {
+  onBack: () => void;
+  children?: ReactNode;
+  action?: ReactNode;
+}) {
+  return (
+    <div className="footer-bar">
+      <div className="footer-bar__inner">
+        <Button variant="outline" className="footer-bar__back" onClick={onBack}>
+          ← Back
+        </Button>
+        <div className="footer-bar__summary">{children}</div>
+        {action}
+      </div>
+    </div>
   );
 }
 

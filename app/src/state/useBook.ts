@@ -4,7 +4,7 @@ import {
   autoLayout,
   buildPages,
   flattenPhotoIds,
-  price,
+  pdfPriceCents,
   photoSpan,
   reconcilePages,
   totalPages,
@@ -57,7 +57,6 @@ export function useBook(): BookView {
     const visible = visiblePhotos(
       photos,
       {
-        photosOnly: d.photosOnly,
         favsOnly: d.favsOnly,
         carouselAll: d.carouselAll,
         rangeFrom: d.rangeFrom,
@@ -86,7 +85,7 @@ export function useBook(): BookView {
       content,
       pages: buildPages(content),
       total,
-      priceCents: price(total, cfg.pricing).totalCents,
+      priceCents: pdfPriceCents(cfg.pricing),
       dateSpan: photoSpan(chosen),
       hasLikes,
       libraryId: targetId,
@@ -95,7 +94,6 @@ export function useBook(): BookView {
     };
   }, [
     photos,
-    d.photosOnly,
     d.favsOnly,
     d.carouselAll,
     d.rangeFrom,

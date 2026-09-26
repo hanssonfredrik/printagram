@@ -21,10 +21,15 @@
   background: var(--surface-2);
 }
 
+/* Crops are always centred, so object-fit gives the same picture as the PDF, and the browser
+   keeps the image's real proportions even if the stored width/height are off. */
 .cropped {
   position: absolute;
-  max-width: none;
-  object-fit: fill;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
 }
 
 .fill {

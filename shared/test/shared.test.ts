@@ -18,7 +18,7 @@ import {
   pageLabel,
   placePhoto,
   ppiLevel,
-  price,
+  pdfPriceCents,
   promoRejection,
   reconcilePages,
   resolveMediaEntry,
@@ -30,7 +30,13 @@ import {
 } from '../src/index.js';
 import type { Photo } from '../src/index.js';
 
-const photo = (id: string, w = 1080, h = 1350, takenAt = '2025-03-04T12:00:00.000Z', caption = ''): Photo => ({
+const photo = (
+  id: string,
+  w = 1080,
+  h = 1350,
+  takenAt = '2025-03-04T12:00:00.000Z',
+  caption = '',
+): Photo => ({
   id,
   postId: 'p' + id,
   source: 'export',
@@ -59,12 +65,10 @@ describe('pricing', () => {
     expect(totalPages([{ template: '1-margin', photoIds: ['a'] }])).toBe(4);
   });
 
-  it('prices €9 for up to 40 pages then €0.15 per extra page', () => {
-    expect(price(10).totalCents).toBe(900);
-    expect(price(40).totalCents).toBe(900);
-    expect(price(41).totalCents).toBe(915);
-    expect(price(60, DEFAULT_PRICING).extraPages).toBe(20);
-    expect(price(60).totalCents).toBe(1200);
+  it('prices a PDF at a flat €9 whatever its size', () => {
+    expect(pdfPriceCents()).toBe(900);
+    expect(pdfPriceCents(DEFAULT_PRICING)).toBe(900);
+    expect(pdfPriceCents({ ...DEFAULT_PRICING, baseCents: 1200 })).toBe(1200);
   });
 
   it('formats euros like the design', () => {
@@ -139,7 +143,11 @@ describe('templates and placement', () => {
 
 describe('auto layout', () => {
   it('density 1 puts one photo per page (full-bleed when asked)', () => {
-    const pages = autoLayout([sq('a'), sq('b')], { density: '1', fullBleed: true, format: 'square' });
+    const pages = autoLayout([sq('a'), sq('b')], {
+      density: '1',
+      fullBleed: true,
+      format: 'square',
+    });
     expect(pages.map((p) => p.template)).toEqual(['1-bleed', '1-bleed']);
   });
 
@@ -153,11 +161,44 @@ describe('auto layout', () => {
     expect(flattenPhotoIds(pages)).toEqual(['a', 'b', 'c', 'd', 'e']);
   });
 
+  it('density 3 fills hero pages in order and lays out leftovers', () => {
+    const pages = autoLayout([port('a'), land('b'), sq('c'), port('d'), port('e')], {
+      density: '3',
+      fullBleed: true,
+      format: 'square',
+    });
+    expect(pages).toEqual([
+      { template: '3-hero', photoIds: ['a', 'b', 'c'] },
+      { template: '2-side', photoIds: ['d', 'e'] },
+    ]);
+  });
+
+  it('density 4 fills grids; full-page never applies to a leftover single', () => {
+    const pages = autoLayout(
+      ['a', 'b', 'c', 'd', 'e'].map((id) => sq(id)),
+      {
+        density: '4',
+        fullBleed: true,
+        format: 'square',
+      },
+    );
+    expect(pages.map((p) => p.template)).toEqual(['4-grid', '1-margin']);
+    expect(flattenPhotoIds(pages)).toEqual(['a', 'b', 'c', 'd', 'e']);
+  });
+
   it('auto uses grids and heroes inside an event and breaks pages between events', () => {
     const day1 = '2025-03-01T10:00:00Z';
     const day3 = '2025-03-03T10:00:00Z';
     const pages = autoLayout(
-      [sq('a', day1), sq('b', day1), sq('c', day1), sq('d', day1), land('e', day3), port('f', day3), port('g', day3)],
+      [
+        sq('a', day1),
+        sq('b', day1),
+        sq('c', day1),
+        sq('d', day1),
+        land('e', day3),
+        port('f', day3),
+        port('g', day3),
+      ],
       { density: 'auto', fullBleed: false, format: 'square' },
     );
     expect(pages.map((p) => p.template)).toEqual(['4-grid', '3-hero']);
@@ -177,9 +218,12 @@ describe('auto layout', () => {
 
   it('never loses or duplicates photos', () => {
     const photos = Array.from({ length: 37 }, (_, i) =>
-      [sq, land, port][i % 3]!(`p${i}`, new Date(Date.UTC(2025, 0, 1 + Math.floor(i / 5))).toISOString()),
+      [sq, land, port][i % 3]!(
+        `p${i}`,
+        new Date(Date.UTC(2025, 0, 1 + Math.floor(i / 5))).toISOString(),
+      ),
     );
-    for (const density of ['1', '2', 'auto'] as const) {
+    for (const density of ['1', '2', '3', '4', 'auto'] as const) {
       const pages = autoLayout(photos, { density, fullBleed: false, format: 'portrait' });
       expect(flattenPhotoIds(pages)).toEqual(photos.map((p) => p.id));
       for (const pg of pages) expect(pg.photoIds.length).toBe(TEMPLATE_CAPACITY[pg.template]);
@@ -206,7 +250,9 @@ describe('manual layouts', () => {
     const allowed = new Set(['a', 'b']);
     expect(validatePages([{ template: '2-side', photoIds: ['a', 'b'] }], allowed)).toBeNull();
     expect(validatePages([{ template: '2-side', photoIds: ['a'] }], allowed)).toMatch(/needs 2/);
-    expect(validatePages([{ template: '1-margin', photoIds: ['zzz'] }], allowed)).toMatch(/not in your library/);
+    expect(validatePages([{ template: '1-margin', photoIds: ['zzz'] }], allowed)).toMatch(
+      /not in your library/,
+    );
     expect(
       validatePages(
         [
@@ -240,10 +286,27 @@ describe('discount codes', () => {
   it('checks validity rules', () => {
     const now = new Date('2026-06-01T00:00:00Z');
     expect(promoRejection(null, now)).toBe('not_found');
-    expect(promoRejection({ ...base, type: 'percent', value: 10, active: false }, now)).toBe('inactive');
-    expect(promoRejection({ ...base, type: 'percent', value: 10, validUntil: '2026-05-01T00:00:00Z' }, now)).toBe('expired');
-    expect(promoRejection({ ...base, type: 'percent', value: 10, validFrom: '2026-07-01T00:00:00Z' }, now)).toBe('not_started');
-    expect(promoRejection({ ...base, type: 'percent', value: 10, maxRedemptions: 2, redemptions: 2 }, now)).toBe('used_up');
+    expect(promoRejection({ ...base, type: 'percent', value: 10, active: false }, now)).toBe(
+      'inactive',
+    );
+    expect(
+      promoRejection(
+        { ...base, type: 'percent', value: 10, validUntil: '2026-05-01T00:00:00Z' },
+        now,
+      ),
+    ).toBe('expired');
+    expect(
+      promoRejection(
+        { ...base, type: 'percent', value: 10, validFrom: '2026-07-01T00:00:00Z' },
+        now,
+      ),
+    ).toBe('not_started');
+    expect(
+      promoRejection(
+        { ...base, type: 'percent', value: 10, maxRedemptions: 2, redemptions: 2 },
+        now,
+      ),
+    ).toBe('used_up');
     expect(promoRejection({ ...base, type: 'percent', value: 10 }, now)).toBeNull();
     expect(normalizePromoCode(' welcome 100 ')).toBe('WELCOME100');
   });

@@ -7,7 +7,7 @@ import {
   MAX_PHOTOS_PER_LIBRARY,
   DEFAULT_LAYOUT,
   flattenPhotoIds,
-  price,
+  pdfPriceCents,
   totalPages,
   discountCents,
   normalizePromoCode,
@@ -578,7 +578,7 @@ export const mockApi: Api = {
     );
     if (open) return { order: toOrderView(open), clientSecret: null, provider: 'fake' };
     const pages = totalPages(book.pages);
-    const subtotal = price(pages).totalCents;
+    const subtotal = pdfPriceCents();
     const order: Order = {
       id: uid('ord'),
       bookId,

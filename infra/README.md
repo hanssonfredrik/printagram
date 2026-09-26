@@ -37,7 +37,7 @@ They are set by the Bicep deployment; change them in the portal or redeploy with
 | `PRICE_SOFTCOVER_FROM_CENTS`, `PRICE_HARDCOVER_FROM_CENTS` | "From" prices shown for printed books (coming soon) |
 | `EMAIL_PROVIDER` (`console`/`resend`), `RESEND_API_KEY`, `EMAIL_FROM` | Transactional email |
 | `FEATURE_CONNECT_ENABLED`, `IG_APP_ID`, `IG_APP_SECRET`, `IG_REDIRECT_URI` | Instagram connect (needs Meta App Review) |
-| `PRICE_*`, `LIBRARY_RETENTION_DAYS`, `REMINDER_DAYS_BEFORE`, `MAX_PHOTOS_*` | Product rules |
+| `PRICE_BASE_CENTS`, `LIBRARY_RETENTION_DAYS`, `REMINDER_DAYS_BEFORE`, `MAX_PHOTOS_PER_LIBRARY` | Product rules (the PDF price is flat; the per-book photo limit is fixed in code at 999) |
 
 ## Custom domain
 

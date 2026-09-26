@@ -196,7 +196,6 @@ function PlacedImage({
   showLikes: boolean;
   showPpi?: boolean;
 }) {
-  const { crop } = placed;
   const level =
     showPpi && photo?.width && photo.height
       ? ppiLevel(effectivePpi(photo.width, photo.height, placed))
@@ -206,18 +205,7 @@ function PlacedImage({
     <>
       <div className={s.frame} style={box(placed.image, format)}>
         {photo?.thumbUrl ? (
-          <img
-            src={photo.thumbUrl}
-            alt=""
-            loading="lazy"
-            className={s.cropped}
-            style={{
-              width: `${100 / crop.width}%`,
-              height: `${100 / crop.height}%`,
-              left: `${(-crop.x / crop.width) * 100}%`,
-              top: `${(-crop.y / crop.height) * 100}%`,
-            }}
-          />
+          <img src={photo.thumbUrl} alt="" loading="lazy" className={s.cropped} />
         ) : (
           <Placeholder style={{ width: '100%', height: '100%' }} />
         )}

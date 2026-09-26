@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router';
-import { Banner, Bullet, Button, Card, Pill, ScreenHeader } from '@/components/ui';
+import { Banner, Bullet, Button, Card, Pill, ScreenHeader, WizardBar } from '@/components/ui';
 import { FlowProgress } from '@/components/Progress';
 import { useConfig, useSession } from '@/state/session';
 import { useDraft } from '@/state/draft';
@@ -13,8 +13,8 @@ export function ChooseSource() {
   const libraryCount = libraries.reduce((n, l) => n + l.photoCount, 0);
 
   return (
-    <div className="screen screen--padded">
-      <ScreenHeader title="Bring in your photos" onBack={() => nav(adding ? '/books' : '/')}>
+    <div className="screen screen--bar">
+      <ScreenHeader title="Bring in your photos">
         {adding && (
           <Banner tone="info" tight>
             <div className="row gap-10">
@@ -130,6 +130,7 @@ export function ChooseSource() {
           </span>
         </div>
       </div>
+      <WizardBar onBack={() => nav(adding ? '/books' : '/')} />
     </div>
   );
 }

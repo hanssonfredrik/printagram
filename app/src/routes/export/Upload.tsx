@@ -1,7 +1,15 @@
 import { useEffect, useRef, useState, type DragEvent } from 'react';
 import { useNavigate } from 'react-router';
 import type { UploadErrorKind } from '@printagram/shared';
-import { Banner, Button, Card, ProgressBar, ScreenHeader, Spinner } from '@/components/ui';
+import {
+  Banner,
+  Button,
+  Card,
+  ProgressBar,
+  ScreenHeader,
+  Spinner,
+  WizardBar,
+} from '@/components/ui';
 import { FlowProgress } from '@/components/Progress';
 import { api } from '@/services';
 import { ExportImportError, importExportZip, type ImportSummary } from '@/services/exportImport';
@@ -163,11 +171,8 @@ export function Upload() {
   }
 
   return (
-    <div className="screen screen--padded">
-      <ScreenHeader
-        title="Upload your Instagram export"
-        onBack={() => nav(adding ? '/start' : '/export/waiting')}
-      >
+    <div className="screen screen--bar">
+      <ScreenHeader title="Upload your Instagram export">
         <FlowProgress screen="upload" />
       </ScreenHeader>
       <div className="container container--narrow stack stack-18" style={{ paddingTop: 8 }}>
@@ -332,6 +337,7 @@ export function Upload() {
           </span>
         </div>
       </div>
+      <WizardBar onBack={() => nav(adding ? '/start' : '/export/waiting')} />
     </div>
   );
 }

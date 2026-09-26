@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router';
-import { Banner, Button, ScreenHeader, Segmented, StepCard } from '@/components/ui';
+import { Banner, Button, ScreenHeader, Segmented, StepCard, WizardBar } from '@/components/ui';
 import { FlowProgress } from '@/components/Progress';
 import { GuideScreen } from '@/components/guideArt';
 import { EXPORT_SCREENS } from '@/components/guideScreens';
@@ -91,8 +91,8 @@ export function ExportGuide() {
   };
 
   return (
-    <div className="screen screen--padded">
-      <ScreenHeader title="Get your photos from Instagram" onBack={() => nav('/start')}>
+    <div className="screen screen--bar">
+      <ScreenHeader title="Get your photos from Instagram">
         <FlowProgress screen="guide" />
       </ScreenHeader>
       <div className="container container--narrow stack stack-20" style={{ paddingTop: 8 }}>
@@ -161,6 +161,7 @@ export function ExportGuide() {
           </Button>
         </div>
       </div>
+      <WizardBar onBack={() => nav('/start')} />
     </div>
   );
 }

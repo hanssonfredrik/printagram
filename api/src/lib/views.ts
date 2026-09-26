@@ -1,4 +1,12 @@
-import type { Book, BookLayout, LibrarySummary, Order, PageSpec, Photo } from '@printagram/shared';
+import type {
+  Book,
+  BookLayout,
+  LayoutDensity,
+  LibrarySummary,
+  Order,
+  PageSpec,
+  Photo,
+} from '@printagram/shared';
 import { DEFAULT_LAYOUT, legacyPages, totalPages } from '@printagram/shared';
 import type { BookRow, LibraryRow, OrderRow, PhotoRow } from './tables.js';
 
@@ -88,13 +96,12 @@ export function orderView(o: OrderRow, coverThumbUrl: string | null = null): Ord
   };
 }
 
+const DENSITIES: readonly LayoutDensity[] = ['1', '2', '3', '4', 'auto'];
+
 export function normalizeLayout(l: unknown): BookLayout {
   const v = (l ?? {}) as Partial<BookLayout>;
   return {
-    density:
-      v.density === '1' || v.density === '2' || v.density === 'auto'
-        ? v.density
-        : DEFAULT_LAYOUT.density,
+    density: v.density && DENSITIES.includes(v.density) ? v.density : DEFAULT_LAYOUT.density,
     fullBleed: v.fullBleed === true,
   };
 }

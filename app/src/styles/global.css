@@ -387,6 +387,26 @@ p {
   gap: 16px;
 }
 
+/* The outline's 1px border would make Back taller than the filled button next to it. */
+.footer-bar .footer-bar__back {
+  padding-top: 13px;
+  padding-bottom: 13px;
+}
+
+.footer-bar__summary {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 420px) {
+  .footer-bar__inner {
+    gap: 10px;
+  }
+  .footer-bar__summary .tiny {
+    display: none;
+  }
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

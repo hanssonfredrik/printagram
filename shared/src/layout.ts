@@ -1,5 +1,6 @@
 import type { BookFormat, Photo } from './types.js';
 import { fmtDate } from './dates.js';
+import { MAX_PHOTOS_PER_BOOK } from './pricing.js';
 
 /* ------------------------------------------------------------------ */
 /* Page geometry (millimetres, origin at the top-left of the trim box)  */
@@ -36,7 +37,7 @@ export interface Rect {
 export type TemplateId =
   '1-margin' | '1-bleed' | '2-stack' | '2-side' | '3-hero' | '4-grid' | 'text';
 
-export type LayoutDensity = '1' | '2' | 'auto';
+export type LayoutDensity = '1' | '2' | '3' | '4' | 'auto';
 
 export interface BookLayout {
   density: LayoutDensity;
@@ -45,6 +46,16 @@ export interface BookLayout {
 }
 
 export const DEFAULT_LAYOUT: BookLayout = { density: 'auto', fullBleed: false };
+
+/** "Full page" only makes sense where the layout puts single photos on a page. */
+export function fullBleedApplies(density: LayoutDensity): boolean {
+  return density === '1' || density === 'auto';
+}
+
+/** The full-page setting as it takes effect for this layout. */
+export function effectiveFullBleed(layout: BookLayout): boolean {
+  return layout.fullBleed && fullBleedApplies(layout.density);
+}
 
 /** One content page of a book. Cover, title page and back cover are implicit. */
 export interface PageSpec {
@@ -314,6 +325,8 @@ function singleTemplate(fullBleed: boolean): TemplateId {
  * Deterministic automatic layout.
  * - density "1": one photo per page.
  * - density "2": pairs, chosen by orientation.
+ * - density "3" / "4": groups of three (hero) or four (grid) in order; leftovers get the best
+ *   smaller template.
  * - density "auto": groups photos into events (> 24 h apart start a new page), keeps long captions
  *   on their own page, and fills pages with grids/hero/pairs where the orientations fit.
  */
@@ -322,8 +335,9 @@ export function autoLayout(
   opts: BookLayout & { format: BookFormat; showMeta?: boolean },
 ): PageSpec[] {
   const pages: PageSpec[] = [];
+  const fullBleed = effectiveFullBleed(opts);
   const single = (p: Photo) =>
-    pages.push({ template: singleTemplate(opts.fullBleed), photoIds: [p.id] });
+    pages.push({ template: singleTemplate(fullBleed), photoIds: [p.id] });
 
   if (opts.density === '1') {
     photos.forEach(single);
@@ -335,6 +349,18 @@ export function autoLayout(
       const b = photos[i + 1];
       if (b) pages.push({ template: pairTemplate(a, b, opts.format), photoIds: [a.id, b.id] });
       else single(a);
+    }
+    return pages;
+  }
+  if (opts.density === '3' || opts.density === '4') {
+    const n = Number(opts.density);
+    for (let i = 0; i < photos.length; i += n) {
+      // Photos keep their order; every frame crops to fill, so any orientation fits.
+      const group = photos.slice(i, i + n);
+      pages.push({
+        template: templateForPhotos(group, opts.format, fullBleed),
+        photoIds: group.map((p) => p.id),
+      });
     }
     return pages;
   }
@@ -447,7 +473,7 @@ export function reconcilePages(
         : templateForPhotos(
             ids.map((id) => byId.get(id)!),
             opts.format,
-            opts.fullBleed,
+            effectiveFullBleed(opts),
           );
     out.push({ template, photoIds: ids });
   }
@@ -460,7 +486,7 @@ export function reconcilePages(
 export function validatePages(
   pages: unknown,
   allowedIds: Set<string>,
-  maxPages = 400,
+  maxPages = MAX_PHOTOS_PER_BOOK + 200,
 ): string | null {
   if (!Array.isArray(pages)) return 'pages must be an array';
   if (pages.length > maxPages) return `A book can have at most ${maxPages} pages`;

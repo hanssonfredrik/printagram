@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import type { Photo } from '@printagram/shared';
-import { fmtEuro, MONTHS_SHORT, monthKey, parseMonthKey, price } from '@printagram/shared';
+import { fmtEuro, MONTHS_SHORT, monthKey, parseMonthKey } from '@printagram/shared';
 import {
   Button,
   Chip,
@@ -9,6 +9,7 @@ import {
   Segmented,
   Select as SelectBox,
   Spinner,
+  WizardBar,
 } from '@/components/ui';
 import { chosenPhotos, useDraft, visiblePhotos } from '@/state/draft';
 import { useBook } from '@/state/useBook';
@@ -49,13 +50,12 @@ export function Select() {
   });
   const filters = useMemo(
     () => ({
-      photosOnly: d.photosOnly,
       favsOnly: d.favsOnly,
       carouselAll: d.carouselAll,
       rangeFrom: d.rangeFrom,
       rangeTo: d.rangeTo,
     }),
-    [d.photosOnly, d.favsOnly, d.carouselAll, d.rangeFrom, d.rangeTo],
+    [d.favsOnly, d.carouselAll, d.rangeFrom, d.rangeTo],
   );
   const visible = useMemo(
     () => visiblePhotos(photos, filters, hasLikes),
@@ -70,7 +70,6 @@ export function Select() {
   // Page count and price follow the same automatic layout the preview will use.
   const book = useBook();
   const total = book.total;
-  const pr = price(total, cfg.pricing);
   const overLimit = chosen.length > cfg.limits.maxPhotosPerBook;
 
   const years = useMemo(() => {
@@ -135,12 +134,7 @@ export function Select() {
       <header className={s.sticky}>
         <div className={s.stickyInner}>
           <div className="row between gap-12">
-            <div className="row gap-12">
-              <button type="button" className="back" onClick={back} aria-label="Back">
-                ←
-              </button>
-              <div className="h4">Choose your photos</div>
-            </div>
+            <div className="h4">Choose your photos</div>
             <div
               className="small muted"
               style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
@@ -164,9 +158,6 @@ export function Select() {
                 ]}
               />
               <div className="row row-wrap gap-8">
-                <Chip on={d.photosOnly} onClick={() => d.setFilter({ photosOnly: !d.photosOnly })}>
-                  Photos only
-                </Chip>
                 {hasLikes && (
                   <Chip on={d.favsOnly} onClick={() => d.setFilter({ favsOnly: !d.favsOnly })}>
                     ♥ Most liked
@@ -300,13 +291,12 @@ export function Select() {
                             ) : (
                               <Placeholder style={{ width: '100%', height: '100%' }} />
                             )}
-                            {p.isVideo && <span className={s.badge}>▶ video</span>}
-                            {!p.isVideo && p.carouselCount > 1 && (
+                            {p.carouselCount > 1 && (
                               <span className={s.badge}>
                                 {p.carouselIdx + 1}/{p.carouselCount}
                               </span>
                             )}
-                            {hasLikes && !p.isVideo && p.likes !== null && (
+                            {hasLikes && p.likes !== null && (
                               <span className={`${s.badge} ${s['badge--bottom']}`}>
                                 ♥ {p.likes}
                               </span>
@@ -328,24 +318,28 @@ export function Select() {
               </div>
             )}
           </div>
-
-          <div className="footer-bar">
-            <div className="footer-bar__inner">
-              <div>
-                <div className="semibold">{chosen.length} photos selected</div>
-                <div className="tiny muted">
-                  {overLimit
-                    ? `Maximum ${cfg.limits.maxPhotosPerBook} photos per book`
-                    : `~${total} pages · ${fmtEuro(pr.totalCents)}`}
-                </div>
-              </div>
-              <Button disabled={chosen.length === 0 || overLimit} onClick={() => nav('/preview')}>
-                Continue
-              </Button>
-            </div>
-          </div>
         </>
       )}
+
+      <WizardBar
+        onBack={back}
+        action={
+          <Button disabled={chosen.length === 0 || overLimit} onClick={() => nav('/preview')}>
+            Continue
+          </Button>
+        }
+      >
+        {photos.length > 0 && (
+          <>
+            <div className="semibold">{chosen.length} photos selected</div>
+            <div className="tiny muted">
+              {overLimit
+                ? `Maximum ${cfg.limits.maxPhotosPerBook} photos per book`
+                : `~${total} pages · ${fmtEuro(book.priceCents)}`}
+            </div>
+          </>
+        )}
+      </WizardBar>
     </div>
   );
 }

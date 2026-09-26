@@ -86,7 +86,9 @@ async function main() {
 
   await page.getByRole('button', { name: 'Choose photos' }).click();
   await page.getByText('Choose your photos').waitFor();
-  await page.getByText('3 photos selected').waitFor(); // 5 stills, carousel collapsed to first image → 3
+  await page.getByText('5 photos selected').waitFor(); // 5 stills, carousels show all images by default
+  await page.getByRole('button', { name: 'Carousels: all images' }).click();
+  await page.getByText('3 photos selected').waitFor(); // carousel collapsed to first image
   await page.getByRole('button', { name: 'Carousels: first image' }).click();
   await page.getByText('5 photos selected').waitFor();
   // mojibake caption decoded?

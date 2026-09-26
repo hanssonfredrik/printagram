@@ -1,7 +1,7 @@
 import {
   discountCents,
   normalizePromoCode,
-  price,
+  pdfPriceCents,
   totalPages,
   PROMO_MESSAGES,
   promoRejection,
@@ -64,7 +64,7 @@ async function coverThumb(o: OrderRow): Promise<string | null> {
 /** Price for a book at its current content, before any discount. */
 function subtotalFor(book: BookRow): { pages: number; subtotalCents: number } {
   const pages = totalPages(bookPages(book));
-  return { pages, subtotalCents: price(pages, config.pricing).totalCents };
+  return { pages, subtotalCents: pdfPriceCents(config.pricing) };
 }
 
 /** Recomputes the amount after a (possibly removed) discount and syncs the provider side. */
