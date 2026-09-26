@@ -32,6 +32,9 @@ param extraCorsOrigins array = []
 @description('Enable the Instagram connect path (requires Meta App Review).')
 param connectEnabled bool = false
 
+@description('Enable the Google Photos import path. The card only shows once a Google OAuth client is set (docs/GOOGLE_OAUTH_SETUP.md).')
+param googlePhotosEnabled bool = true
+
 // ---------- Secrets (passed at deploy time; never committed) ----------
 @secure()
 param authJwtSecret string
@@ -39,11 +42,11 @@ param authJwtSecret string
 param tokenEncKey string
 @secure()
 param cronSecret string
-@secure()
 @description('Payment provider: fake (test payments, no money taken) or stripe (needs the three Stripe keys).')
 @allowed(['fake', 'stripe'])
 param paymentProvider string = 'fake'
 
+@secure()
 param stripeSecretKey string = ''
 param stripePublishableKey string = ''
 @secure()
@@ -54,6 +57,9 @@ param emailFrom string = 'Printagram <hello@printagram.app>'
 param igAppId string = ''
 @secure()
 param igAppSecret string = ''
+param googleClientId string = ''
+@secure()
+param googleClientSecret string = ''
 
 var storageName = toLower(replace('${baseName}${env}${uniqueString(resourceGroup().id)}', '-', ''))
 var storageAccountName = take(storageName, 24)
@@ -172,6 +178,10 @@ resource swaSettings 'Microsoft.Web/staticSites/config@2023-12-01' = {
     IG_APP_ID: igAppId
     IG_APP_SECRET: igAppSecret
     IG_REDIRECT_URI: '${resolvedAppBaseUrl}/api/instagram/callback'
+    FEATURE_GOOGLE_PHOTOS_ENABLED: googlePhotosEnabled ? 'true' : 'false'
+    GOOGLE_CLIENT_ID: googleClientId
+    GOOGLE_CLIENT_SECRET: googleClientSecret
+    GOOGLE_REDIRECT_URI: '${resolvedAppBaseUrl}/api/google/callback'
     PAYMENT_PROVIDER: paymentProvider
     STRIPE_SECRET_KEY: stripeSecretKey
     STRIPE_PUBLISHABLE_KEY: stripePublishableKey

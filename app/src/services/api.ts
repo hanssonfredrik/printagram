@@ -61,6 +61,21 @@ export interface InstagramStatus {
   tokenExpiresAt: string | null;
 }
 
+export interface GoogleStatus {
+  connected: boolean;
+  libraryId: string | null;
+  tokenExpiresAt: string | null;
+  sessionId: string | null;
+}
+
+export interface GoogleSession {
+  sessionId: string;
+  /** Google Photos page where the user picks photos (open in a new tab). */
+  pickerUri: string;
+  pollIntervalMs: number;
+  libraryId: string;
+}
+
 export interface OrderCreateResult {
   order: Order;
   /** Stripe only: secret for the Payment Element. */
@@ -119,7 +134,8 @@ export interface Api {
   resetPassword(token: string, password: string): Promise<UserInfo>;
   sendReturnLink(email: string, resumeTo: string): Promise<void>;
   consumeMagicLink(token: string): Promise<{ user: UserInfo; resumeTo: string }>;
-  sendExportSteps(email: string): Promise<void>;
+  /** Emails the how-to for the export ZIP (default) or the Google Photos transfer. */
+  sendExportSteps(email: string, kind?: 'export' | 'google'): Promise<void>;
   deleteAccount(): Promise<void>;
 
   listLibraries(): Promise<LibrarySummary[]>;
@@ -143,9 +159,21 @@ export interface Api {
 
   instagramStartUrl(): Promise<string>;
   instagramStatus(): Promise<InstagramStatus>;
-  startInstagramImport(libraryId: string): Promise<{ jobId: string; libraryId: string }>;
-  runInstagramImport(jobId: string): Promise<ImportProgress>;
   disconnectInstagram(): Promise<void>;
+
+  googleStartUrl(): Promise<string>;
+  googleStatus(): Promise<GoogleStatus>;
+  createGoogleSession(): Promise<GoogleSession>;
+  getGoogleSession(): Promise<{
+    sessionId: string;
+    mediaItemsSet: boolean;
+    pollIntervalMs: number;
+  }>;
+  disconnectGoogle(): Promise<void>;
+
+  /** Server-side copy (Instagram connect, Google Photos): one job, run in bounded batches. */
+  startImport(libraryId: string): Promise<{ jobId: string; libraryId: string }>;
+  runImport(jobId: string): Promise<ImportProgress>;
 
   listBooks(): Promise<Book[]>;
   saveDraft(input: {

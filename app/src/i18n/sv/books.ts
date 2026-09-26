@@ -18,6 +18,7 @@ export const books: Messages['books'] = {
   libraryMeta: (photos: number, source: string, date: string) =>
     `${photos} ${photos === 1 ? 'bild' : 'bilder'} · ${source} · importerat ${date}`,
   exportSource: 'Instagram-export',
+  googleSource: 'Google Foto',
   keptUntilBefore: 'Sparas till',
   keptUntilAfter: '. Varje ny bok förlänger tiden med 3 månader.',
   newBook: 'Ny bok av de här bilderna',

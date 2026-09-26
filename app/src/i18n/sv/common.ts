@@ -17,6 +17,7 @@ export const common: Messages['common'] = {
     connect: 'Anslut',
     export: 'Exportera',
     upload: 'Ladda upp',
+    google: 'Google Foto',
     photos: 'Bilder',
     select: 'Välj',
     preview: 'Förhandsgranska',

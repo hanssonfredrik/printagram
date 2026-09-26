@@ -6,7 +6,7 @@
 import type { BookLayout, PageSpec } from './layout.js';
 import type { Lang } from './i18n.js';
 
-export type PhotoSource = 'instagram' | 'export';
+export type PhotoSource = 'instagram' | 'export' | 'googlephotos';
 
 export type BookFormat = 'square' | 'portrait';
 
@@ -144,6 +144,8 @@ export interface PricingConfig {
 
 export interface AppConfig {
   connectEnabled: boolean;
+  /** Google Photos import (Picker API); needs a Google OAuth client. */
+  googlePhotosEnabled: boolean;
   printedBooksEnabled: boolean;
   pricing: PricingConfig;
   limits: {
@@ -171,5 +173,7 @@ export interface ApiError {
 }
 
 export type ConnectError = 'personal' | 'denied' | 'expired' | 'unknown';
+
+export type GoogleError = 'denied' | 'expired' | 'unknown';
 
 export type UploadErrorKind = 'html' | 'empty' | 'corrupt' | 'large' | 'unsupported' | 'generic';

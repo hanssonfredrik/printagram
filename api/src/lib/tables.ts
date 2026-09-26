@@ -58,6 +58,12 @@ export interface LibraryRow {
   igTokenExpiresAt: string | null;
   igTokenInvalid: boolean;
   igConnected: boolean;
+  /** Google Photos (Picker API): short-lived access token, encrypted; absent on older rows. */
+  gpTokenEnc?: string | null;
+  gpTokenExpiresAt?: string | null;
+  gpTokenInvalid?: boolean;
+  /** Picker session whose selection the next import copies. */
+  gpSessionId?: string | null;
 }
 
 export interface ImportJobRow {
@@ -288,6 +294,9 @@ const LIB_NULLABLE: (keyof LibraryRow)[] = [
   'igUsername',
   'igTokenEnc',
   'igTokenExpiresAt',
+  'gpTokenEnc',
+  'gpTokenExpiresAt',
+  'gpSessionId',
 ];
 const JOB_NULLABLE: (keyof ImportJobRow)[] = [
   'cursor',

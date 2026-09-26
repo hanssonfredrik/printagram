@@ -7,9 +7,9 @@ import { getLang } from '@/i18n';
 export type AccountKind = 'pro' | 'personal' | 'unsure';
 /**
  * Which path the user is on. 'connect' = Instagram login, 'export' = uploaded ZIP,
- * 'library' = working from photos already imported (My books).
+ * 'google' = picked in Google Photos, 'library' = working from photos already imported (My books).
  */
-export type FlowSource = 'connect' | 'export' | 'library';
+export type FlowSource = 'connect' | 'export' | 'google' | 'library';
 export type SelectMode = 'all' | 'choose';
 
 export interface DraftState {

@@ -61,6 +61,40 @@ Stripe EU cards 1.5 % + €0.25 (non-EU higher). Payment Element + Express Check
 
 Sources: [Business Login](https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/business-login), [media reference](https://developers.facebook.com/docs/instagram-platform/reference/instagram-media), [2026 overview](https://storrito.com/resources/instagram-api-2026/).
 
+### Private accounts (checked 26 Sep 2026)
+
+There is no API for private accounts, and there cannot be one under Meta's model:
+
+- Meta: *"To use the APIs, your app users must have an Instagram professional account."* Personal accounts lost all API access when Basic Display was shut off on 4 Dec 2024.
+- **Professional (Business and Creator) accounts cannot be private.** Instagram forces them public; to go private the user must switch back to personal. So private ⇒ personal ⇒ no API. The Connect path can only ever serve public professional accounts; "switch, import, switch back" works but makes the account public meanwhile (the UI says so).
+- Competitors confirm it: Chatbooks dropped Instagram as a source after Dec 2024 and takes camera-roll uploads instead.
+- Unofficial routes (instagrapi/HikerAPI private mobile API, browser extensions, scrapers) need the user's password or session, breach Instagram's terms, trigger bans and have drawn DMCA takedowns. Rejected for a paid product.
+
+Sources: [overview](https://developers.facebook.com/docs/instagram-platform/overview/), [TechCrunch on the shutdown](https://techcrunch.com/2024/12/06/instagram-locks-out-developers-of-third-party-consumer-apps), [Chatbooks](https://help.chatbooks.com/en/articles/10139802-instagram-as-a-photo-source), [Creator accounts are public](https://sproutsocial.com/insights/instagram-creator-account/), [scraper ban risk](https://www.socialcrawl.dev/blog/instagram-scraping-2026).
+
+### Meta Data Portability: becoming a "Transfer a copy of your information" destination (future)
+
+The one compliant route where **Meta pushes a user's photos to a third party by API, for any account type including private personal ones**. It powers Accounts Center → Transfer a copy of your information (destinations today: Google Photos, Dropbox, Koofr, Backblaze, Photobucket, plus small startups such as Fabric, Koodos and MyLize since the DTI registry went post-pilot in April 2026) and is Meta's vehicle for the EU DMA Art. 6(9) "continuous and real-time" portability duty.
+
+- Roles are reversed: **Printagram would be the OAuth 2.0 provider and Meta the client.** Meta sends the user to our authorize URL, exchanges the code at our token URL, then its Data Transfer Project worker POSTs items to our HTTP API ("Universal Adapters": *"implement an HTTP API conforming to the Generic Importers API specification"*, any language; the alternative is a Java adapter in the DTP repo).
+- Data from Instagram: Photos and Videos (posts and stories) and Social Posts. Photo items carry title, description (caption), uploadedTime and a favorite flag; no like counts.
+- Meta documents deep linking, so a "Send my Instagram to Printagram" button could open the transfer with Printagram, `date_range=ALL_TIME` and a cadence (one-time, or recurring up to daily for 3 years) preselected. Transfers are asynchronous; no ZIP, nothing on the user's device.
+- Prerequisites: (1) **DTI Data Trust Registry Level 1** (photos/videos/posts; only archives need Level 2): company registration number (LEI/DUNS), homepage, privacy policy covering collection/use/sharing/protection/retention and data-subject rights, security contact, service description — granted from the form, no audit. (2) **Verified Meta Business Manager** (the same business verification App Review needs). (3) A **Data Transfer app** on developers.facebook.com ("Allow users to transfer their data to other apps"); Meta engineers run end-to-end test transfers; release on request to dataportability@meta.com. Meta then monitors endpoint availability and success rate and can delist a destination.
+- Unknowns: approval timeline for a small company; whether Meta pushes bytes or a fetchable URL (matters for the 30 MB / 45 s managed-Functions limits); exact Generic Importers request shape. A Dutch open-source family archive verified the protocol in 2026 and reports it "implementable, external approval required" with Meta doing HTTP POST per item.
+
+Sources: [Data Portability](https://developers.facebook.com/docs/data-portability/), [overview](https://developers.facebook.com/docs/data-portability/overview), [get started](https://developers.facebook.com/docs/data-portability/get-started), [onboarding guide](https://developers.facebook.com/docs/data-portability/onboarding-guide), [FAQ](https://developers.facebook.com/docs/data-portability/data-port-faq/), [DTI registry](https://dt-reg.org/about/), [application guide](https://www.dt-reg.org/application-guide/), [DTI post-pilot](https://dtinit.org/blog/2026/04/28/dtr-now-post-pilot), [Fabric, first EYI destination](https://onfabric.substack.com/p/build-personal-context-into-your), [Koofr transfer flow](https://koofr.eu/help/koofr-integrations/how-can-i-transfer-posts-and-stories-with-my-mobile-instagram-app/), [Bewora EYI implementation](https://github.com/Hylke75/Digitaal-Familiearchief/pull/17).
+
+## Google Photos (Picker API) — the built fallback for private accounts
+
+Instagram → Google Photos already works for every account through Meta's own transfer tool; Google Photos is then read with the **Picker API**, the only third-party read path since the Library API stopped exposing user libraries on 31 Mar 2025.
+
+- Scope `https://www.googleapis.com/auth/photospicker.mediaitems.readonly`. Flow: `POST /v1/sessions` → user opens `pickerUri` (append `/autoclose`) and picks in Google Photos → poll `GET /v1/sessions/{id}` until `mediaItemsSet` → `GET /v1/mediaItems?sessionId=…` (100 per page) → download `baseUrl=d` **with the bearer token** (base URLs expire after 60 min) → `DELETE /v1/sessions/{id}`.
+- `PickedMediaItem` has id, type, createTime and mediaFile (baseUrl, mimeType, filename, width/height). **No caption/description field**, no album grouping, no likes. `createTime` is the capture time when the file has EXIF; Instagram-processed JPEGs usually have none, so it is often the transfer time. `api/src/lib/exif.ts` reads DateTimeOriginal ourselves when present.
+- Downloads need the Authorization header, so the copy runs server-side as a bounded job (like connect), not in the browser.
+- Google OAuth: access token 1 h (`access_type=online`, nothing stored beyond the import). App verification: brand verification (Search Console domain ownership, published consent screen, privacy policy URL) plus scope justification with a demo video; typically days; up to 100 test users before verification.
+
+Sources: [Picker launch](https://developers.googleblog.com/en/google-photos-picker-api-launch-and-library-api-updates/), [get started](https://developers.google.com/photos/picker/guides/get-started-picker), [media items](https://developers.google.com/photos/picker/guides/media-items), [mediaItems reference](https://developers.google.com/photos/picker/reference/rest/v1/mediaItems), [scopes](https://developers.google.com/photos/overview/authorization), [verification](https://developers.google.com/identity/protocols/oauth2/production-readiness/sensitive-scope-verification).
+
 ## Instagram export ZIP ("Download your information")
 
 - Request: Accounts Center → Your information and permissions → Export your information → Create export → Export to device → Customize: Posts only → Date range All time, Format **JSON**, Media quality Higher.

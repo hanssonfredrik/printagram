@@ -2,6 +2,8 @@ import type { AppConfig, Book, LibrarySummary, Order, Photo, UserInfo } from '@p
 import {
   ApiClientError,
   type Api,
+  type GoogleSession,
+  type GoogleStatus,
   type ImportProgress,
   type InstagramStatus,
   type MeResult,
@@ -185,7 +187,7 @@ export const realApi: Api = {
   resetPassword: (token, password) => post<UserInfo>('/auth/reset', { token, password }),
   sendReturnLink: (email, resumeTo) => post<void>('/auth/return-link', { email, resumeTo }),
   consumeMagicLink: (token) => post<{ user: UserInfo; resumeTo: string }>('/auth/magic', { token }),
-  sendExportSteps: (email) => post<void>('/auth/export-steps', { email }),
+  sendExportSteps: (email, kind = 'export') => post<void>('/auth/export-steps', { email, kind }),
   deleteAccount: () => del<void>('/account'),
 
   listLibraries: () => get<LibrarySummary[]>('/libraries'),
@@ -228,10 +230,20 @@ export const realApi: Api = {
     return (await get<{ url: string }>('/instagram/start')).url;
   },
   instagramStatus: () => get<InstagramStatus>('/instagram/status'),
-  startInstagramImport: (libraryId) =>
-    post<{ jobId: string; libraryId: string }>(`/libraries/${libraryId}/imports`),
-  runInstagramImport: (jobId) => post<ImportProgress>(`/imports/${jobId}/run`),
   disconnectInstagram: () => post<void>('/instagram/disconnect'),
+
+  async googleStartUrl() {
+    return (await get<{ url: string }>('/google/start')).url;
+  },
+  googleStatus: () => get<GoogleStatus>('/google/status'),
+  createGoogleSession: () => post<GoogleSession>('/google/session'),
+  getGoogleSession: () =>
+    get<{ sessionId: string; mediaItemsSet: boolean; pollIntervalMs: number }>('/google/session'),
+  disconnectGoogle: () => post<void>('/google/disconnect'),
+
+  startImport: (libraryId) =>
+    post<{ jobId: string; libraryId: string }>(`/libraries/${libraryId}/imports`),
+  runImport: (jobId) => post<ImportProgress>(`/imports/${jobId}/run`),
 
   listBooks: () => get<Book[]>('/books'),
   saveDraft: ({ id, libraryId, settings, pages, manualLayout }) =>

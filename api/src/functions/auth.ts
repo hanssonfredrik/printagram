@@ -244,10 +244,14 @@ route(
   'authExportSteps',
   { methods: ['POST'], route: 'auth/export-steps', auth: 'optional' },
   async ({ req, lang }) => {
-    const body = await readJson<{ email?: unknown }>(req);
+    const body = await readJson<{ email?: unknown; kind?: unknown }>(req);
     const email = parseEmail(body.email);
     await ensureRate('export-steps', email, 3);
-    await mailer().send(templates.exportSteps(email, `${config.appBaseUrl}/export/upload`, lang));
+    const mail =
+      body.kind === 'google'
+        ? templates.googleSteps(email, `${config.appBaseUrl}/google`, lang)
+        : templates.exportSteps(email, `${config.appBaseUrl}/export/upload`, lang);
+    await mailer().send(mail);
     return json({}, 202);
   },
 );

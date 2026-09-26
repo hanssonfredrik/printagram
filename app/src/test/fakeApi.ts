@@ -1,4 +1,12 @@
-import type { AppConfig, Book, LibrarySummary, Order, Photo, UserInfo } from '@printagram/shared';
+import type {
+  AppConfig,
+  Book,
+  LibrarySummary,
+  Order,
+  Photo,
+  PhotoSource,
+  UserInfo,
+} from '@printagram/shared';
 import {
   addMonths,
   bookText,
@@ -18,6 +26,8 @@ import {
 import {
   ApiClientError,
   type Api,
+  type GoogleSession,
+  type GoogleStatus,
   type ImportProgress,
   type InstagramStatus,
   type MeResult,
@@ -31,6 +41,7 @@ import { makeDemoPhotos } from './demoData';
 /** Toggles driven by the dev-only Demo bar (mirrors the design prototype's demo controls). */
 export interface MockFlags {
   connectMode: 'live' | 'coming-soon';
+  googleMode: 'live' | 'off';
   connectOutcome: 'ok' | 'personal' | 'denied';
   emptyLibrary: boolean;
   payFails: boolean;
@@ -39,6 +50,7 @@ export interface MockFlags {
 
 export const mockFlags: MockFlags = {
   connectMode: 'live',
+  googleMode: 'live',
   connectOutcome: 'ok',
   emptyLibrary: false,
   payFails: false,
@@ -54,6 +66,7 @@ interface MockState {
   orders: Order[];
   pdfs: Record<string, string>; // orderId -> object URL
   instagram: { username: string; libraryId: string; expiresAt: string } | null;
+  google: { libraryId: string; expiresAt: string; sessionId: string | null; polls: number } | null;
   importJobs: Record<string, { libraryId: string; total: number; processed: number }>;
   shares: Record<string, string>; // token -> orderId
 }
@@ -94,6 +107,7 @@ function load(): MockState {
     orders: [],
     pdfs: {},
     instagram: null,
+    google: null,
     importJobs: {},
     shares: {},
   };
@@ -120,6 +134,7 @@ export function resetMockState() {
     orders: [],
     pdfs: {},
     instagram: null,
+    google: null,
     importJobs: {},
     shares: {},
   };
@@ -170,9 +185,22 @@ function coverThumbFor(book: Book): string | null {
 }
 
 /** Creates a demo library populated with seeded photos (used by the Connect flow). */
-function createDemoLibrary(source: 'instagram' | 'export', label: string): LibrarySummary {
+function createDemoLibrary(source: PhotoSource, label: string): LibrarySummary {
   const id = uid('lib');
-  const photos = mockFlags.emptyLibrary ? [] : makeDemoPhotos(source);
+  // Google Photos brings the pictures only: no captions, likes or carousel grouping.
+  const photos = mockFlags.emptyLibrary
+    ? []
+    : source === 'googlephotos'
+      ? makeDemoPhotos('export').map((p) => ({
+          ...p,
+          source,
+          postId: p.id,
+          caption: '',
+          likes: null,
+          carouselIdx: 0,
+          carouselCount: 1,
+        }))
+      : makeDemoPhotos(source);
   const newest = photos.reduce<string | null>(
     (acc, p) => (!acc || p.takenAt > acc ? p.takenAt : acc),
     null,
@@ -221,6 +249,7 @@ export const mockApi: Api = {
   async getConfig(): Promise<AppConfig> {
     return {
       connectEnabled: mockFlags.connectMode === 'live',
+      googlePhotosEnabled: mockFlags.googleMode === 'live',
       printedBooksEnabled: false,
       pricing: DEFAULT_PRICING,
       limits: {
@@ -331,6 +360,7 @@ export const mockApi: Api = {
     delete state.photosByLibrary[id];
     state.books = state.books.filter((b) => b.libraryId !== id || b.status === 'ordered');
     if (state.instagram?.libraryId === id) state.instagram = null;
+    if (state.google?.libraryId === id) state.google = null;
     save();
   },
 
@@ -454,7 +484,65 @@ export const mockApi: Api = {
       : { connected: false, username: null, libraryId: null, tokenExpiresAt: null };
   },
 
-  async startInstagramImport(libraryId) {
+  async googleStartUrl() {
+    if (mockFlags.googleMode !== 'live')
+      throw new ApiClientError('GOOGLE_DISABLED', 'Google Photos is not available yet.', 503);
+    return 'mock://google-oauth';
+  },
+
+  async googleStatus(): Promise<GoogleStatus> {
+    return state.google
+      ? {
+          connected: true,
+          libraryId: state.google.libraryId,
+          tokenExpiresAt: state.google.expiresAt,
+          sessionId: state.google.sessionId,
+        }
+      : { connected: false, libraryId: null, tokenExpiresAt: null, sessionId: null };
+  },
+
+  async createGoogleSession(): Promise<GoogleSession> {
+    await sleep();
+    // In mock mode the "OAuth" completed on the client; the library appears with the session.
+    if (!state.google) {
+      const l = createDemoLibrary('googlephotos', 'Google Photos');
+      state.google = {
+        libraryId: l.id,
+        expiresAt: new Date(Date.now() + 3600_000).toISOString(),
+        sessionId: null,
+        polls: 0,
+      };
+    }
+    state.google.sessionId = uid('picker');
+    state.google.polls = 0;
+    save();
+    return {
+      sessionId: state.google.sessionId,
+      pickerUri: 'mock://google-photos-picker',
+      pollIntervalMs: 20,
+      libraryId: state.google.libraryId,
+    };
+  },
+
+  async getGoogleSession() {
+    await sleep(20);
+    if (!state.google?.sessionId)
+      throw new ApiClientError('NO_SESSION', 'Open the picker first.', 409);
+    state.google.polls++;
+    return {
+      sessionId: state.google.sessionId,
+      mediaItemsSet: state.google.polls >= 2,
+      pollIntervalMs: 20,
+    };
+  },
+
+  async disconnectGoogle() {
+    await sleep();
+    state.google = null;
+    save();
+  },
+
+  async startImport(libraryId) {
     // In mock mode the "OAuth" completed on the client; create/refresh the Instagram library here.
     let l = state.libraries.find((x) => x.id === libraryId);
     if (!l) {
@@ -471,7 +559,7 @@ export const mockApi: Api = {
     return { jobId, libraryId: l.id };
   },
 
-  async runInstagramImport(jobId): Promise<ImportProgress> {
+  async runImport(jobId): Promise<ImportProgress> {
     await sleep(170);
     const job = state.importJobs[jobId];
     if (!job) throw new ApiClientError('NOT_FOUND', 'Import job not found', 404);

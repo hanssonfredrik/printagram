@@ -133,9 +133,11 @@ export function Select() {
         ? '/books'
         : d.source === 'connect'
           ? '/connect'
-          : d.source === 'export'
-            ? '/export/upload'
-            : '/start',
+          : d.source === 'google'
+            ? '/google'
+            : d.source === 'export'
+              ? '/export/upload'
+              : '/start',
     );
 
   return (

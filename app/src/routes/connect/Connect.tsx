@@ -78,12 +78,12 @@ export function Connect() {
         await ensureSession();
         const status = await api.instagramStatus();
         const targetLib = libId ?? status.libraryId ?? 'new';
-        const { jobId, libraryId: realLib } = await api.startInstagramImport(targetLib);
+        const { jobId, libraryId: realLib } = await api.startImport(targetLib);
         setLibraryId(realLib);
         setUsername(status.username ?? 'mara.linde');
         let more = true;
         while (more) {
-          const p = await api.runInstagramImport(jobId);
+          const p = await api.runImport(jobId);
           if (p.status === 'failed') throw new Error(p.error ?? 'Import failed');
           if (p.total) setPct(Math.round((p.processed / p.total) * 100));
           more = p.more;

@@ -11,7 +11,8 @@ Azure Static Web App (Free)
 │  static SPA  +  managed Azure Functions (Node 20, HTTP only, 45 s)
 │     ├─ Table Storage: Accounts (PK userId) · Photos (PK libraryId) · Lookups (PK kind)
 │     ├─ Stripe (PaymentIntent, webhook)        ├─ Resend (email)
-│     └─ Instagram Graph API (OAuth, /me/media, media copy)
+│     ├─ Instagram Graph API (OAuth, /me/media, media copy)
+│     └─ Google Photos Picker API (OAuth, sessions, media copy)
 │
 GitHub Actions: deploy on push · daily cron → POST /api/cron/run
 ```
@@ -113,6 +114,10 @@ English and Swedish (`Lang` in `shared/src/i18n.ts`).
 
 `POST /libraries/{id}/imports` creates a job; the client calls `POST /imports/{job}/run` until `more=false`. Each run takes a 50 s lease, works for 22 s (page `/me/media`, copy `media_url` → Blob, thumbnail with jimp, upsert Photo rows, 4 in parallel), persists cursor + pending items after every batch, and releases the lease. A killed request loses at most one batch; reruns are idempotent.
 
+## Google Photos import (same job loop)
+
+Private Instagram accounts have no API, so the user lets Instagram transfer their posts to Google Photos and picks them there. `GET /google/start` → Google consent (Picker scope, 1-hour token, encrypted on the library row) → `POST /google/session` opens a Picker session (`pickerUri` for the user, polled via `GET /google/session`) → the same `POST /libraries/{id}/imports` + `POST /imports/{job}/run` loop as above, branching on `library.source`. Bytes go through Functions here on purpose: Picker base URLs require the bearer token, and Google does not promise CORS on them. Each item becomes `gp_<mediaId>`; captions are empty, likes null, and `takenAt` is the EXIF date when the JPEG has one, else Google's `createTime`.
+
 ## Scheduled work
 
 GitHub Actions `cron.yml` (daily) calls `POST /api/cron/run` with `x-cron-key` for each task until `more=false`: `expireLibraries`, `sendReminders`, `refreshIgTokens`, `cleanupOrphans`, `cleanupAnonymous`, `cleanupTokens`.
@@ -127,7 +132,8 @@ GitHub Actions `cron.yml` (daily) calls `POST /api/cron/run` with `x-cron-key` f
 
 ## Known limitations
 
-- Meta App Review is required before the Instagram connect path works for the public (`FEATURE_CONNECT_ENABLED`).
+- Meta App Review is required before the Instagram connect path works for the public (`FEATURE_CONNECT_ENABLED`); a verified Google OAuth client before the Google Photos card shows (`FEATURE_GOOGLE_PHOTOS_ENABLED`).
+- Google Photos brings pictures only: no captions or likes, and dates may be the transfer date. Captions for private accounts need Meta's transfer-destination programme (see `docs/GO_LIVE.md` §7).
 - Managed Functions cold start 2–5 s; the daily cron warms the app.
 - Table Storage has no secondary indexes; cron does small full scans (fine for MVP; index later via Lookups).
 - A determined user could build a similar PDF from their own photos without paying; no DRM by design.

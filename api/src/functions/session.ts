@@ -9,6 +9,7 @@ import { libraryView } from '../lib/views.js';
 route('config', { methods: ['GET'], route: 'config', auth: 'none' }, async () => {
   const body: AppConfig = {
     connectEnabled: config.connectEnabled,
+    googlePhotosEnabled: config.googlePhotosEnabled,
     printedBooksEnabled: false,
     pricing: config.pricing,
     limits: {

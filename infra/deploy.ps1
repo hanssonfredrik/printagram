@@ -21,6 +21,7 @@ param(
   [string] $AppBaseUrl = '',
   [string[]] $ExtraCorsOrigins = @(),
   [switch] $ConnectEnabled,
+  [bool] $GooglePhotosEnabled = $true,
   [ValidateSet('fake', 'stripe')] [string] $PaymentProvider = 'fake',
   [string] $StripeSecretKey = '',
   [string] $StripePublishableKey = '',
@@ -29,6 +30,8 @@ param(
   [string] $EmailFrom = 'Printagram <hello@printagram.app>',
   [string] $IgAppId = '',
   [string] $IgAppSecret = '',
+  [string] $GoogleClientId = '',
+  [string] $GoogleClientSecret = '',
   [string] $SecretsFile = "$PSScriptRoot/.secrets.$Env.json"
 )
 
@@ -50,13 +53,15 @@ if ($LASTEXITCODE -ne 0) { throw "Not logged in. Run 'az login' first." }
 
 Write-Host "Creating resource group $ResourceGroup in $Location..."
 az group create -n $ResourceGroup -l $Location -o none
+if ($LASTEXITCODE -ne 0) { throw "Could not create resource group '$ResourceGroup' in '$Location'." }
 
 $params = @{
   env = $Env; baseName = $BaseName; swaLocation = $SwaLocation; appBaseUrl = $AppBaseUrl
-  extraCorsOrigins = $ExtraCorsOrigins; connectEnabled = [bool]$ConnectEnabled
+  extraCorsOrigins = $ExtraCorsOrigins; connectEnabled = [bool]$ConnectEnabled; googlePhotosEnabled = [bool]$GooglePhotosEnabled
   authJwtSecret = $secrets.authJwtSecret; tokenEncKey = $secrets.tokenEncKey; cronSecret = $secrets.cronSecret
   paymentProvider = $PaymentProvider; stripeSecretKey = $StripeSecretKey; stripePublishableKey = $StripePublishableKey; stripeWebhookSecret = $StripeWebhookSecret
   resendApiKey = $ResendApiKey; emailFrom = $EmailFrom; igAppId = $IgAppId; igAppSecret = $IgAppSecret
+  googleClientId = $GoogleClientId; googleClientSecret = $GoogleClientSecret
 }
 $paramFile = Join-Path $env:TEMP "printagram-params-$Env.json"
 $parameters = @{}
@@ -70,6 +75,7 @@ foreach ($k in $params.Keys) { $parameters[$k] = @{ value = $params[$k] } }
 Write-Host "Deploying infra/main.bicep..."
 $out = az deployment group create -g $ResourceGroup -f "$PSScriptRoot/main.bicep" -p "@$paramFile" --query properties.outputs -o json | ConvertFrom-Json
 Remove-Item $paramFile -Force
+if ($LASTEXITCODE -ne 0 -or -not $out) { throw 'The Bicep deployment failed; nothing was printed. See the errors above.' }
 
 $swaName = $out.staticWebAppName.value
 $hostname = $out.defaultHostname.value

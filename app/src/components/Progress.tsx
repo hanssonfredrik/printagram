@@ -5,6 +5,7 @@ import { useT, type Messages } from '@/i18n';
 type Screen =
   | 'choose'
   | 'connect'
+  | 'google'
   | 'guide'
   | 'waiting'
   | 'upload'
@@ -23,6 +24,23 @@ export function progressFor(
     const map: Record<Screen, number> = {
       choose: 0,
       connect: 0,
+      google: 0,
+      guide: 0,
+      waiting: 0,
+      upload: 0,
+      select: 1,
+      preview: 2,
+      checkout: 3,
+      done: 3,
+    };
+    return { labels, current: map[screen] };
+  }
+  if (source === 'google' || screen === 'google') {
+    const labels = [t.google, t.select, t.preview, t.checkout];
+    const map: Record<Screen, number> = {
+      choose: 0,
+      connect: 0,
+      google: 0,
       guide: 0,
       waiting: 0,
       upload: 0,
@@ -38,6 +56,7 @@ export function progressFor(
     const map: Record<Screen, number> = {
       choose: 0,
       connect: 0,
+      google: 0,
       guide: 0,
       waiting: 0,
       upload: 1,
@@ -52,6 +71,7 @@ export function progressFor(
   const map: Record<Screen, number> = {
     choose: 0,
     connect: 0,
+    google: 0,
     guide: 0,
     waiting: 0,
     upload: 0,

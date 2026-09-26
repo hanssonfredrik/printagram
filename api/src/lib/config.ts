@@ -69,6 +69,20 @@ export const config = {
       !!process.env.IG_APP_SECRET
     );
   },
+  get googlePhotosEnabled() {
+    return (
+      bool('FEATURE_GOOGLE_PHOTOS_ENABLED', false) &&
+      !!process.env.GOOGLE_CLIENT_ID &&
+      !!process.env.GOOGLE_CLIENT_SECRET
+    );
+  },
+  get google() {
+    return {
+      clientId: process.env.GOOGLE_CLIENT_ID ?? '',
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
+      redirectUri: process.env.GOOGLE_REDIRECT_URI ?? `${this.appBaseUrl}/api/google/callback`,
+    };
+  },
   get instagram() {
     return {
       appId: process.env.IG_APP_ID ?? '',

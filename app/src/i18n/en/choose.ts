@@ -4,7 +4,7 @@ export const choose = {
   adding: (n: number) =>
     `Adding to your library. Only posts newer than your last import are added — the ${n} photos you already have stay as they are.`,
   intro:
-    'Two ways to get your posts into Printagram. Both are read‑only, and neither shares your password with us.',
+    'A few ways to get your posts into Printagram. All of them are read‑only, and none shares your password with us.',
   instant: 'Instant',
   comingSoon: 'Coming soon',
   connect: {
@@ -27,6 +27,15 @@ export const choose = {
       'Instagram emails you the file — a few hours, sometimes a day or two. We send you a return link.',
     noLikes: "Likes usually aren't included in the export.",
     button: 'Show me how',
+  },
+  google: {
+    pill: 'Works for every account',
+    title: 'Via Google Photos',
+    text: 'Let Instagram send your posts to Google Photos, then pick them there. Nothing to download — handy on a phone.',
+    every: 'Personal, private, Creator or Business — every account works.',
+    background: 'Instagram copies the photos in the background; you pick them once they are there.',
+    noCaptions: 'Captions and likes stay behind, and dates may be the transfer date.',
+    button: 'Send via Google Photos',
   },
   unsure: {
     title: 'Not sure which account you have?',

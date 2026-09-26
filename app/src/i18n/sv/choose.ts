@@ -5,7 +5,7 @@ export const choose: Messages['choose'] = {
   adding: (n: number) =>
     `Lägger till i ditt bibliotek. Bara inlägg som är nyare än din senaste import läggs till – de ${n} bilder du redan har ligger kvar som de är.`,
   intro:
-    'Två sätt att få in dina inlägg i Printagram. Båda ger bara läsåtkomst, och inget av dem delar ditt lösenord med oss.',
+    'Några sätt att få in dina inlägg i Printagram. Alla ger bara läsåtkomst, och inget av dem delar ditt lösenord med oss.',
   instant: 'Direkt',
   comingSoon: 'Kommer snart',
   connect: {
@@ -28,6 +28,16 @@ export const choose: Messages['choose'] = {
       'Instagram mejlar dig filen – efter några timmar, ibland en dag eller två. Vi skickar dig en returlänk.',
     noLikes: 'Gilla-markeringar brukar inte följa med i exporten.',
     button: 'Visa hur',
+  },
+  google: {
+    pill: 'Funkar för alla konton',
+    title: 'Via Google Foto',
+    text: 'Låt Instagram skicka dina inlägg till Google Foto och välj dem där. Inget att ladda ner – smidigt på mobilen.',
+    every: 'Personligt, privat, kreatör eller företag – alla konton funkar.',
+    background: 'Instagram kopierar bilderna i bakgrunden; du väljer dem när de är på plats.',
+    noCaptions:
+      'Bildtexter och gilla-markeringar följer inte med, och datumen kan bli överföringsdagen.',
+    button: 'Skicka via Google Foto',
   },
   unsure: {
     title: 'Osäker på vilken kontotyp du har?',

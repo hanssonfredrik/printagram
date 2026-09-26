@@ -26,6 +26,7 @@ interface SessionState {
 
 const FALLBACK_CONFIG: AppConfig = {
   connectEnabled: false,
+  googlePhotosEnabled: false,
   printedBooksEnabled: false,
   pricing: DEFAULT_PRICING,
   limits: {

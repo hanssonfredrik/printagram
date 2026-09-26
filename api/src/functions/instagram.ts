@@ -17,6 +17,8 @@ import {
 import { newId, nowIso } from '../lib/ids.js';
 import { createLibrary, destroyLibrary, finalizeImport } from '../lib/libraryService.js';
 import * as ig from '../lib/instagramApi.js';
+import { makeThumb } from '../lib/thumbs.js';
+import { requireGoogleImport, runGoogleImport } from './googlePhotos.js';
 import {
   importJobs,
   libraries,
@@ -147,12 +149,17 @@ route(
   'importsCreate',
   { methods: ['POST'], route: 'libraries/{id}/imports', auth: 'required' },
   async ({ req, user }) => {
-    requireConnect();
     const id = req.params.id ?? '';
     const lib = id === 'new' ? await igLibrary(user.userId) : await libraries.get(user.userId, id);
-    if (!lib || lib.source !== 'instagram') throw notFound('Instagram library');
-    if (!lib.igTokenEnc || lib.igTokenInvalid)
-      throw conflict('NOT_CONNECTED', 'Connect your Instagram account first.');
+    if (!lib || (lib.source !== 'instagram' && lib.source !== 'googlephotos'))
+      throw notFound('Instagram library');
+    if (lib.source === 'googlephotos') {
+      requireGoogleImport(lib);
+    } else {
+      requireConnect();
+      if (!lib.igTokenEnc || lib.igTokenInvalid)
+        throw conflict('NOT_CONNECTED', 'Connect your Instagram account first.');
+    }
     const running = (await importJobs.list(user.userId)).find(
       (j) => j.libraryId === lib.libraryId && j.status === 'running',
     );
@@ -164,7 +171,7 @@ route(
       libraryId: lib.libraryId,
       status: 'running',
       cursor: null,
-      since: lib.newestMediaAt,
+      since: lib.source === 'instagram' ? lib.newestMediaAt : null,
       processed: 0,
       skipped: 0,
       failed: 0,
@@ -229,26 +236,20 @@ function flatten(media: ig.IgMedia[]): PendingItem[] {
   return out;
 }
 
-async function makeThumb(orig: Buffer): Promise<{ thumb: Buffer; width: number; height: number }> {
-  const { Jimp } = await import('jimp');
-  const img = await Jimp.read(orig);
-  const width = img.width;
-  const height = img.height;
-  const scale = Math.min(1, 400 / Math.max(width, height));
-  if (scale < 1) img.resize({ w: Math.round(width * scale) });
-  return { thumb: await img.getBuffer('image/jpeg', { quality: 80 }), width, height };
-}
-
 /** Processes one bounded batch of an Instagram import; the client loops while `more` is true. */
 route(
   'importsRun',
   { methods: ['POST'], route: 'imports/{jobId}/run', auth: 'required' },
   async ({ req, user, ctx }) => {
-    requireConnect();
     const job = await importJobs.get(user.userId, req.params.jobId ?? '');
     if (!job) throw notFound('Import job');
     const lib = await libraries.get(user.userId, job.libraryId);
-    if (!lib?.igTokenEnc) throw conflict('NOT_CONNECTED', 'Connect your Instagram account first.');
+    if (!lib) throw notFound('Library');
+    const google = lib.source === 'googlephotos';
+    if (!google) {
+      requireConnect();
+      if (!lib.igTokenEnc) throw conflict('NOT_CONNECTED', 'Connect your Instagram account first.');
+    }
     const done = () =>
       json({
         status: job.status,
@@ -266,7 +267,11 @@ route(
     await importJobs.merge(user.userId, job.jobId, {
       leaseUntil: new Date(started + LEASE_MS).toISOString(),
     });
-    const token = decrypt(lib.igTokenEnc);
+    if (google) {
+      await runGoogleImport(job, lib, ctx);
+      return done();
+    }
+    const token = decrypt(lib.igTokenEnc!);
     const cont = libContainerName(lib.libraryId);
     const existing = new Set(
       (await photos.listAll(lib.libraryId))

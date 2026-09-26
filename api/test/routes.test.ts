@@ -7,6 +7,7 @@ import net from 'node:net';
 import { randomUUID } from 'node:crypto';
 import { beforeAll, describe, expect, it, vi } from 'vitest';
 import type * as AzureFunctions from '@azure/functions';
+import type * as GooglePhotosApi from '../src/lib/googlePhotosApi.js';
 import {
   HttpRequest,
   type HttpHandler,
@@ -18,6 +19,9 @@ process.env.STORAGE_CONNECTION_STRING ??= 'UseDevelopmentStorage=true';
 process.env.PAYMENT_PROVIDER = 'fake';
 process.env.EMAIL_PROVIDER = 'console';
 process.env.COOKIE_SECURE = 'false';
+process.env.FEATURE_GOOGLE_PHOTOS_ENABLED = 'true';
+process.env.GOOGLE_CLIENT_ID = 'test-client';
+process.env.GOOGLE_CLIENT_SECRET = 'test-secret';
 
 const handlers = new Map<string, HttpHandler>();
 vi.mock('@azure/functions', async (orig) => {
@@ -28,6 +32,53 @@ vi.mock('@azure/functions', async (orig) => {
       ...mod.app,
       http: (name: string, o: { handler: HttpHandler }) => handlers.set(name, o.handler),
       timer: () => undefined,
+    },
+  };
+});
+
+/** Google OAuth + Picker, stubbed: one photo, one video and one HEIC across two pages. */
+vi.mock('../src/lib/googlePhotosApi.js', async (orig) => {
+  const mod = await orig<typeof GooglePhotosApi>();
+  let polls = 0;
+  const item = (id: string, type: 'PHOTO' | 'VIDEO', mimeType: string) => ({
+    id,
+    type,
+    createTime: '2022-03-04T10:00:00Z',
+    mediaFile: { baseUrl: `https://lh3.googleusercontent.com/${id}`, mimeType, filename: id },
+  });
+  return {
+    ...mod,
+    authorizeUrl: (state: string) => `https://accounts.google.com/o/oauth2/v2/auth?state=${state}`,
+    exchangeCode: async (code: string) => {
+      if (code !== 'good-code') throw new mod.GoogleApiError(400, 'bad code');
+      return { access_token: 'gp-token', expires_in: 3600 };
+    },
+    revoke: async () => undefined,
+    createSession: async () => ({
+      id: 'sess-1',
+      pickerUri: 'https://photos.google.com/picker/abc',
+      pollingConfig: { pollInterval: '5s' },
+    }),
+    getSession: async (_t: string, id: string) => ({
+      id,
+      pickerUri: 'https://photos.google.com/picker/abc',
+      mediaItemsSet: ++polls >= 2,
+      pollingConfig: { pollInterval: '5s' },
+    }),
+    deleteSession: async () => undefined,
+    mediaPage: async (_t: string, _s: string, pageToken: string | null) =>
+      pageToken === null
+        ? {
+            items: [
+              item('AbC-photo_1', 'PHOTO', 'image/jpeg'),
+              item('vid-2', 'VIDEO', 'video/mp4'),
+            ],
+            next: 'page2',
+          }
+        : { items: [item('heic-3', 'PHOTO', 'image/heic')], next: null },
+    fetchBytes: async () => {
+      const { Jimp } = await import('jimp');
+      return new Jimp({ width: 8, height: 8, color: 0x3366ffff }).getBuffer('image/jpeg');
     },
   };
 });
@@ -64,7 +115,7 @@ function client(headers: Record<string, string> = {}) {
     path: string,
     body?: unknown,
     params: Record<string, string> = {},
-  ): Promise<{ status: number; body: T }> {
+  ): Promise<{ status: number; body: T; headers: Record<string, string> }> {
     const h = handlers.get(name);
     if (!h) throw new Error(`no handler ${name}`);
     const cookie = [...jar].map(([k, v]) => `${k}=${v}`).join('; ');
@@ -82,7 +133,11 @@ function client(headers: Record<string, string> = {}) {
     });
     const res = (await h(req, ctx)) as HttpResponseInit;
     for (const c of res.cookies ?? []) jar.set(c.name, c.value);
-    return { status: res.status ?? 200, body: res.jsonBody as T };
+    return {
+      status: res.status ?? 200,
+      body: res.jsonBody as T,
+      headers: (res.headers ?? {}) as Record<string, string>,
+    };
   };
 }
 
@@ -511,4 +566,171 @@ describe.skipIf(!up)('API routes against Azurite', () => {
     expect(done.status).toBe(409);
     expect(done.body.error.code).toBe('PDF_INVALID');
   });
+
+  it('google photos: sign in, pick in the Picker, import copies the selection', async () => {
+    const call = client();
+    await call('sessionAnonymous', 'POST', 'session/anonymous');
+    const start = await call<{ url: string }>('googleStart', 'GET', 'google/start');
+    expect(start.status).toBe(200);
+    const state = new URL(start.body.url).searchParams.get('state')!;
+
+    const bad = await call('googleCallback', 'GET', 'google/callback?error=access_denied&state=x');
+    expect(bad.status).toBe(302);
+    expect(new URL(bad.headers.Location!).searchParams.get('error')).toBe('expired');
+
+    const cb = await call(
+      'googleCallback',
+      'GET',
+      `google/callback?code=good-code&state=${encodeURIComponent(state)}`,
+    );
+    expect(cb.status).toBe(302);
+    const loc = new URL(cb.headers.Location!);
+    expect(loc.pathname).toBe('/google');
+    expect(loc.searchParams.get('connected')).toBe('1');
+    const libraryId = loc.searchParams.get('library')!;
+    expect(libraryId).toBeTruthy();
+
+    const status = await call<{ connected: boolean; libraryId: string }>(
+      'googleStatus',
+      'GET',
+      'google/status',
+    );
+    expect(status.body).toMatchObject({ connected: true, libraryId });
+
+    // Nothing to copy before the user has picked photos.
+    const early = await call<{ error: { code: string } }>(
+      'importsCreate',
+      'POST',
+      `libraries/${libraryId}/imports`,
+      {},
+      { id: libraryId },
+    );
+    expect(early.status).toBe(409);
+    expect(early.body.error.code).toBe('NO_SESSION');
+
+    const sess = await call<{ sessionId: string; pickerUri: string; pollIntervalMs: number }>(
+      'googleSessionCreate',
+      'POST',
+      'google/session',
+    );
+    expect(sess.body.pickerUri).toContain('photos.google.com');
+    expect(sess.body.pollIntervalMs).toBe(5000);
+    const poll1 = await call<{ mediaItemsSet: boolean }>(
+      'googleSessionGet',
+      'GET',
+      'google/session',
+    );
+    expect(poll1.body.mediaItemsSet).toBe(false);
+    const poll2 = await call<{ mediaItemsSet: boolean }>(
+      'googleSessionGet',
+      'GET',
+      'google/session',
+    );
+    expect(poll2.body.mediaItemsSet).toBe(true);
+
+    const job = await call<{ jobId: string }>(
+      'importsCreate',
+      'POST',
+      `libraries/${libraryId}/imports`,
+      {},
+      { id: libraryId },
+    );
+    expect(job.status).toBe(201);
+    type Run = {
+      status: string;
+      processed: number;
+      skipped: number;
+      failed: number;
+      more: boolean;
+    };
+    let last: Run | undefined;
+    for (let i = 0; i < 10 && (!last || last.more); i++) {
+      const r = await call<Run>(
+        'importsRun',
+        'POST',
+        `imports/${job.body.jobId}/run`,
+        {},
+        {
+          jobId: job.body.jobId,
+        },
+      );
+      expect(r.status).toBe(200);
+      last = r.body;
+    }
+    // photo + video recorded, HEIC skipped (cannot be printed), nothing failed
+    expect(last).toMatchObject({
+      status: 'done',
+      processed: 2,
+      skipped: 1,
+      failed: 0,
+      more: false,
+    });
+
+    const photos = await call<{
+      photos: {
+        id: string;
+        source: string;
+        isVideo: boolean;
+        caption: string;
+        takenAt: string;
+        mime: string | null;
+        width: number | null;
+        origUrl: string;
+      }[];
+    }>('librariesPhotos', 'GET', `libraries/${libraryId}/photos`, undefined, { id: libraryId });
+    expect(photos.body.photos).toHaveLength(2);
+    const still = photos.body.photos.find((p) => !p.isVideo)!;
+    expect(still).toMatchObject({
+      id: 'gp_AbC-photo_1',
+      source: 'googlephotos',
+      caption: '',
+      mime: 'image/jpeg',
+      width: 8,
+      takenAt: '2022-03-04T10:00:00.000Z',
+      origUrl: 'orig/gp_AbC-photo_1.jpg',
+    });
+    expect(photos.body.photos.find((p) => p.isVideo)!.id).toBe('gp_vid-2');
+
+    const lib = await call<{ library: { photoCount: number; source: string; status: string } }>(
+      'librariesGet',
+      'GET',
+      `libraries/${libraryId}`,
+      undefined,
+      { id: libraryId },
+    );
+    expect(lib.body.library).toMatchObject({
+      photoCount: 1,
+      source: 'googlephotos',
+      status: 'ready',
+    });
+
+    // A second run is idempotent: the photo is already there. (A new Picker session is needed.)
+    await call('googleSessionCreate', 'POST', 'google/session');
+    const again = await call<{ jobId: string }>(
+      'importsCreate',
+      'POST',
+      `libraries/${libraryId}/imports`,
+      {},
+      { id: libraryId },
+    );
+    let r2: Run | undefined;
+    for (let i = 0; i < 10 && (!r2 || r2.more); i++)
+      r2 = (
+        await call<Run>(
+          'importsRun',
+          'POST',
+          `imports/${again.body.jobId}/run`,
+          {},
+          {
+            jobId: again.body.jobId,
+          },
+        )
+      ).body;
+    expect(r2).toMatchObject({ status: 'done', skipped: 3, processed: 0 });
+
+    const dc = await call('googleDisconnect', 'POST', 'google/disconnect');
+    expect(dc.status).toBe(204);
+    const after = await call<{ connected: boolean }>('googleStatus', 'GET', 'google/status');
+    expect(after.body.connected).toBe(false);
+  }, 30000);
 });

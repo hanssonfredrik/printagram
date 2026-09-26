@@ -172,6 +172,42 @@ Until this is approved, the "Connect Instagram" card shows "coming soon" and eve
 
 ---
 
+## 6. Google Photos import (Google OAuth verification)
+
+The third source card. It works for every Instagram account, private ones included: the user has Instagram transfer their posts to Google Photos (Accounts Center → Transfer a copy of your information), then picks them in Google's Picker and Printagram copies the selection. Captions and likes do not come along; dates are what Google Photos knows. The flag is on by default; the card stays hidden until the client ID and secret are set. Step-by-step console instructions: `docs/GOOGLE_OAUTH_SETUP.md`.
+
+**You need:**
+- A Google Cloud project with the **Google Photos Picker API** enabled.
+- The public privacy policy URL (same as for Meta) and ownership of the domain verified in Google Search Console.
+
+1. **console.cloud.google.com → APIs & Services → Library**: enable *Google Photos Picker API*.
+2. **OAuth consent screen**: user type *External*, app name Printagram, support email, app logo, homepage, privacy policy and terms URLs, authorized domain `printagram.app`. Add the scope `https://www.googleapis.com/auth/photospicker.mediaitems.readonly`. Publish the app (it stays "unverified" with a warning screen and a 100-user cap until step 5).
+3. **Credentials → Create credentials → OAuth client ID**, type *Web application*:
+   | Field | Value |
+   | --- | --- |
+   | Authorized redirect URI | `https://printagram.app/api/google/callback` (and the PR preview host while testing) |
+   Copy the client ID and secret.
+4. Test with your own Google account (add it under *Test users* while the consent screen is in testing):
+   ```powershell
+   ./infra/deploy.ps1 -ResourceGroup printagram-rg -Location westeurope -GoogleClientId <id> -GoogleClientSecret <secret>
+   ```
+   `GOOGLE_REDIRECT_URI` is derived from `-AppBaseUrl`, so it must match step 3 exactly. Check: Choose source → Via Google Photos → sign in → Pick photos → a Google Photos tab opens → pick → Done → back in the app the copy runs and the photos show up without captions.
+5. Submit for **verification** (Verification Center): brand verification, then the scope with a short justification (*"Users pick their own photos in Google Photos to build a printable photo book; read-only, no library access beyond the selection"*) and a screencast of the flow.
+6. Once verified, the Google consent screen can go from Testing to In production and everyone can sign in. `FEATURE_GOOGLE_PHOTOS_ENABLED` is already `true` by default; set it to `false` to hide the card.
+
+---
+
+## 7. Meta transfer destination (future, the real fix for private accounts)
+
+Becoming a destination in Meta's "Transfer a copy of your information" tool would let any Instagram account, private ones included, push posts (with captions) straight to Printagram. Nothing is built for it yet; the prerequisites are yours and take weeks, so start them early if you want this path (details and sources in `docs/RESEARCH.md`):
+
+1. **DTI Data Trust Registry, Level 1** at https://dt-reg.org/: company registration number (LEI/DUNS), homepage, a privacy policy that covers collection, use, sharing, protection, retention and data-subject rights, a security contact, a service description.
+2. **Meta Business Manager verification** (shared with section 5).
+3. On developers.facebook.com create a **Data Transfer app** (use case "Allow users to transfer their data to other apps") and contact the team via the form or dataportability@meta.com.
+4. Then the build: an OAuth 2.0 server (Meta is the client) and an HTTP importer for photos/videos/posts per Meta's Generic Importers spec; Meta engineers run test transfers before release.
+
+---
+
 ## Before you announce: checklist
 
 - [ ] `https://<domain>/api/health` is OK, and the scheduled maintenance workflow is green.
@@ -179,5 +215,6 @@ Until this is approved, the "Connect Instagram" card shows "coming soon" and eve
 - [ ] Emails arrive (return link, book ready) and pass DKIM/SPF.
 - [ ] Live Stripe purchase and refund tested; test promo codes disabled.
 - [ ] `SITE_URL` variable set; the link preview shows the card image.
-- [ ] Privacy policy and terms pages exist (needed for Meta; good practice for GDPR anyway).
+- [ ] Privacy policy and terms pages exist (needed for Meta and Google; good practice for GDPR anyway).
+- [ ] Google OAuth client verified for the Picker scope before `FEATURE_GOOGLE_PHOTOS_ENABLED` goes on (section 6).
 - [ ] Optional: Application Insights attached to the Static Web App (Monitoring) if you want server logs. It isn't provisioned by default, to keep the cost at €0.

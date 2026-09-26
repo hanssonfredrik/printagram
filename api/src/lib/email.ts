@@ -93,6 +93,20 @@ const TEXT = {
       footer: 'Sent from printagram.app at your request.',
       uploadHere: 'Upload it here when it arrives:',
     },
+    googleSteps: {
+      subject: 'How to send your Instagram photos to Google Photos',
+      title: 'Send your Instagram photos to Google Photos',
+      steps: [
+        'Instagram app: profile → menu (☰) → Settings and activity → Accounts Center → Your information and permissions → Transfer a copy of your information.',
+        'Pick your Instagram profile, then Posts (all, or a date range).',
+        'Choose Google Photos as the destination, sign in to Google and allow the transfer.',
+        'Instagram copies the photos in the background (usually within an hour). They land in a Data Transfer album in Google Photos.',
+        'Back in Printagram, sign in with Google and pick the photos for your book.',
+      ],
+      button: 'Continue in Printagram',
+      footer: 'Sent from printagram.app at your request.',
+      uploadHere: 'Continue here once the photos are in Google Photos:',
+    },
     passwordReset: {
       subject: 'Reset your Printagram password',
       title: 'Choose a new password',
@@ -156,6 +170,20 @@ const TEXT = {
       footer: 'Skickat från printagram.app på din begäran.',
       uploadHere: 'Ladda upp den här när den kommer:',
     },
+    googleSteps: {
+      subject: 'Så skickar du dina Instagram-bilder till Google Foto',
+      title: 'Skicka dina Instagram-bilder till Google Foto',
+      steps: [
+        'Instagram-appen: profil → meny (☰) → Inställningar och aktivitet → Kontocenter → Din information och dina behörigheter → Överför en kopia av din information.',
+        'Välj din Instagram-profil och sedan Inlägg (alla, eller ett datumintervall).',
+        'Välj Google Foto som destination, logga in på Google och tillåt överföringen.',
+        'Instagram kopierar bilderna i bakgrunden (oftast inom en timme). De hamnar i albumet Data Transfer i Google Foto.',
+        'Tillbaka i Printagram: logga in med Google och välj bilderna till din bok.',
+      ],
+      button: 'Fortsätt i Printagram',
+      footer: 'Skickat från printagram.app på din begäran.',
+      uploadHere: 'Fortsätt här när bilderna finns i Google Foto:',
+    },
     passwordReset: {
       subject: 'Återställ ditt lösenord till Printagram',
       title: 'Välj ett nytt lösenord',
@@ -208,6 +236,21 @@ export const templates = {
   },
   exportSteps(to: string, url: string, lang: Lang = 'en'): Mail {
     const t = TEXT[lang].exportSteps;
+    return {
+      to,
+      subject: t.subject,
+      html: layout(
+        lang,
+        t.title,
+        t.steps.map((s, i) => p(`<strong>${i + 1}.</strong> ${s}`)).join('') +
+          button(url, t.button),
+        t.footer,
+      ),
+      text: `${t.subject}\n\n${t.steps.map((s, i) => `${i + 1}. ${s}`).join('\n')}\n\n${t.uploadHere} ${url}\n`,
+    };
+  },
+  googleSteps(to: string, url: string, lang: Lang = 'en'): Mail {
+    const t = TEXT[lang].googleSteps;
     return {
       to,
       subject: t.subject,

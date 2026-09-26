@@ -9,5 +9,6 @@ import './functions/books.js';
 import './functions/orders.js';
 import './functions/stripeWebhook.js';
 import './functions/instagram.js';
+import './functions/googlePhotos.js';
 import './functions/cron.js';
 import './functions/account.js';

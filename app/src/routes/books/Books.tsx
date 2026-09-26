@@ -243,7 +243,11 @@ export function Books() {
                   <div className="small muted">
                     {tb.libraryMeta(
                       library.photoCount,
-                      library.source === 'instagram' ? library.sourceLabel : tb.exportSource,
+                      library.source === 'instagram'
+                        ? library.sourceLabel
+                        : library.source === 'googlephotos'
+                          ? tb.googleSource
+                          : tb.exportSource,
                       fmtDate(library.importedAt, lang),
                     )}
                   </div>

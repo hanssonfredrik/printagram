@@ -1,5 +1,5 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { DEFAULT_LAYOUT, pickLang } from '@printagram/shared';
 import { router as appRouter } from '@/router';
@@ -35,6 +35,7 @@ beforeEach(() => {
   useLibrary.getState().clear();
   mockFlags.latencyMs = 0;
   mockFlags.connectMode = 'live';
+  mockFlags.googleMode = 'live';
   mockFlags.emptyLibrary = false;
   mockFlags.payFails = false;
 });
@@ -104,6 +105,48 @@ describe('screens (against the in-memory test API)', () => {
     fireEvent.click(screen.getByText('Choose photos'));
     await waitFor(() => expect(router.state.location.pathname).toBe('/select'));
   }, 20000);
+
+  it('choose source: the Google Photos card follows its flag', async () => {
+    mockFlags.googleMode = 'off';
+    renderAt('/start');
+    expect(await screen.findByText('Upload your export')).toBeTruthy();
+    expect(screen.queryByText('Via Google Photos')).toBeNull();
+    cleanup();
+    mockFlags.googleMode = 'live';
+    const { router } = renderAt('/start');
+    expect(await screen.findByText('Via Google Photos')).toBeTruthy();
+    expect(screen.getByText(/dates may be the transfer date/)).toBeTruthy();
+    fireEvent.click(screen.getByText('Send via Google Photos'));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/google'));
+    expect(await screen.findByText('Bring in photos via Google Photos')).toBeTruthy();
+    expect(screen.getByText('Choose Google Photos')).toBeTruthy();
+    expect(screen.getByText(/captions and likes stay on Instagram/)).toBeTruthy();
+  });
+
+  it('google: back from Google → pick in the Picker → import → found photos', async () => {
+    window.open = vi.fn(() => null) as never;
+    const { router } = renderAt('/google?connected=1');
+    expect(await screen.findByText('Signed in with Google')).toBeTruthy();
+    fireEvent.click(screen.getByText('Pick photos in Google Photos'));
+    expect(
+      await screen.findByText(/Found \d+ photos from 2023–2025/, {}, { timeout: 15000 }),
+    ).toBeTruthy();
+    expect(screen.getByText(/no captions or likes/)).toBeTruthy();
+    expect(window.open).toHaveBeenCalledWith(
+      'mock://google-photos-picker/autoclose',
+      '_blank',
+      'noopener',
+    );
+    fireEvent.click(screen.getByText('Choose photos'));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/select'));
+    expect(useDraft.getState().source).toBe('google');
+  }, 20000);
+
+  it('google: returning with an error shows next steps', async () => {
+    renderAt('/google?error=denied');
+    expect(await screen.findByText('No access was granted')).toBeTruthy();
+    expect(screen.getByText('Use the export instead')).toBeTruthy();
+  });
 
   it('upload: shows the drop zone', async () => {
     renderAt('/export/upload');

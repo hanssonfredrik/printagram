@@ -2,6 +2,7 @@ import { common, errors } from './common';
 import { landing } from './landing';
 import { choose } from './choose';
 import { connect } from './connect';
+import { google } from './google';
 import { exportFlow } from './exportFlow';
 import { select } from './select';
 import { preview } from './preview';
@@ -18,6 +19,7 @@ export const en = {
   landing,
   choose,
   connect,
+  google,
   exportFlow,
   select,
   preview,

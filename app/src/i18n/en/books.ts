@@ -17,6 +17,7 @@ export const books = {
   libraryMeta: (photos: number, source: string, date: string) =>
     `${photos} photos · ${source} · imported ${date}`,
   exportSource: 'Instagram export',
+  googleSource: 'Google Photos',
   keptUntilBefore: 'Kept until',
   keptUntilAfter: '. Each new book extends this by 3 months.',
   newBook: 'New book from these photos',

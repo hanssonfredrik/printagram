@@ -97,6 +97,35 @@ export function ChooseSource() {
               </Button>
             </div>
           </Card>
+
+          {cfg.googlePhotosEnabled && (
+            <Card bordered radius="xl">
+              <div className="row gap-8">
+                <Pill>{tc.google.pill}</Pill>
+              </div>
+              <div className="h3">{tc.google.title}</div>
+              <p className="muted pretty" style={{ fontSize: 15 }}>
+                {tc.google.text}
+              </p>
+              <div className="stack stack-10">
+                <Bullet>{tc.google.every}</Bullet>
+                <Bullet>{tc.google.background}</Bullet>
+                <Bullet warn>{tc.google.noCaptions}</Bullet>
+              </div>
+              <div style={{ marginTop: 'auto', paddingTop: 6 }}>
+                <Button
+                  block
+                  variant="outline"
+                  onClick={() => {
+                    setSource('google');
+                    nav('/google');
+                  }}
+                >
+                  {tc.google.button}
+                </Button>
+              </div>
+            </Card>
+          )}
         </div>
 
         <div

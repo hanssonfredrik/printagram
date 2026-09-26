@@ -16,6 +16,7 @@ export const common = {
     connect: 'Connect',
     export: 'Export',
     upload: 'Upload',
+    google: 'Google Photos',
     photos: 'Photos',
     select: 'Select',
     preview: 'Preview',

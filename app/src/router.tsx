@@ -3,6 +3,7 @@ import { AppShell } from './routes/AppShell';
 import { Landing } from './routes/landing/Landing';
 import { ChooseSource } from './routes/choose/ChooseSource';
 import { Connect } from './routes/connect/Connect';
+import { GooglePhotos } from './routes/google/GooglePhotos';
 import { ExportGuide } from './routes/export/ExportGuide';
 import { Waiting } from './routes/export/Waiting';
 import { Upload } from './routes/export/Upload';
@@ -25,6 +26,7 @@ export const router = createBrowserRouter([
       { index: true, element: <Landing /> },
       { path: 'start', element: <ChooseSource /> },
       { path: 'connect', element: <Connect /> },
+      { path: 'google', element: <GooglePhotos /> },
       { path: 'export', element: <ExportGuide /> },
       { path: 'export/waiting', element: <Waiting /> },
       { path: 'export/upload', element: <Upload /> },

@@ -1,3 +1,4 @@
+import type { PhotoSource } from '@printagram/shared';
 import { config } from './config.js';
 import { deleteContainer, ensureContainer, libContainerName } from './blobs.js';
 import { addDays, newId, nowIso } from './ids.js';
@@ -11,7 +12,7 @@ export function extendedExpiry(l: LibraryRow | null): string {
 
 export async function createLibrary(
   userId: string,
-  source: 'instagram' | 'export',
+  source: PhotoSource,
   label: string,
 ): Promise<LibraryRow> {
   const row: LibraryRow = {
