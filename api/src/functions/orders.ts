@@ -3,7 +3,8 @@ import {
   normalizePromoCode,
   pdfPriceCents,
   totalPages,
-  PROMO_MESSAGES,
+  normalizeLang,
+  promoMessage,
   promoRejection,
 } from '@printagram/shared';
 import {
@@ -139,6 +140,7 @@ route(
       format: book.format,
       showMeta: book.showMeta,
       coverPhotoId: book.coverPhotoId,
+      lang: normalizeLang(book.lang),
       layout: normalizeLayout(book.layout),
       pages: bookPages(book),
       photoIds: book.photoIds,
@@ -218,7 +220,7 @@ route(
 route(
   'ordersPayTest',
   { methods: ['POST'], route: 'orders/{id}/pay-test', auth: 'required' },
-  async ({ req, user }) => {
+  async ({ req, user, lang }) => {
     if (paymentProvider().name !== 'fake') throw notFound('Route');
     if (user.authLevel !== 'password')
       throw forbidden(
@@ -234,7 +236,7 @@ route(
     if (!card)
       throw badRequest('UNKNOWN_TEST_CARD', 'Use one of the test cards shown on the page.');
     if (card.outcome !== 'succeeded') {
-      const reason = DECLINE_MESSAGES[card.outcome];
+      const reason = DECLINE_MESSAGES[lang][card.outcome];
       await markFailed(o, 'failed', reason);
       throw new HttpError(402, card.outcome.toUpperCase(), reason);
     }
@@ -247,7 +249,7 @@ route(
 route(
   'ordersPromo',
   { methods: ['POST'], route: 'orders/{id}/promo', auth: 'required' },
-  async ({ req, user }) => {
+  async ({ req, user, lang }) => {
     const o = await ownedOrder(user.userId, req.params.id ?? '');
     if (o.status !== 'created' && o.status !== 'failed')
       throw conflict('ORDER_CLOSED', 'This order can no longer be changed.');
@@ -276,7 +278,7 @@ route(
       return json({
         order: orderView(o, await coverThumb(o)),
         clientSecret: null,
-        rejected: { code: rejection, reason: PROMO_MESSAGES[rejection] },
+        rejected: { code: rejection, reason: promoMessage(rejection, lang) },
       });
     }
     const { order, clientSecret } = await reprice(
@@ -344,6 +346,7 @@ route(
         format: o.format,
         showMeta: o.showMeta,
         coverPhotoId: o.coverPhotoId,
+        lang: normalizeLang(o.lang),
         layout: normalizeLayout(o.layout),
         pages: bookPages(o),
         photoCount: selected.length,

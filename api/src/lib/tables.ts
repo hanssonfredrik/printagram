@@ -17,6 +17,7 @@ import type {
   PhotoSource,
   PromoDefinition,
   BookLayout,
+  Lang,
   PageSpec,
 } from '@printagram/shared';
 import { config } from './config.js';
@@ -35,6 +36,8 @@ export interface UserRow {
   createdAt: string;
   lastSeenAt: string;
   status: 'active' | 'deleting';
+  /** UI language last sent by the app (X-Lang); missing on rows from before languages. */
+  lang?: Lang;
 }
 
 export interface LibraryRow {
@@ -83,6 +86,8 @@ export interface BookRow {
   format: BookFormat;
   showMeta: boolean;
   coverPhotoId: string | null;
+  /** Language printed in the book; missing on rows from before languages (= English). */
+  lang?: Lang;
   /** Serialised as JSON (chunked like arrays). */
   layout: BookLayout;
   pages: PageSpec[];
@@ -106,6 +111,7 @@ export interface OrderRow {
   format: BookFormat;
   showMeta: boolean;
   coverPhotoId: string | null;
+  lang?: Lang;
   layout: BookLayout;
   pages: PageSpec[];
   photoIds: string[];

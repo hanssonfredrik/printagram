@@ -3,10 +3,13 @@ import { useNavigate, useParams } from 'react-router';
 import { Banner, Button, Card, FieldInput, Fieldset } from '@/components/ui';
 import { api } from '@/services';
 import { useSession } from '@/state/session';
+import { errorText, useT } from '@/i18n';
 
 export function ResetPassword() {
   const { token = '' } = useParams();
   const nav = useNavigate();
+  const t = useT();
+  const tr = t.auth.reset;
   const setUser = useSession((x) => x.setUser);
   const [password, setPassword] = useState('');
   const [again, setAgain] = useState('');
@@ -15,15 +18,15 @@ export function ResetPassword() {
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
-    if (password.length < 8) return setErr('Use at least 8 characters.');
-    if (password !== again) return setErr('The two passwords do not match.');
+    if (password.length < 8) return setErr(tr.tooShort);
+    if (password !== again) return setErr(tr.mismatch);
     setBusy(true);
     setErr(null);
     try {
       setUser(await api.resetPassword(token, password));
       nav('/books', { replace: true });
     } catch (e2) {
-      setErr(e2 instanceof Error ? e2.message : 'This link is no longer valid.');
+      setErr(errorText(e2, t, { NOT_FOUND: t.auth.linkInvalid }));
     } finally {
       setBusy(false);
     }
@@ -37,25 +40,25 @@ export function ResetPassword() {
       <Card bordered radius="2xl" pad="hero" style={{ width: '100%', maxWidth: 420 }} gap={16}>
         <span className="brand">Printagram</span>
         <h2 className="h2" style={{ fontSize: 26 }}>
-          Choose a new password
+          {tr.title}
         </h2>
         <form className="stack stack-14" onSubmit={submit}>
           <Fieldset>
             <FieldInput
               type="password"
-              placeholder="New password (8+ characters)"
+              placeholder={tr.newPlaceholder}
               autoComplete="new-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              aria-label="New password"
+              aria-label={tr.newLabel}
             />
             <FieldInput
               type="password"
-              placeholder="Repeat password"
+              placeholder={tr.repeat}
               autoComplete="new-password"
               value={again}
               onChange={(e) => setAgain(e.target.value)}
-              aria-label="Repeat password"
+              aria-label={tr.repeat}
             />
           </Fieldset>
           {err && (
@@ -64,7 +67,7 @@ export function ResetPassword() {
             </Banner>
           )}
           <Button type="submit" block size="xl" disabled={busy}>
-            {busy ? 'Saving…' : 'Save and sign in'}
+            {busy ? tr.busy : tr.submit}
           </Button>
         </form>
       </Card>

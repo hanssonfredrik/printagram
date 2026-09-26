@@ -53,8 +53,8 @@ const ctx = {
 
 const rnd = () => Math.floor(Math.random() * 250) + 1;
 
-/** A client with its own cookie jar (one user). */
-function client() {
+/** A client with its own cookie jar (one user); `headers` go on every request (e.g. X-Lang). */
+function client(headers: Record<string, string> = {}) {
   const jar = new Map<string, string>();
   // Each client looks like its own visitor to the per-IP rate limits.
   const ip = `10.${rnd()}.${rnd()}.${rnd()}`;
@@ -74,6 +74,7 @@ function client() {
       headers: {
         'content-type': 'application/json',
         'x-forwarded-for': ip,
+        ...headers,
         ...(cookie ? { cookie } : {}),
       },
       params,
@@ -390,6 +391,77 @@ describe.skipIf(!up)('API routes against Azurite', () => {
       { id: o2.body.order.id },
     );
     expect(again.body.rejected?.code).toBe('already_used');
+  });
+
+  it('languages: X-Lang is remembered, Swedish books keep their language into the PDF', async () => {
+    const call = client({ 'x-lang': 'sv' });
+    const { libraryId, photoIds } = await userWithPhotos(call, 1);
+    const me = await call<{ user: { lang: string } }>('me', 'GET', 'me');
+    expect(me.body.user.lang).toBe('sv');
+
+    // No title and no lang: the UI language decides both.
+    const created = await call<{ id: string; title: string; lang: string }>(
+      'booksCreate',
+      'POST',
+      'books',
+      {
+        libraryId,
+        format: 'square',
+        showMeta: true,
+        pages: photoIds.map((id) => ({ template: '1-margin', photoIds: [id] })),
+      },
+    );
+    expect(created.status).toBe(201);
+    expect(created.body.title).toBe('Våra år');
+    expect(created.body.lang).toBe('sv');
+
+    const copy = await call<{ id: string; title: string; lang: string }>(
+      'booksDuplicate',
+      'POST',
+      `books/${created.body.id}/duplicate`,
+      {},
+      { id: created.body.id },
+    );
+    expect(copy.body.title).toBe('Våra år (kopia)');
+    expect(copy.body.lang).toBe('sv');
+
+    const o = await call<OrderBody>('ordersCreate', 'POST', 'orders', { bookId: created.body.id });
+    const id = o.body.order.id;
+    const declined = await call<{ error: { code: string; message: string } }>(
+      'ordersPayTest',
+      'POST',
+      `orders/${id}/pay-test`,
+      { card: '4000000000000002' },
+      { id },
+    );
+    expect(declined.body.error.code).toBe('CARD_DECLINED');
+    expect(declined.body.error.message).toMatch(/Kortet nekades/);
+    await call(
+      'ordersPayTest',
+      'POST',
+      `orders/${id}/pay-test`,
+      { card: '4242424242424242' },
+      { id },
+    );
+    const target = await call<{ book: { lang: string } }>(
+      'ordersPdfUploadUrl',
+      'POST',
+      `orders/${id}/pdf/upload-url`,
+      {},
+      { id },
+    );
+    expect(target.status).toBe(200);
+    expect(target.body.book.lang).toBe('sv');
+
+    // The ordered book is locked; its draft copy validates the language.
+    const bad = await call(
+      'booksPatch',
+      'PATCH',
+      `books/${copy.body.id}`,
+      { lang: 'de' },
+      { id: copy.body.id },
+    );
+    expect(bad.status).toBe(400);
   });
 
   it('pdf/complete refuses an upload that is not a PDF', async () => {

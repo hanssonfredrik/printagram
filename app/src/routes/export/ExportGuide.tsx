@@ -3,68 +3,18 @@ import { useNavigate } from 'react-router';
 import { Banner, Button, ScreenHeader, Segmented, StepCard, WizardBar } from '@/components/ui';
 import { FlowProgress } from '@/components/Progress';
 import { GuideScreen } from '@/components/guideArt';
-import { EXPORT_SCREENS } from '@/components/guideScreens';
+import { exportScreens } from '@/components/guideScreens';
 import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
 import { api } from '@/services';
-
-const GUIDE = {
-  mobile: [
-    [
-      'Open your profile and the menu',
-      'Tap your profile picture (bottom right), then the menu (☰) top right, then Settings and activity.',
-    ],
-    [
-      'Accounts Center',
-      'Tap Accounts Center at the top of the list, then Your information and permissions.',
-    ],
-    [
-      'Export your information',
-      'Tap Export your information, then Create export. On older app versions this is called Download your information → Download or transfer information.',
-    ],
-    [
-      'Pick your profile and destination',
-      'Select your Instagram profile (untick any Facebook account), then choose Export to device.',
-    ],
-    [
-      'Choose Posts only',
-      'Tap Customize information (or Some of your information), untick everything, and tick Posts under Your Instagram activity.',
-    ],
-    [
-      'Set the options and start',
-      'Date range: All time. Format: JSON. Media quality: Higher. Check the notification email, tap Start export and confirm with your Instagram password.',
-    ],
-  ],
-  desktop: [
-    [
-      'Open Instagram settings',
-      'Go to instagram.com, click More (bottom of the left sidebar), then Settings.',
-    ],
-    [
-      'Accounts Center',
-      'Click Accounts Center, then Your information and permissions in the left column. You can also go straight to accountscenter.instagram.com.',
-    ],
-    [
-      'Export your information',
-      'Click Export your information, then Create export. Older versions call this Download your information → Download or transfer information.',
-    ],
-    [
-      'Pick your profile and destination',
-      'Select your Instagram profile only, then choose Export to device.',
-    ],
-    [
-      'Choose Posts only',
-      'Under Customize information (or Some of your information), untick everything except Posts in Your Instagram activity.',
-    ],
-    [
-      'Set the options and start',
-      'Date range: All time. Format: JSON. Media quality: Higher. Click Start export and confirm with your Instagram password.',
-    ],
-  ],
-} as const;
+import { useLang, useT } from '@/i18n';
 
 export function ExportGuide() {
   const nav = useNavigate();
+  const t = useT();
+  const lang = useLang((x) => x.lang);
+  const g = t.exportFlow.guide;
+  const screens = exportScreens(lang);
   const tab = useDraft((d) => d.guideTab);
   const setTab = useDraft((d) => d.setGuideTab);
   const setSource = useDraft((d) => d.setSource);
@@ -92,49 +42,43 @@ export function ExportGuide() {
 
   return (
     <div className="screen screen--bar">
-      <ScreenHeader title="Get your photos from Instagram">
+      <ScreenHeader title={g.title}>
         <FlowProgress screen="guide" />
       </ScreenHeader>
       <div className="container container--narrow stack stack-20" style={{ paddingTop: 8 }}>
-        <p className="muted pretty">
-          Instagram lets you download everything you've posted. It takes about two minutes to
-          request, then Instagram emails you a link.
-        </p>
+        <p className="muted pretty">{g.intro}</p>
         <Segmented
           value={tab}
           onChange={setTab}
           options={[
-            { value: 'mobile', label: 'On your phone' },
-            { value: 'desktop', label: 'On a computer' },
+            { value: 'mobile', label: g.onPhone },
+            { value: 'desktop', label: g.onComputer },
           ]}
         />
         <div className="stack stack-12">
-          {GUIDE[tab].map(([title, text], i) => (
+          {g.steps[tab].map(({ title, text }, i) => (
             <StepCard
               key={title}
               n={i + 1}
               title={title}
               text={text}
-              shot={<GuideScreen spec={EXPORT_SCREENS[tab][i]!} />}
+              shot={<GuideScreen spec={screens[tab][i]!} />}
               shotAspect={tab === 'mobile' ? '9 / 16' : '4 / 3'}
             />
           ))}
         </div>
-        <Banner tone="info" title="What happens next">
-          Instagram emails you a download link — usually within a few hours, sometimes a day or two
-          (Instagram officially allows up to 30 days). The download stays available for only four
-          days, so grab the ZIP as soon as it arrives and come back here. If the email doesn't show
-          up, check spam or look under Export your information in Accounts Center.
+        <Banner tone="info" title={g.nextTitle}>
+          {g.nextBody}
         </Banner>
         <div className="stack stack-10">
           <Button block size="xl" onClick={() => nav('/export/waiting')}>
-            I've requested my export
+            {g.requested}
           </Button>
           {askEmail && (
             <div className="row gap-8 row-wrap">
               <input
                 type="email"
-                placeholder="you@example.com"
+                placeholder={g.emailPlaceholder}
                 value={emailInput}
                 onChange={(e) => setEmailInput(e.target.value)}
                 style={{
@@ -150,14 +94,10 @@ export function ExportGuide() {
             </div>
           )}
           <Button block variant="secondary" size="lg" onClick={emailSteps}>
-            {sent
-              ? 'Sent — check your inbox'
-              : askEmail
-                ? 'Send the steps to this address'
-                : 'Email me these steps'}
+            {sent ? g.sent : askEmail ? g.sendToAddress : g.emailSteps}
           </Button>
           <Button variant="ghost" size="md" onClick={() => nav('/export/upload')}>
-            Already have the ZIP? Upload it
+            {g.haveZip}
           </Button>
         </div>
       </div>

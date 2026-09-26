@@ -1,6 +1,7 @@
 import type { AppConfig, Book, LibrarySummary, Order, Photo, UserInfo } from '@printagram/shared';
 import {
   addMonths,
+  bookText,
   DEFAULT_PRICING,
   MAX_EXPORT_BYTES,
   MAX_PHOTOS_PER_BOOK,
@@ -66,7 +67,7 @@ const nowIso = () => new Date().toISOString();
 const sleep = (ms = mockFlags.latencyMs) => new Promise((r) => setTimeout(r, ms));
 
 function freshUser(): UserInfo {
-  return { id: uid('u'), email: null, authLevel: 'anonymous' };
+  return { id: uid('u'), email: null, authLevel: 'anonymous', lang: 'en' };
 }
 
 function load(): MockState {
@@ -553,7 +554,7 @@ export const mockApi: Api = {
     const copy: Book = {
       ...src,
       id: uid('book'),
-      title: `${src.title} (copy)`,
+      title: `${src.title} ${bookText(src.lang).copySuffix}`,
       status: 'draft',
       orderId: null,
       version: 1,
@@ -688,6 +689,7 @@ export const mockApi: Api = {
         format: book.format,
         showMeta: book.showMeta,
         coverPhotoId: book.coverPhotoId,
+        lang: book.lang ?? 'en',
         layout: book.layout ?? DEFAULT_LAYOUT,
         pages: book.pages,
         photoCount: photos.length,

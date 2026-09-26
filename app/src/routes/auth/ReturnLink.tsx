@@ -4,6 +4,7 @@ import { Banner, Button, Card } from '@/components/ui';
 import { api } from '@/services';
 import { useSession } from '@/state/session';
 import { useDraft } from '@/state/draft';
+import { errorText, useT } from '@/i18n';
 
 /**
  * Landing page for the emailed "return link". The token is only consumed after an explicit
@@ -12,6 +13,8 @@ import { useDraft } from '@/state/draft';
 export function ReturnLink() {
   const { token = '' } = useParams();
   const nav = useNavigate();
+  const t = useT();
+  const tr = t.auth.returnLink;
   const setUser = useSession((x) => x.setUser);
   const refreshLibraries = useSession((x) => x.refreshLibraries);
   const setSource = useDraft((d) => d.setSource);
@@ -28,7 +31,7 @@ export function ReturnLink() {
       if (resumeTo.startsWith('/export')) setSource('export');
       nav(resumeTo || '/export/upload', { replace: true });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'This link is no longer valid.');
+      setErr(errorText(e, t, { NOT_FOUND: t.auth.linkInvalid }));
     } finally {
       setBusy(false);
     }
@@ -49,18 +52,16 @@ export function ReturnLink() {
       >
         <span className="brand">Printagram</span>
         <h2 className="h2" style={{ fontSize: 26 }}>
-          Welcome back
+          {tr.title}
         </h2>
-        <p className="muted pretty">
-          Pick up where you left off: upload the ZIP Instagram sent you and choose your photos.
-        </p>
+        <p className="muted pretty">{tr.lead}</p>
         {err && (
           <Banner tone="error" tight>
             {err}
           </Banner>
         )}
         <Button block size="xl" onClick={go} disabled={busy}>
-          {busy ? 'One moment…' : 'Continue'}
+          {busy ? tr.busy : tr.submit}
         </Button>
       </Card>
     </div>

@@ -68,7 +68,12 @@ export function generatePdf(
     };
     worker.onerror = (e) => {
       stop();
-      reject(new PdfError(e.message || 'The PDF could not be created.'));
+      reject(
+        new PdfError(
+          e.message ||
+            (job.lang === 'sv' ? 'PDF:en kunde inte skapas.' : 'The PDF could not be created.'),
+        ),
+      );
     };
     const abs = (p: string) => new URL(p, window.location.origin).href;
     const assetUrls = {

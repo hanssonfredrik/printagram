@@ -32,6 +32,8 @@ async function main() {
   const ctx = await browser.newContext({
     viewport: { width: 1280, height: 900 },
     acceptDownloads: true,
+    // The UI follows the browser language; the checks below expect English.
+    locale: 'en-US',
   });
   await ctx.grantPermissions(['clipboard-read', 'clipboard-write'], { origin: APP });
   const page = await ctx.newPage();
@@ -188,7 +190,10 @@ async function main() {
   // Multi-part export in a fresh session: both parts dropped together, with a HEIC photo,
   // a post whose file is in neither part, and an archived post added on request.
   {
-    const ctx2 = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const ctx2 = await browser.newContext({
+      viewport: { width: 1280, height: 900 },
+      locale: 'en-US',
+    });
     const p2 = await ctx2.newPage();
     p2.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
     await p2.goto(APP + '/export/upload');
@@ -206,6 +211,26 @@ async function main() {
     await p2.getByText('Added 1 new photo').waitFor({ timeout: 60000 });
     await ctx2.close();
     ok('multi-part export: both parts read, missing + HEIC reported, archived post added');
+  }
+
+  // Swedish browser: the UI follows it, and the picker switches back to English for good.
+  {
+    const ctx3 = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      locale: 'sv-SE',
+    });
+    const p3 = await ctx3.newPage();
+    p3.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
+    await p3.goto(APP + '/');
+    await p3.getByText('Ditt Instagram som en riktig bok.').waitFor();
+    assert((await p3.getAttribute('html', 'lang')) === 'sv', 'html lang is sv');
+    await shot(p3, '15-landing-swedish');
+    await p3.getByRole('combobox', { name: 'Språk' }).first().selectOption('en');
+    await p3.getByText('Your Instagram, as a real book.').waitFor();
+    await p3.reload();
+    await p3.getByText('Your Instagram, as a real book.').waitFor();
+    await ctx3.close();
+    ok('Swedish browser gets Swedish; the language choice is remembered');
   }
 
   const real = errors.filter(

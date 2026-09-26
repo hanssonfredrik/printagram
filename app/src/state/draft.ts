@@ -1,11 +1,15 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { Book, BookFormat, BookLayout, PageSpec, Photo } from '@printagram/shared';
-import { DEFAULT_LAYOUT, monthKey } from '@printagram/shared';
+import type { Book, BookFormat, BookLayout, Lang, PageSpec, Photo } from '@printagram/shared';
+import { bookText, DEFAULT_LAYOUT, isDefaultTitle, monthKey } from '@printagram/shared';
+import { getLang } from '@/i18n';
 
 export type AccountKind = 'pro' | 'personal' | 'unsure';
-/** Which import path the user is on. 'connect' = Instagram login, 'export' = uploaded ZIP. */
-export type FlowSource = 'connect' | 'export';
+/**
+ * Which path the user is on. 'connect' = Instagram login, 'export' = uploaded ZIP,
+ * 'library' = working from photos already imported (My books).
+ */
+export type FlowSource = 'connect' | 'export' | 'library';
 export type SelectMode = 'all' | 'choose';
 
 export interface DraftState {
@@ -34,6 +38,8 @@ export interface DraftState {
   format: BookFormat;
   showMeta: boolean;
   coverPhotoId: string | null;
+  /** Language printed in the book. New books take the UI language; changing it is explicit. */
+  lang: Lang;
   pageIdx: number;
   layout: BookLayout;
   /** Pages as arranged by hand; null while the layout is automatic. */
@@ -60,6 +66,8 @@ export interface DraftState {
       Pick<DraftState, 'title' | 'format' | 'showMeta' | 'coverPhotoId' | 'draftBookId'>
     >,
   ) => void;
+  /** Changes the book language; a still-default title follows it ("Our years" → "Våra år"). */
+  setBookLang: (lang: Lang) => void;
   setPageIdx: (i: number) => void;
   setLayout: (patch: Partial<BookLayout>) => void;
   /** Stores a hand-made arrangement (from Arrange / template picker). */
@@ -73,7 +81,17 @@ export interface DraftState {
   resetAll: () => void;
 }
 
-export const DEFAULT_TITLE = 'Our years';
+/** English default title; the title for a book comes from `defaultTitleFor`. */
+export const DEFAULT_TITLE = bookText('en').defaultTitle;
+
+/** "Our years · 2021–2024" in the given language, from the years the photos span. */
+export function defaultTitleFor(lang: Lang, photos: { year: number }[]): string {
+  const base = bookText(lang).defaultTitle;
+  const years = [...new Set(photos.map((p) => p.year))].sort();
+  if (years.length === 0) return base;
+  if (years.length === 1) return `${base} · ${years[0]}`;
+  return `${base} · ${years[0]}–${years[years.length - 1]}`;
+}
 
 const initial = {
   source: null,
@@ -94,6 +112,7 @@ const initial = {
   format: 'square' as BookFormat,
   showMeta: true,
   coverPhotoId: null,
+  lang: 'en' as Lang,
   pageIdx: 0,
   layout: DEFAULT_LAYOUT,
   manualPages: null as PageSpec[] | null,
@@ -104,6 +123,7 @@ export const useDraft = create<DraftState>()(
   persist(
     (set, get) => ({
       ...initial,
+      lang: getLang(),
 
       setSource: (source) => set({ source }),
       setAdding: (adding) => set({ adding }),
@@ -115,18 +135,15 @@ export const useDraft = create<DraftState>()(
       startLibrary(libraryId, photos, opts) {
         const keys = [...new Set(photos.map((p) => monthKey(p.year, p.month)))].sort();
         const sameLib = get().libraryId === libraryId;
-        const years = [...new Set(photos.map((p) => p.year))].sort();
-        const title =
-          years.length === 0
-            ? DEFAULT_TITLE
-            : years.length === 1
-              ? `${DEFAULT_TITLE} · ${years[0]}`
-              : `${DEFAULT_TITLE} · ${years[0]}–${years[years.length - 1]}`;
+        const keep = sameLib && opts?.keepSelection;
+        // A new book is in the UI language; kept work keeps its own.
+        const lang = keep ? get().lang : getLang();
+        const title = defaultTitleFor(lang, photos);
         set({
           libraryId,
           rangeFrom: keys[0] ?? null,
           rangeTo: keys[keys.length - 1] ?? null,
-          ...(sameLib && opts?.keepSelection
+          ...(keep
             ? {}
             : {
                 mode: 'all',
@@ -135,7 +152,8 @@ export const useDraft = create<DraftState>()(
                 pageIdx: 0,
                 draftBookId: null,
                 manualPages: null,
-                title: get().title === DEFAULT_TITLE || !sameLib ? title : get().title,
+                lang,
+                title: isDefaultTitle(get().title) || !sameLib ? title : get().title,
               }),
         });
       },
@@ -162,6 +180,20 @@ export const useDraft = create<DraftState>()(
         set(patch);
       },
 
+      setBookLang(lang) {
+        const { title, lang: from } = get();
+        if (lang === from) return;
+        const fromBase = bookText(from).defaultTitle;
+        const toBase = bookText(lang).defaultTitle;
+        set({
+          lang,
+          title:
+            isDefaultTitle(title) && title.startsWith(fromBase)
+              ? toBase + title.slice(fromBase.length)
+              : title,
+        });
+      },
+
       setPageIdx: (pageIdx) => set({ pageIdx }),
       setLayout: (patch) => set({ layout: { ...get().layout, ...patch } }),
       setManualPages: (manualPages) => set({ manualPages }),
@@ -176,6 +208,7 @@ export const useDraft = create<DraftState>()(
           format: book.format,
           showMeta: book.showMeta,
           coverPhotoId: book.coverPhotoId,
+          lang: book.lang ?? 'en',
           layout: book.layout ?? DEFAULT_LAYOUT,
           manualPages: book.manualLayout ? book.pages : null,
           // Select exactly the book's photos, with filters wide enough to show all of them.
@@ -192,6 +225,7 @@ export const useDraft = create<DraftState>()(
 
       resetForNewBook(title) {
         set({
+          lang: getLang(),
           mode: 'all',
           selected: [],
           coverPhotoId: null,
@@ -204,7 +238,7 @@ export const useDraft = create<DraftState>()(
         });
       },
 
-      resetAll: () => set({ ...initial }),
+      resetAll: () => set({ ...initial, lang: getLang() }),
     }),
     {
       name: 'printagram.draft.v2',

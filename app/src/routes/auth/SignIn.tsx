@@ -4,9 +4,12 @@ import { Banner, Button, FieldInput, Fieldset } from '@/components/ui';
 import { api, ApiClientError } from '@/services';
 import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
+import { errorText, useT } from '@/i18n';
 
 export function SignIn() {
   const nav = useNavigate();
+  const t = useT();
+  const ta = t.auth.signIn;
   const [params] = useSearchParams();
   const next = params.get('next') ?? '/books';
   const email = useDraft((d) => d.email);
@@ -31,7 +34,11 @@ export function SignIn() {
       await refreshLibraries();
       nav(next);
     } catch (e2) {
-      setErr(e2 instanceof ApiClientError ? e2.message : 'Could not sign in.');
+      setErr(
+        e2 instanceof ApiClientError
+          ? errorText(e2, t, { UNAUTHORIZED: ta.wrongPassword })
+          : ta.failed,
+      );
     } finally {
       setBusy(false);
     }
@@ -40,7 +47,7 @@ export function SignIn() {
   const forgotPassword = async (e: React.MouseEvent) => {
     e.preventDefault();
     if (!email.includes('@')) {
-      setErr('Enter your email above first, then tap Forgot password.');
+      setErr(ta.emailFirst);
       return;
     }
     await api.forgotPassword(email);
@@ -54,34 +61,39 @@ export function SignIn() {
     >
       <form className="stack stack-20" style={{ width: '100%', maxWidth: 400 }} onSubmit={submit}>
         <div className="row gap-12">
-          <button type="button" className="back" onClick={() => nav('/')} aria-label="Back">
+          <button
+            type="button"
+            className="back"
+            onClick={() => nav('/')}
+            aria-label={t.common.back}
+          >
             ←
           </button>
           <span className="brand">Printagram</span>
         </div>
         <div>
           <h2 className="h2" style={{ fontSize: 28, marginBottom: 6 }}>
-            Welcome back
+            {ta.title}
           </h2>
-          <p className="muted">Your photos and books are waiting.</p>
+          <p className="muted">{ta.lead}</p>
         </div>
         <Fieldset>
           <FieldInput
-            placeholder="Email"
+            placeholder={ta.email}
             type="email"
             autoComplete="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            aria-label="Email"
+            aria-label={ta.email}
             required
           />
           <FieldInput
-            placeholder="Password"
+            placeholder={ta.password}
             type="password"
             autoComplete="current-password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            aria-label="Password"
+            aria-label={ta.password}
           />
         </Fieldset>
         {err && (
@@ -91,18 +103,18 @@ export function SignIn() {
         )}
         {forgot === 'sent' && (
           <Banner tone="info" tight>
-            If that address has an account, a reset link is on its way.
+            {ta.resetSent}
           </Banner>
         )}
         <Button type="submit" block size="xl" disabled={busy}>
-          {busy ? 'Signing in…' : 'Sign in'}
+          {busy ? ta.busy : ta.submit}
         </Button>
         <div className="row between row-wrap gap-8 small">
           <a href="#" onClick={forgotPassword}>
-            Forgot password?
+            {ta.forgot}
           </a>
           <span className="muted">
-            New here? <Link to="/start">Start your book</Link>
+            {ta.newHere} <Link to="/start">{ta.start}</Link>
           </span>
         </div>
       </form>

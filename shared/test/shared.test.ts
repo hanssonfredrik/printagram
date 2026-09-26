@@ -9,8 +9,17 @@ import {
   findPostsEntries,
   fixMojibake,
   flattenPhotoIds,
+  bookText,
+  captionParts,
+  fmtDate,
   fmtEuro,
   fmtSpan,
+  isDefaultTitle,
+  langFromAcceptLanguage,
+  normalizeLang,
+  pickLang,
+  promoMessage,
+  templateLabel,
   normalizePosts,
   normalizePromoCode,
   PAGE_MARGIN_MM,
@@ -316,6 +325,51 @@ describe('dates', () => {
   it('formats spans', () => {
     expect(fmtSpan('2025-03-01T00:00:00Z', '2025-09-01T00:00:00Z')).toBe('Mar – Sep 2025');
     expect(fmtSpan('2023-01-01T00:00:00Z', '2025-12-01T00:00:00Z')).toBe('Jan 2023 – Dec 2025');
+  });
+
+  it('formats dates and spans in Swedish', () => {
+    expect(fmtDate('2026-05-17T10:00:00Z', 'sv')).toBe('17 maj 2026');
+    expect(fmtDate('2026-05-17T10:00:00Z')).toBe('17 May 2026');
+    expect(fmtSpan('2025-03-01T00:00:00Z', '2025-10-01T00:00:00Z', 'sv')).toBe('mar – okt 2025');
+  });
+});
+
+describe('languages', () => {
+  it('picks a supported language, falling back to English', () => {
+    expect(normalizeLang('sv-SE')).toBe('sv');
+    expect(normalizeLang('SV')).toBe('sv');
+    expect(normalizeLang('de-DE')).toBe('en');
+    expect(normalizeLang(undefined)).toBe('en');
+    expect(pickLang(['de-DE', 'sv-SE', 'en-US'])).toBe('sv');
+    expect(pickLang(['fr', 'de'])).toBe('en');
+    expect(langFromAcceptLanguage('de-DE,de;q=0.9,sv;q=0.8,en;q=0.7')).toBe('sv');
+    expect(langFromAcceptLanguage('en-GB,sv;q=0.9')).toBe('en');
+    expect(langFromAcceptLanguage('sv;q=0.2,en;q=0.5')).toBe('en');
+    expect(langFromAcceptLanguage('')).toBe('en');
+  });
+
+  it('has Swedish text for the book, labels, prices and promo codes', () => {
+    expect(bookText('sv').photos(1)).toBe('1 foto');
+    expect(bookText('sv').photos(3)).toBe('3 foton');
+    expect(bookText('en').photos(1)).toBe('1 photo');
+    expect(bookText('sv').madeWith).toBe('Skapad med Printagram');
+    expect(templateLabel('4-grid', 'sv')).toBe('Rutnät med fyra');
+    expect(templateLabel('4-grid')).toBe('Grid of four');
+    expect(fmtEuro(900, 'sv')).toBe('9\u{a0}€');
+    expect(fmtEuro(915, 'sv')).toBe('9,15\u{a0}€');
+    expect(promoMessage('expired', 'sv')).toBe('Koden har gått ut.');
+    const pages = buildPages([{ template: '1-margin', photoIds: ['a'] }]);
+    expect(pageLabel(pages[0]!, pages.length, 'sv')).toBe('Omslag');
+    expect(pageLabel(pages[2]!, pages.length, 'sv')).toBe('Sida 1 av 1');
+    expect(
+      captionParts({ caption: 'Hej', likes: 3, takenAt: '2025-01-05T00:00:00Z' }, true, 'sv').meta,
+    ).toBe('♥ 3   5 jan 2025');
+  });
+
+  it('recognises generated default titles in any language', () => {
+    expect(isDefaultTitle('Our years')).toBe(true);
+    expect(isDefaultTitle('Våra år · 2021–2024')).toBe(true);
+    expect(isDefaultTitle('Summer in Skåne')).toBe(false);
   });
 });
 

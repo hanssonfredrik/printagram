@@ -2,6 +2,7 @@ import { useState } from 'react';
 import type { TestCard } from '@printagram/shared';
 import { fmtEuro } from '@printagram/shared';
 import { Banner, Button } from '@/components/ui';
+import { useLang, useT } from '@/i18n';
 import s from './checkout.module.css';
 
 /**
@@ -22,14 +23,16 @@ export function FakePayment({
   onPay: (card: string) => void;
   accountForm: React.ReactNode;
 }) {
+  const t = useT();
+  const lang = useLang((x) => x.lang);
   const [card, setCard] = useState(cards[0]?.number ?? '');
 
   return (
     <div className="stack stack-10">
-      <Banner tone="warn" title="Test payment — no money is taken">
-        Printagram is in test mode. Choose a test card to see what happens; nothing is charged.
+      <Banner tone="warn" title={t.checkout.fake.bannerTitle}>
+        {t.checkout.fake.bannerBody}
       </Banner>
-      <div className="stack stack-8" role="radiogroup" aria-label="Test card">
+      <div className="stack stack-8" role="radiogroup" aria-label={t.checkout.fake.cardGroup}>
         {cards.map((c) => (
           <label
             key={c.number}
@@ -43,21 +46,21 @@ export function FakePayment({
               onChange={() => setCard(c.number)}
             />
             <span className={s.cardChip} aria-hidden="true">
-              TEST
+              {t.checkout.fake.chip}
             </span>
             <span className="stack" style={{ gap: 2 }}>
               <span className="mono small">{c.number}</span>
-              <span className="tiny muted">{c.label}</span>
+              <span className="tiny muted">{t.checkout.fake.cards[c.outcome] ?? c.label}</span>
             </span>
           </label>
         ))}
       </div>
       {accountForm}
       <Button block size="xl" onClick={() => onPay(card)} disabled={processing || !card}>
-        {processing ? 'Processing…' : 'Place test order'}
+        {processing ? t.checkout.processing : t.checkout.fake.place}
       </Button>
       <p className="tiny muted center pretty">
-        In live mode this order would cost {fmtEuro(amountCents)}. Right now nothing is charged.
+        {t.checkout.fake.liveCost(fmtEuro(amountCents, lang))}
       </p>
     </div>
   );

@@ -1,7 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react';
-import type { BookFormat, Page, Photo, PlacedPhoto, Rect } from '@printagram/shared';
+import type { BookFormat, Lang, Page, Photo, PlacedPhoto, Rect } from '@printagram/shared';
 import {
   aspectOf,
+  bookText,
   captionParts,
   coverLayout,
   effectivePpi,
@@ -13,6 +14,7 @@ import {
   TEXT_PT,
 } from '@printagram/shared';
 import { Placeholder } from './ui';
+import { useT } from '@/i18n';
 import s from './page.module.css';
 
 export function pageAspect(format: BookFormat): string {
@@ -46,6 +48,8 @@ export interface PageRendererProps {
   photosById: Map<string, Photo>;
   showMeta: boolean;
   showLikes: boolean;
+  /** Language printed in the book (subtitle, caption dates, back cover). Defaults to English. */
+  lang?: Lang;
   /** Show a warning badge on photos that will print below 150 ppi. */
   showPpi?: boolean;
   style?: CSSProperties;
@@ -69,6 +73,7 @@ export function PageRenderer({
   photosById,
   showMeta,
   showLikes,
+  lang = 'en',
   showPpi,
   style,
   className,
@@ -95,7 +100,7 @@ export function PageRenderer({
             {title}
           </div>
           <div className={s.subText} style={{ fontSize: pt(TEXT_PT.subtitle, format) }}>
-            {dateSpan} · {photoCount} photos
+            {dateSpan} · {bookText(lang).photos(photoCount)}
           </div>
         </div>
       )}
@@ -131,6 +136,7 @@ export function PageRenderer({
               showMeta={showMeta}
               showLikes={showLikes}
               showPpi={showPpi}
+              lang={lang}
             />
           );
         })}
@@ -140,7 +146,7 @@ export function PageRenderer({
           style={box({ x: 0, y: 0, width: size.width, height: size.height }, format)}
         >
           <div className={s.subText} style={{ fontSize: pt(TEXT_PT.back, format) }}>
-            Made with Printagram
+            {bookText(lang).madeWith}
           </div>
         </div>
       )}
@@ -188,6 +194,7 @@ function PlacedImage({
   showMeta,
   showLikes,
   showPpi,
+  lang,
 }: {
   format: BookFormat;
   photo: Photo | null;
@@ -195,12 +202,14 @@ function PlacedImage({
   showMeta: boolean;
   showLikes: boolean;
   showPpi?: boolean;
+  lang?: Lang;
 }) {
+  const t = useT();
   const level =
     showPpi && photo?.width && photo.height
       ? ppiLevel(effectivePpi(photo.width, photo.height, placed))
       : 'ok';
-  const cap = photo && showMeta ? captionParts(photo, showLikes) : null;
+  const cap = photo && showMeta ? captionParts(photo, showLikes, lang) : null;
   return (
     <>
       <div className={s.frame} style={box(placed.image, format)}>
@@ -212,13 +221,9 @@ function PlacedImage({
         {level !== 'ok' && (
           <span
             className={`${s.ppi} ${level === 'low' ? s['ppi--low'] : ''}`}
-            title={
-              level === 'low'
-                ? 'Will print blurry at this size'
-                : 'May print a little soft at this size'
-            }
+            title={level === 'low' ? t.preview.ppiLowTitle : t.preview.ppiSoftTitle}
           >
-            {level === 'low' ? 'Low resolution' : 'Soft'}
+            {level === 'low' ? t.preview.ppiLow : t.preview.ppiSoft}
           </span>
         )}
       </div>

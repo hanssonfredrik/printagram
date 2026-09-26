@@ -1,4 +1,5 @@
 import { timingSafeEqual } from 'node:crypto';
+import { normalizeLang } from '@printagram/shared';
 import { decrypt, encrypt } from '../lib/auth.js';
 import {
   deleteBlob,
@@ -24,11 +25,6 @@ type Task =
   | 'cleanupOrphans'
   | 'cleanupAnonymous'
   | 'cleanupTokens';
-
-function fmtDate(iso: string): string {
-  const d = new Date(iso);
-  return `${d.getUTCDate()} ${['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getUTCMonth()]} ${d.getUTCFullYear()}`;
-}
 
 /**
  * Scheduled maintenance, driven by GitHub Actions (.github/workflows/cron.yml).
@@ -62,7 +58,13 @@ route(
           const u = await users.get(l.userId);
           if (u?.email)
             await mailer()
-              .send(templates.libraryDeleted(u.email, `${config.appBaseUrl}/books`))
+              .send(
+                templates.libraryDeleted(
+                  u.email,
+                  `${config.appBaseUrl}/books`,
+                  normalizeLang(u.lang),
+                ),
+              )
               .catch(() => undefined);
           processed++;
         }
@@ -88,9 +90,14 @@ route(
               templates.libraryReminder(
                 u.email,
                 l.photoCount,
-                fmtDate(l.expiresAt),
+                l.expiresAt,
+                Math.max(
+                  1,
+                  Math.ceil((new Date(l.expiresAt).getTime() - now.getTime()) / 86_400_000),
+                ),
                 `${config.appBaseUrl}/books`,
                 `${config.appBaseUrl}/books?delete=1`,
+                normalizeLang(u.lang),
               ),
             );
           }

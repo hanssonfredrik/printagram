@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type DragEvent } from 'react';
 import { useNavigate } from 'react-router';
-import type { UploadErrorKind } from '@printagram/shared';
+import type { Lang, UploadErrorKind } from '@printagram/shared';
 import {
   Banner,
   Button,
@@ -16,53 +16,32 @@ import { ExportImportError, importExportZip, type ImportSummary } from '@/servic
 import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
 import { useLibrary } from '@/state/library';
+import { useLang, useT } from '@/i18n';
 import s from './upload.module.css';
 
 type Up = 'idle' | 'reading' | 'uploading' | 'finishing' | 'done';
 
-const ERRORS: Record<UploadErrorKind, { title: string; text: string; guide: boolean }> = {
-  html: {
-    title: 'This export is in HTML format',
-    text: 'We need the JSON version to read your posts and dates. Request the export again and pick Format: JSON.',
-    guide: true,
-  },
-  empty: {
-    title: 'No posts in this export',
-    text: "The file doesn't contain any posts. When requesting, make sure Posts is ticked under Your Instagram activity.",
-    guide: true,
-  },
-  corrupt: {
-    title: "We couldn't open this file",
-    text: "It may be incomplete or the Instagram download link may have expired. Download it again from Instagram's email, or request a new export.",
-    guide: false,
-  },
-  large: {
-    title: 'File is too large',
-    text: 'The upload limit is 8 GB. Try requesting the export in parts (by year), or with Media quality: Medium.',
-    guide: true,
-  },
-  unsupported: {
-    title: "Some photos use a format we can't read",
-    text: 'Those photos were skipped. Everything else was imported. Instagram exports normally contain JPEG and WebP files only.',
-    guide: false,
-  },
-  generic: {
-    title: 'Something went wrong',
-    text: 'We could not import this file. Please try again, and if it keeps failing, request a new export.',
-    guide: false,
-  },
+/** Errors that are fixed by requesting the export again show a link back to the guide. */
+const GUIDE_ERRORS: Record<UploadErrorKind, boolean> = {
+  html: true,
+  empty: true,
+  corrupt: false,
+  large: true,
+  unsupported: false,
+  generic: false,
 };
 
-function fmtSize(bytes: number): string {
-  return bytes > 1e9
-    ? `${(bytes / 1e9).toFixed(1)} GB`
-    : `${Math.max(1, Math.round(bytes / 1e6))} MB`;
+function fmtSize(bytes: number, lang: Lang): string {
+  const s =
+    bytes > 1e9 ? `${(bytes / 1e9).toFixed(1)} GB` : `${Math.max(1, Math.round(bytes / 1e6))} MB`;
+  return lang === 'sv' ? s.replace('.', ',') : s;
 }
-
-const one = (n: number, singular: string, plural: string) => (n === 1 ? singular : plural);
 
 export function Upload() {
   const nav = useNavigate();
+  const t = useT();
+  const u = t.exportFlow.upload;
+  const lang = useLang((x) => x.lang);
   const adding = useDraft((d) => d.adding);
   const setSource = useDraft((d) => d.setSource);
   const startLibrary = useDraft((d) => d.startLibrary);
@@ -117,8 +96,13 @@ export function Upload() {
     if (files.length === 0) return;
     lastFiles.current = files;
     setErr(null);
-    setFileName(files.length === 1 ? files[0]!.name : `${files.length} files`);
-    setFileSize(fmtSize(files.reduce((n, f) => n + f.size, 0)));
+    setFileName(files.length === 1 ? files[0]!.name : u.files(files.length));
+    setFileSize(
+      fmtSize(
+        files.reduce((n, f) => n + f.size, 0),
+        lang,
+      ),
+    );
     setUp('reading');
     setProgress({ done: 0, total: 0 });
     abort.current = new AbortController();
@@ -151,28 +135,19 @@ export function Upload() {
     void run([...e.dataTransfer.files]);
   };
 
-  const e = err ? ERRORS[err] : null;
+  const e = err ? { ...u.errors[err], guide: GUIDE_ERRORS[err] } : null;
   const pct = progress.total ? Math.round((progress.done / progress.total) * 100) : 0;
   const notes: string[] = [];
   if (summary) {
-    if (summary.alreadyThere > 0)
-      notes.push(
-        `${summary.alreadyThere} ${one(summary.alreadyThere, 'was', 'were')} already in your library`,
-      );
-    if (summary.missing > 0)
-      notes.push(
-        `${summary.missing} ${one(summary.missing, 'is', 'are')} in a part of the export you didn't add — drop all the ZIP parts together`,
-      );
-    if (summary.unsupported > 0)
-      notes.push(
-        `${summary.unsupported} ${one(summary.unsupported, 'uses', 'use')} a format we can't print`,
-      );
-    if (summary.failed > 0) notes.push(`${summary.failed} could not be read or uploaded`);
+    if (summary.alreadyThere > 0) notes.push(u.notes.alreadyThere(summary.alreadyThere));
+    if (summary.missing > 0) notes.push(u.notes.missing(summary.missing));
+    if (summary.unsupported > 0) notes.push(u.notes.unsupported(summary.unsupported));
+    if (summary.failed > 0) notes.push(u.notes.failed(summary.failed));
   }
 
   return (
     <div className="screen screen--bar">
-      <ScreenHeader title="Upload your Instagram export">
+      <ScreenHeader title={u.title}>
         <FlowProgress screen="upload" />
       </ScreenHeader>
       <div className="container container--narrow stack stack-18" style={{ paddingTop: 8 }}>
@@ -188,13 +163,12 @@ export function Upload() {
               onDrop={onDrop}
             >
               <div className={s.dropIcon}>↑</div>
-              <div className="h3">Drop the ZIP here</div>
+              <div className="h3">{u.dropTitle}</div>
               <div className="muted pretty" style={{ fontSize: 15, maxWidth: '40ch' }}>
-                The file Instagram sent you, as is. No need to unzip it. Usually named{' '}
-                <span className="mono tiny">instagram-yourname-….zip</span>. Got several parts? Drop
-                them all at once.
+                {u.dropBefore} <span className="mono tiny">{u.dropFileName}</span>
+                {u.dropAfter}
               </div>
-              <span className={s.choose}>Or choose files</span>
+              <span className={s.choose}>{u.chooseFiles}</span>
               <input
                 type="file"
                 multiple
@@ -216,7 +190,7 @@ export function Upload() {
                     style={{ alignSelf: 'flex-start', marginTop: 6 }}
                     onClick={() => nav('/export')}
                   >
-                    Show the export steps again
+                    {u.showSteps}
                   </Button>
                 )}
               </Banner>
@@ -227,26 +201,22 @@ export function Upload() {
         {up === 'reading' && (
           <Card bordered radius="2xl" pad="hero" center>
             <Spinner />
-            <div className="semibold">Reading your export…</div>
-            <div className="small muted">
-              {fileName} · {fileSize}. Looking for your posts — nothing is uploaded yet.
-            </div>
+            <div className="semibold">{u.reading}</div>
+            <div className="small muted">{u.readingDetail(fileName, fileSize)}</div>
           </Card>
         )}
 
         {up === 'uploading' && (
           <Card bordered radius="2xl" pad="hero">
             <div className="row between" style={{ alignItems: 'baseline' }}>
-              <div className="semibold">
-                Adding photos · {progress.done} of {progress.total}
-              </div>
+              <div className="semibold">{u.adding(progress.done, progress.total)}</div>
               <div className="small muted">{pct}%</div>
             </div>
             <ProgressBar pct={pct} />
             <div className="row between gap-12 row-wrap">
-              <div className="small muted">Only your photos are uploaded · keep this tab open</div>
+              <div className="small muted">{u.keepOpen}</div>
               <Button size="sm" variant="secondary" onClick={() => abort.current?.abort()}>
-                Stop here
+                {u.stop}
               </Button>
             </div>
           </Card>
@@ -255,8 +225,8 @@ export function Upload() {
         {up === 'finishing' && (
           <Card bordered radius="2xl" pad="hero" center>
             <Spinner />
-            <div className="semibold">Finishing up…</div>
-            <div className="small muted">Sorting your photos by date.</div>
+            <div className="semibold">{u.finishing}</div>
+            <div className="small muted">{u.sorting}</div>
           </Card>
         )}
 
@@ -266,16 +236,15 @@ export function Upload() {
             <div>
               <div className="h3">
                 {adding || summary.alreadyThere > 0
-                  ? `Added ${summary.added} new photo${summary.added === 1 ? '' : 's'}`
-                  : `Found ${summary.added} photos from ${summary.years}`}
+                  ? u.added(summary.added)
+                  : u.found(summary.added, summary.years)}
               </div>
               <div className="small muted" style={{ marginTop: 4 }}>
-                {summary.posts} posts · {summary.carousels} carousels · {summary.videos} videos
-                skipped{summary.cancelled ? ' · stopped early' : ''}
+                {u.stats(summary.posts, summary.carousels, summary.videos, summary.cancelled)}
               </div>
               {notes.length > 0 && (
                 <div className="small muted pretty" style={{ marginTop: 6 }}>
-                  Of the photos in your export: {notes.join('; ')}.
+                  {u.notes.intro(notes.join('; '))}
                 </div>
               )}
             </div>
@@ -300,10 +269,7 @@ export function Upload() {
             {summary.archivedAvailable > 0 && (
               <Banner tone="info" tight>
                 <div className="row between gap-12 row-wrap">
-                  <span>
-                    Your export also has {summary.archivedAvailable} archived post
-                    {summary.archivedAvailable === 1 ? '' : 's'}.
-                  </span>
+                  <span>{u.archived(summary.archivedAvailable)}</span>
                   <Button
                     size="sm"
                     variant="secondary"
@@ -311,7 +277,7 @@ export function Upload() {
                     // imported. Photos already in the library are still skipped.
                     onClick={() => run(lastFiles.current, true, false)}
                   >
-                    {summary.archivedAvailable === 1 ? 'Add it too' : 'Add them too'}
+                    {summary.archivedAvailable === 1 ? u.addIt : u.addThem}
                   </Button>
                 </div>
               </Banner>
@@ -321,7 +287,7 @@ export function Upload() {
               style={{ width: '100%', maxWidth: 320 }}
               onClick={() => nav(adding ? '/books' : '/select')}
             >
-              {adding ? 'Back to My books' : 'Choose photos'}
+              {adding ? u.backToBooks : u.choosePhotos}
             </Button>
           </Card>
         )}
@@ -331,10 +297,7 @@ export function Upload() {
           style={{ alignItems: 'flex-start', padding: '0 4px' }}
         >
           <span className="check">✓</span>
-          <span>
-            Your photos are stored only to build your books, kept for 3 months, and deletable by you
-            at any time. We never see your Instagram login.
-          </span>
+          <span>{u.privacy}</span>
         </div>
       </div>
       <WizardBar onBack={() => nav(adding ? '/start' : '/export/waiting')} />

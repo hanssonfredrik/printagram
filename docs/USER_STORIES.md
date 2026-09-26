@@ -140,7 +140,7 @@ Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
-| 11.1 | As a user I want to see my library (count, source, imported date, kept-until) with New book / Add more photos / Delete actions. | Library card, empty state when deleted/expired. | ✅ UI |
+| 11.1 | As a user I want to see my library (count, source, imported date, kept-until) with New book / Add more photos / Delete actions. | Library card, empty state when deleted/expired. Back from a book started or opened here returns to My books. | ✅ UI |
 | 11.2 | As a user I want my drafts and ordered books listed with the right actions. | Draft → Continue; Ordered → Download PDF (or Finish PDF), Duplicate. | ✅ UI ✅ API |
 | 11.3 | As a user I want to duplicate an ordered book to tweak it. | `POST /api/books/{id}/duplicate` → preview. | ✅ UI ✅ API |
 | 11.4 | As a user I want to rename or delete drafts from the list. | — | ⬜ Future |
@@ -186,4 +186,4 @@ Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas
 | --- | --- | --- | --- |
 | 16.1 | Keyboard and screen-reader support for all controls. | Buttons/roles/labels on tiles, tabs, switch; focus outlines. | ✅ UI (baseline) |
 | 16.2 | Phone-first layout without horizontal scroll. | Verified at 390 px in e2e. | ✅ UI |
-| 16.3 | Swedish and other languages. | — | ⬜ Future |
+| 16.3 | As a Swedish visitor I want the site, my emails and my book in Swedish. | UI follows the browser language (Swedish or English, else English) and can be changed with the English/Svenska picker on the landing page, My books and the footer of every screen; the choice is remembered. Emails use the last language the app sent (`X-Lang`). Each book has its own language (new books take the UI language, changeable under Preview → Book language) for the title page, caption dates, default title and back cover. | ✅ UI ✅ API |

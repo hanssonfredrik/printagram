@@ -23,8 +23,9 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import type { BookFormat, PageSpec, Photo } from '@printagram/shared';
-import { TEMPLATE_LABELS } from '@printagram/shared';
+import { templateLabel } from '@printagram/shared';
 import { Button } from '@/components/ui';
+import { useLang, useT } from '@/i18n';
 import { movePage, normalizePages } from './pageEdits';
 import s from './arrange.module.css';
 
@@ -50,6 +51,7 @@ export function Arrange({
   onChange: (pages: PageSpec[]) => void;
   onOpenPage: (contentIndex: number) => void;
 }) {
+  const t = useT();
   // Local copy while dragging; committed (normalised) on drop.
   const [draft, setDraft] = useState<PageSpec[] | null>(null);
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
@@ -110,14 +112,18 @@ export function Arrange({
   const active = activeId ? photosById.get(String(activeId)) : null;
   const announcements = useMemo(
     () => ({
-      onDragStart: () => 'Picked up a photo. Use the arrow keys to move it, Space to drop.',
+      onDragStart: () => t.preview.arrange.pickedUp,
       onDragOver: ({ over }: { over: { id: UniqueIdentifier } | null }) =>
-        over ? `Over page ${findPage(over.id, pages) + 1}.` : 'Not over a page.',
+        over
+          ? t.preview.arrange.overPage(findPage(over.id, pages) + 1)
+          : t.preview.arrange.notOverPage,
       onDragEnd: ({ over }: { over: { id: UniqueIdentifier } | null }) =>
-        over ? `Dropped on page ${findPage(over.id, pages) + 1}.` : 'Drop cancelled.',
-      onDragCancel: () => 'Drop cancelled.',
+        over
+          ? t.preview.arrange.droppedOn(findPage(over.id, pages) + 1)
+          : t.preview.arrange.dropCancelled,
+      onDragCancel: () => t.preview.arrange.dropCancelled,
     }),
-    [pages],
+    [pages, t],
   );
 
   return (
@@ -133,10 +139,7 @@ export function Arrange({
       }}
       accessibility={{ announcements }}
     >
-      <p className="small muted pretty">
-        Drag photos to reorder them or move them to another page. On a keyboard: focus a photo,
-        press Space, use the arrow keys, then Space again.
-      </p>
+      <p className="small muted pretty">{t.preview.arrange.help}</p>
       <div className={s.grid}>
         {pages.map((pg, i) => (
           <PageCard
@@ -172,6 +175,8 @@ function PageCard({
   onMove: (to: number) => void;
   onOpen: () => void;
 }) {
+  const t = useT();
+  const lang = useLang((x) => x.lang);
   const { setNodeRef, isOver } = useDroppable({
     id: containerId(index),
     disabled: page.template === 'text',
@@ -179,20 +184,20 @@ function PageCard({
   return (
     <section
       className={`${s.card} ${isOver ? s['card--over'] : ''}`}
-      aria-label={`Page ${index + 1}`}
+      aria-label={t.preview.arrange.page(index + 1)}
     >
       <div className={s.cardHead}>
         <button type="button" className="link-button" onClick={onOpen}>
-          Page {index + 1}
+          {t.preview.arrange.page(index + 1)}
         </button>
-        <span className="micro muted">{TEMPLATE_LABELS[page.template]}</span>
+        <span className="micro muted">{templateLabel(page.template, lang)}</span>
         <span className={s.moveBtns}>
           <Button
             size="xs"
             variant="secondary"
             onClick={() => onMove(index - 1)}
             disabled={index === 0}
-            aria-label={`Move page ${index + 1} earlier`}
+            aria-label={t.preview.arrange.movePageEarlier(index + 1)}
           >
             ↑
           </Button>
@@ -201,14 +206,14 @@ function PageCard({
             variant="secondary"
             onClick={() => onMove(index + 1)}
             disabled={index === count - 1}
-            aria-label={`Move page ${index + 1} later`}
+            aria-label={t.preview.arrange.movePageLater(index + 1)}
           >
             ↓
           </Button>
         </span>
       </div>
       {page.template === 'text' ? (
-        <div className={s.textPage}>{page.text || 'Text page'}</div>
+        <div className={s.textPage}>{page.text || t.preview.arrange.textPage}</div>
       ) : (
         <SortableContext
           id={containerId(index)}
@@ -227,6 +232,7 @@ function PageCard({
 }
 
 function SortablePhoto({ id, photo }: { id: string; photo: Photo | undefined }) {
+  const t = useT();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id,
   });
@@ -240,7 +246,10 @@ function SortablePhoto({ id, photo }: { id: string; photo: Photo | undefined }) 
         transition,
         opacity: isDragging ? 0.35 : 1,
       }}
-      aria-label={`Photo ${photo?.caption ? `“${photo.caption.slice(0, 40)}”` : ''} from ${photo?.takenAt.slice(0, 10) ?? ''}`}
+      aria-label={t.preview.arrange.photo(
+        photo?.caption ? photo.caption.slice(0, 40) : '',
+        photo?.takenAt.slice(0, 10) ?? '',
+      )}
       {...attributes}
       {...listeners}
     >

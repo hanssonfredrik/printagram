@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import type { BookLayout, PageSpec, Photo } from '@printagram/shared';
+import type { BookLayout, Lang, PageSpec, Photo } from '@printagram/shared';
 import {
   autoLayout,
   buildPages,
@@ -34,6 +34,8 @@ export interface BookView {
   libraryId: string | null;
   manual: boolean;
   layout: BookLayout;
+  /** Language printed in the book. */
+  lang: Lang;
 }
 
 /** Derives everything Preview/Checkout/Done need from the draft + the loaded library. */
@@ -86,13 +88,15 @@ export function useBook(): BookView {
       pages: buildPages(content),
       total,
       priceCents: pdfPriceCents(cfg.pricing),
-      dateSpan: photoSpan(chosen),
+      dateSpan: photoSpan(chosen, d.lang),
       hasLikes,
       libraryId: targetId,
       manual: !!d.manualPages,
       layout: d.layout,
+      lang: d.lang,
     };
   }, [
+    d.lang,
     photos,
     d.favsOnly,
     d.carouselAll,
@@ -126,6 +130,7 @@ export async function saveCurrentDraft(book: BookView): Promise<string> {
       showMeta: d.showMeta,
       coverPhotoId: book.cover?.id ?? null,
       layout: d.layout,
+      lang: d.lang,
     },
     pages: book.content,
     manualLayout: book.manual,

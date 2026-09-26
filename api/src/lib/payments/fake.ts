@@ -1,4 +1,4 @@
-import { TEST_CARDS, type TestCard } from '@printagram/shared';
+import { TEST_CARDS, type Lang, type TestCard } from '@printagram/shared';
 import type { PaymentProvider } from './provider.js';
 
 /**
@@ -23,7 +23,16 @@ export function testCardOutcome(cardNumber: string): TestCard | null {
   return TEST_CARDS.find((c) => c.number.replace(/\D/g, '') === digits) ?? null;
 }
 
-export const DECLINE_MESSAGES: Record<Exclude<TestCard['outcome'], 'succeeded'>, string> = {
-  card_declined: 'Your card was declined. Try another card.',
-  insufficient_funds: 'Your card has insufficient funds. Try another card.',
+export const DECLINE_MESSAGES: Record<
+  Lang,
+  Record<Exclude<TestCard['outcome'], 'succeeded'>, string>
+> = {
+  en: {
+    card_declined: 'Your card was declined. Try another card.',
+    insufficient_funds: 'Your card has insufficient funds. Try another card.',
+  },
+  sv: {
+    card_declined: 'Kortet nekades. Prova ett annat kort.',
+    insufficient_funds: 'Det finns inte tillräckligt med pengar på kortet. Prova ett annat kort.',
+  },
 };

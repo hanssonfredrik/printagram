@@ -9,6 +9,7 @@ import { generatePdf, downloadBytes, slugify } from '@/services/pdf';
 import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
 import { useLibrary } from '@/state/library';
+import { errorText, getT, useLang, useT } from '@/i18n';
 
 type Stage =
   | 'loading'
@@ -22,6 +23,9 @@ type Stage =
 
 export function Done() {
   const nav = useNavigate();
+  const t = useT();
+  const td = t.done;
+  const lang = useLang((x) => x.lang);
   const { orderId: paramId } = useParams();
   const d = useDraft();
   const orderId = paramId ?? d.lastOrderId;
@@ -70,8 +74,9 @@ export function Done() {
             showMeta: target.book.showMeta,
             showLikes: libraryRef.current?.hasLikes ?? false,
             coverPhotoId: target.book.coverPhotoId,
-            dateSpan: photoSpan(photos),
+            dateSpan: photoSpan(photos, target.book.lang),
             bleedMm: target.bleedMm,
+            lang: target.book.lang,
           },
           (p) => setPct(p.pct),
           pdfAbort.current.signal,
@@ -88,12 +93,13 @@ export function Done() {
         if (e instanceof DOMException && e.name === 'AbortError') return;
         console.error(e);
         setStage('error');
-        setMsg(e instanceof Error ? e.message : 'Could not create the PDF.');
+        setMsg(errorText(e, getT()));
       }
     },
     [refreshLibraries],
   );
 
+  // produce and this effect read messages with getT(), so switching language does not restart them.
   // Poll the order until paid (webhook) or use sync as a fallback, then produce the PDF.
   useEffect(() => {
     if (!orderId || started.current) return;
@@ -117,11 +123,11 @@ export function Done() {
         else if (o.status === 'refunded') setStage('refunded');
         else {
           setStage('error');
-          setMsg('We could not confirm your payment yet. Refresh this page in a minute.');
+          setMsg(getT().done.notConfirmed);
         }
       } catch (e) {
         setStage('error');
-        setMsg(e instanceof Error ? e.message : 'Could not load your order.');
+        setMsg(errorText(e, getT()));
       }
     })();
     return () => {
@@ -150,7 +156,7 @@ export function Done() {
         setDownloaded(true);
       } else {
         setStage('error');
-        setMsg(e instanceof Error ? e.message : 'Could not download the PDF.');
+        setMsg(errorText(e, t));
       }
     }
   };
@@ -188,6 +194,8 @@ export function Done() {
   const startOver = () => {
     d.resetForNewBook();
     clearLibrary();
+    d.setSource('library');
+    d.setAdding(false);
     nav('/select');
   };
 
@@ -195,8 +203,8 @@ export function Done() {
     return (
       <div className="screen" style={{ display: 'grid', placeItems: 'center', padding: 24 }}>
         <div className="stack stack-16 center" style={{ maxWidth: 400 }}>
-          <h2 className="h2">No order to show</h2>
-          <Button to="/books">My books</Button>
+          <h2 className="h2">{td.noOrder}</h2>
+          <Button to="/books">{td.myBooks}</Button>
         </div>
       </div>
     );
@@ -207,8 +215,8 @@ export function Done() {
     stage === 'waiting-payment' ||
     stage === 'generating' ||
     stage === 'uploading';
-  const formatLabel = order?.format === 'portrait' ? 'Portrait' : 'Square';
-  const emailShown = user?.email || d.email || 'your email';
+  const formatLabel = order?.format === 'portrait' ? td.portrait : td.square;
+  const emailShown = user?.email || d.email || td.yourEmail;
 
   return (
     <div
@@ -236,13 +244,13 @@ export function Done() {
           <>
             <div>
               <h2 className="h2" style={{ marginBottom: 6 }}>
-                {stage === 'waiting-payment' ? 'Confirming your payment…' : 'Making your book'}
+                {stage === 'waiting-payment' ? td.confirming : td.making}
               </h2>
               <p className="muted">
-                {stage === 'generating' && 'Laying out every page at print resolution.'}
-                {stage === 'uploading' && 'Saving your PDF to your account.'}
-                {stage === 'waiting-payment' && 'This usually takes a few seconds.'}
-                {stage === 'loading' && 'One moment.'}
+                {stage === 'generating' && td.generating}
+                {stage === 'uploading' && td.uploading}
+                {stage === 'waiting-payment' && td.waitingPayment}
+                {stage === 'loading' && td.loading}
               </p>
             </div>
             {(stage === 'generating' || stage === 'uploading') && (
@@ -254,36 +262,34 @@ export function Done() {
           </>
         ) : stage === 'refunded' ? (
           <>
-            <h2 className="h2">This order was refunded</h2>
-            <p className="muted">The PDF is no longer available for this order.</p>
+            <h2 className="h2">{td.refundedTitle}</h2>
+            <p className="muted">{td.refundedBody}</p>
             <Button block size="xl" to="/books">
-              My books
+              {td.myBooks}
             </Button>
           </>
         ) : stage === 'failed' ? (
           <>
-            <h2 className="h2">Payment didn't go through</h2>
+            <h2 className="h2">{td.failedTitle}</h2>
             {order?.failureReason && (
               <Banner tone="error" tight>
                 {order.failureReason}
               </Banner>
             )}
-            <p className="muted">
-              Nothing was charged. You can try again with another card or wallet.
-            </p>
+            <p className="muted">{td.failedBody}</p>
             <Button block size="xl" onClick={() => nav('/checkout')}>
-              Back to checkout
+              {td.backToCheckout}
             </Button>
           </>
         ) : stage === 'error' ? (
           <>
-            <h2 className="h2">Something went wrong</h2>
+            <h2 className="h2">{td.errorTitle}</h2>
             <Banner tone="error" tight>
               {msg}
             </Banner>
             {order && (
               <Button block size="xl" onClick={() => produce(order, order.status === 'ready')}>
-                Try again
+                {td.tryAgain}
               </Button>
             )}
           </>
@@ -291,14 +297,14 @@ export function Done() {
           <>
             <div>
               <h2 className="h2" style={{ marginBottom: 6 }}>
-                Your book is ready
+                {td.readyTitle}
               </h2>
               <p className="muted">
-                {order?.pageCount} pages, {formatLabel}. {`We also sent the link to ${emailShown}.`}
+                {td.readySummary(order?.pageCount ?? 0, formatLabel, emailShown)}
               </p>
             </div>
             <Button block size="xl" onClick={download}>
-              {downloaded ? 'Downloaded · Download again' : 'Download your PDF'}
+              {downloaded ? td.downloadAgain : td.download}
             </Button>
             <div className="row gap-10" style={{ width: '100%' }}>
               <Button
@@ -308,7 +314,7 @@ export function Done() {
                 onClick={share}
                 disabled={!order?.shareToken}
               >
-                {shared ? 'Link copied' : 'Share'}
+                {shared ? td.linkCopied : td.share}
               </Button>
               <Button
                 variant="secondary"
@@ -316,19 +322,19 @@ export function Done() {
                 style={{ flex: 1, padding: 12 }}
                 onClick={startOver}
               >
-                Make another book
+                {td.another}
               </Button>
             </div>
             {order?.shareToken && (
               <div className="tiny muted center">
-                Anyone with the share link can download this PDF.{' '}
+                {td.shareNote}{' '}
                 <button
                   type="button"
                   className="link-button"
                   onClick={newShareLink}
                   disabled={rotating}
                 >
-                  {rotated ? 'New link made, the old one no longer works' : 'Make a new link'}
+                  {rotated ? td.newLinkMade : td.newLink}
                 </button>
               </div>
             )}
@@ -339,35 +345,32 @@ export function Done() {
               style={{ width: '100%', textAlign: 'left', padding: '16px 18px' }}
             >
               <div className="row between row-wrap gap-12" style={{ alignItems: 'baseline' }}>
-                <div className="semibold">Your photo library</div>
-                <div className="tiny muted">{library?.photoCount ?? 0} photos</div>
+                <div className="semibold">{td.libraryTitle}</div>
+                <div className="tiny muted">{td.photos(library?.photoCount ?? 0)}</div>
               </div>
               {library && !libraryDeleted ? (
                 <div className="small muted pretty">
-                  Kept until{' '}
+                  {td.keptUntilBefore}{' '}
                   <span style={{ color: 'var(--text)', fontWeight: 500 }}>
-                    {fmtDate(library.keptUntil)}
+                    {fmtDate(library.keptUntil, lang)}
                   </span>{' '}
-                  — this order extended it by 3 months. Make another book anytime without importing
-                  again. We'll email you a week before it's deleted.
+                  {td.keptUntilAfter}
                 </div>
               ) : (
-                <div className="small muted">Deleted. Your PDF stays downloadable.</div>
+                <div className="small muted">{td.libraryDeleted}</div>
               )}
               <div className="row row-wrap gap-8">
                 <Button size="sm" variant="secondary" to="/books">
-                  My books
+                  {td.myBooks}
                 </Button>
                 {library && !libraryDeleted && (
                   <Button size="sm" variant="danger-ghost" onClick={() => nav('/books?delete=1')}>
-                    Delete photos now
+                    {td.deleteNow}
                   </Button>
                 )}
               </div>
             </Card>
-            <p className="tiny muted">
-              Print it at any print shop, or wait for shipped books — coming soon.
-            </p>
+            <p className="tiny muted">{td.printNote}</p>
           </>
         )}
       </div>

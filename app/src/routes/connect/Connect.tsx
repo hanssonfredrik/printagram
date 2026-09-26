@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import type { ConnectError } from '@printagram/shared';
 import {
@@ -21,51 +21,22 @@ import { useSession } from '@/state/session';
 import { useLibrary } from '@/state/library';
 import { artGradient } from '@/components/art';
 import { GuideScreen } from '@/components/guideArt';
-import { PROFESSIONAL_DASHBOARD, SWITCH_SCREENS } from '@/components/guideScreens';
+import { professionalDashboard, switchScreens } from '@/components/guideScreens';
+import { getT, useLang, useT } from '@/i18n';
 
 type Conn = 'idle' | 'waiting' | 'error' | 'importing' | 'done';
 
-const SWITCH_STEPS: [string, string][] = [
-  [
-    'Open Settings and activity',
-    'In the Instagram app, go to your profile, tap the menu (☰) top right, then Settings and activity.',
-  ],
-  ['Account type and tools', 'Scroll down to For professionals and tap Account type and tools.'],
-  [
-    'Switch to professional account',
-    'Tap Switch to professional account and continue through the intro screens.',
-  ],
-  [
-    'Pick a category',
-    'Choose whatever fits — Photographer, Blogger, Personal blog. You can hide it from your profile.',
-  ],
-  [
-    'Choose Creator',
-    "Creator is the simplest fit for a personal profile; Business works too. Skip the contact details and the Facebook link if you're asked.",
-  ],
-];
-
-const CONN_ERRORS: Record<ConnectError, { title: string; text: string }> = {
-  personal: {
-    title: "Instagram didn't let us connect",
-    text: 'Instagram only connects Creator and Business accounts, and it shows a vague error when an account is personal. If you switched just now, give Instagram a few minutes and try again.',
-  },
-  denied: {
-    title: 'No access was granted',
-    text: "The Instagram window was closed or you tapped Cancel, so nothing was shared with Printagram. Try again whenever you're ready, or use the export instead.",
-  },
-  expired: {
-    title: 'The connection timed out',
-    text: 'Instagram did not answer in time. Try again, or use the export instead.',
-  },
-  unknown: {
-    title: 'Something went wrong on Instagram',
-    text: 'Instagram returned an error we did not expect. Try again in a minute, or use the export instead.',
-  },
-};
+/** Connect errors the OAuth return can report (the texts live in the dictionary). */
+function isConnectError(e: string | null): e is ConnectError {
+  return !!e && Object.hasOwn(getT().connect.errors, e);
+}
 
 export function Connect() {
   const nav = useNavigate();
+  const t = useT();
+  const tc = t.connect;
+  const lang = useLang((x) => x.lang);
+  const switchShots = useMemo(() => switchScreens(lang), [lang]);
   const [params, setParams] = useSearchParams();
   const acct = useDraft((d) => d.acct);
   const setAcct = useDraft((d) => d.setAcct);
@@ -151,7 +122,7 @@ export function Connect() {
   // Return from the real OAuth redirect: /connect?connected=1&library=… or ?error=…
   useEffect(() => {
     const connected = params.get('connected');
-    const error = params.get('error') as ConnectError | null;
+    const error = params.get('error');
     if (!connected && !error) return;
     const lib = params.get('library');
     // Defer so the OAuth return is handled as an event rather than a render-phase state update.
@@ -159,7 +130,7 @@ export function Connect() {
       setParams({}, { replace: true });
       if (connected) void runImport(lib);
       else {
-        setErr(error && CONN_ERRORS[error] ? error : 'unknown');
+        setErr(isConnectError(error) ? error : 'unknown');
         setConn('error');
       }
     }, 0);
@@ -186,7 +157,8 @@ export function Connect() {
     else void startConnect();
   };
 
-  const cerr = err ? CONN_ERRORS[err] : null;
+  const connErrors: Record<ConnectError, { title: string; text: string }> = tc.errors;
+  const cerr = err ? connErrors[err] : null;
   const foundGo = () => {
     if (adding) nav('/books');
     else nav('/select');
@@ -194,26 +166,23 @@ export function Connect() {
 
   return (
     <div className="screen screen--bar">
-      <ScreenHeader title="Connect your Instagram">
+      <ScreenHeader title={tc.title}>
         <FlowProgress screen="connect" />
       </ScreenHeader>
 
       <div className="container container--narrow stack stack-20" style={{ paddingTop: 8 }}>
         {conn === 'idle' && (
           <>
-            <p className="muted pretty">
-              You'll log in on instagram.com and allow Printagram to read your posts. Instagram only
-              lets Creator and Business accounts connect, so first a quick check.
-            </p>
+            <p className="muted pretty">{tc.intro}</p>
             <div className="stack stack-10">
-              <div className="semibold">What kind of account do you have?</div>
+              <div className="semibold">{tc.acctQuestion}</div>
               <Segmented
                 value={acct}
                 onChange={setAcct}
                 options={[
-                  { value: 'pro', label: 'Creator or Business' },
-                  { value: 'personal', label: 'Personal' },
-                  { value: 'unsure', label: 'Not sure' },
+                  { value: 'pro', label: tc.acct.pro },
+                  { value: 'personal', label: tc.acct.personal },
+                  { value: 'unsure', label: tc.acct.unsure },
                 ]}
               />
             </div>
@@ -221,58 +190,47 @@ export function Connect() {
             {acct === 'pro' && (
               <>
                 <Card bordered pad="mid" gap={12}>
-                  <div className="semibold">What Printagram will ask for</div>
+                  <div className="semibold">{tc.askFor.title}</div>
                   <div className="stack stack-10">
-                    <Bullet>Your username and profile picture</Bullet>
-                    <Bullet>Your posts — photos, captions, dates and likes</Bullet>
-                    <Bullet>
-                      Read‑only. No posting, no messages, no followers. Disconnect anytime — access
-                      also ends by itself after 60 days.
-                    </Bullet>
+                    <Bullet>{tc.askFor.profile}</Bullet>
+                    <Bullet>{tc.askFor.posts}</Bullet>
+                    <Bullet>{tc.askFor.readOnly}</Bullet>
                   </div>
                 </Card>
                 <div className="stack stack-10">
                   <Button block size="xl" onClick={startConnect}>
-                    Continue with Instagram
+                    {tc.continue}
                   </Button>
-                  <div className="tiny muted center pretty">
-                    Opens instagram.com in a new window. You log in there — we never see your
-                    password.
-                  </div>
+                  <div className="tiny muted center pretty">{tc.opensWindow}</div>
                 </div>
               </>
             )}
 
             {acct === 'personal' && (
               <>
-                <Banner tone="warn" title="Switch to a Professional account first">
-                  Free, about two minutes, reversible, and nobody is notified. One thing changes: a
-                  private account becomes public, and pending follow requests are accepted. Prefer
-                  to stay private? Use the export instead — it works for every account.
+                <Banner tone="warn" title={tc.switchFirst.title}>
+                  {tc.switchFirst.text}
                 </Banner>
                 <div className="stack stack-12">
-                  {SWITCH_STEPS.map(([title, text], i) => (
+                  {tc.switchSteps.map(({ title, text }, i) => (
                     <StepCard
                       key={title}
                       n={i + 1}
                       title={title}
                       text={text}
-                      shot={<GuideScreen spec={SWITCH_SCREENS[i]!} />}
+                      shot={<GuideScreen spec={switchShots[i]!} />}
                     />
                   ))}
                 </div>
-                <Banner tone="info" title="Good to know">
-                  On a computer the same setting is at instagram.com → More → Settings → Account
-                  type and tools. Just switched? Instagram can take a few minutes to register the
-                  change. Switch back anytime under Account type and tools → Switch to personal
-                  account.
+                <Banner tone="info" title={tc.goodToKnow.title}>
+                  {tc.goodToKnow.text}
                 </Banner>
                 <div className="stack stack-10">
                   <Button block size="xl" onClick={startConnect}>
-                    I've switched — continue with Instagram
+                    {tc.switched}
                   </Button>
                   <Button block variant="secondary" onClick={() => nav('/export')}>
-                    Keep my account as it is — use the export
+                    {tc.keepAccount}
                   </Button>
                 </div>
               </>
@@ -281,9 +239,9 @@ export function Connect() {
             {acct === 'unsure' && (
               <>
                 <StepCard
-                  title="A quick way to check"
-                  text="Open your own profile in the Instagram app. If there's a Professional dashboard button under your bio, you have a Creator or Business account. If there isn't, it's personal."
-                  shot={<GuideScreen spec={PROFESSIONAL_DASHBOARD} />}
+                  title={tc.quickCheck.title}
+                  text={tc.quickCheck.text}
+                  shot={<GuideScreen spec={professionalDashboard(lang)} />}
                 />
                 <div
                   className="grid-auto"
@@ -293,10 +251,10 @@ export function Connect() {
                   }}
                 >
                   <Button size="lg" onClick={() => setAcct('pro')}>
-                    I see the button — it's Professional
+                    {tc.seeButton}
                   </Button>
                   <Button size="lg" variant="secondary" onClick={() => setAcct('personal')}>
-                    No button — it's personal
+                    {tc.noButton}
                   </Button>
                 </div>
               </>
@@ -308,13 +266,12 @@ export function Connect() {
           <>
             <Card bordered radius="2xl" pad="hero" center>
               <Spinner />
-              <div className="semibold">Waiting for Instagram…</div>
+              <div className="semibold">{tc.waiting.title}</div>
               <div className="small muted pretty" style={{ maxWidth: '40ch' }}>
-                A window opened at instagram.com. Log in there and tap Allow. This page updates by
-                itself.
+                {tc.waiting.text}
               </div>
               <button type="button" className="link-button" onClick={reopen}>
-                Nothing opened? Open Instagram again
+                {tc.waiting.reopen}
               </button>
             </Card>
           </>
@@ -334,14 +291,14 @@ export function Connect() {
                     setErr(null);
                   }}
                 >
-                  Show me how to switch
+                  {tc.showSwitch}
                 </Button>
               )}
               <Button size="sm" variant="danger-outline" onClick={startConnect}>
-                Try again
+                {tc.tryAgain}
               </Button>
               <Button size="sm" variant="danger-outline" onClick={() => nav('/export')}>
-                Use the export instead
+                {tc.useExport}
               </Button>
             </div>
           </Banner>
@@ -361,20 +318,17 @@ export function Connect() {
               />
               <div>
                 <div className="semibold">@{username ?? '…'}</div>
-                <div className="tiny muted">Creator account · connected just now</div>
+                <div className="tiny muted">{tc.importing.account}</div>
               </div>
-              <Pill className="ml-auto">Connected</Pill>
+              <Pill className="ml-auto">{tc.importing.connected}</Pill>
             </div>
             <div className="stack stack-10">
               <div className="row between" style={{ alignItems: 'baseline' }}>
-                <div className="semibold">Copying your posts…</div>
+                <div className="semibold">{tc.importing.copying}</div>
                 <div className="small muted">{pct}%</div>
               </div>
               <ProgressBar pct={pct} />
-              <div className="small muted pretty">
-                We copy your photos once, at full size. Instagram's links expire, so we keep the
-                copies until your book is done — then they're deleted.
-              </div>
+              <div className="small muted pretty">{tc.importing.note}</div>
             </div>
           </Card>
         )}
@@ -385,13 +339,10 @@ export function Connect() {
               <div className="check check--done">✓</div>
               <div>
                 <div className="h3">
-                  {adding
-                    ? `Found ${found.photos} photos`
-                    : `Found ${found.photos} photos from ${found.years}`}
+                  {adding ? tc.found(found.photos) : tc.foundFrom(found.photos, found.years)}
                 </div>
                 <div className="small muted" style={{ marginTop: 4 }}>
-                  {found.posts} posts · {found.carousels} carousels · {found.videos} videos skipped
-                  by default · likes included
+                  {tc.foundStats(found.posts, found.carousels, found.videos)}
                 </div>
               </div>
               <div
@@ -413,7 +364,7 @@ export function Connect() {
                 ))}
               </div>
               <Button size="xl" style={{ width: '100%', maxWidth: 320 }} onClick={foundGo}>
-                {adding ? 'Back to My books' : 'Choose photos'}
+                {adding ? tc.backToBooks : tc.choosePhotos}
               </Button>
             </Card>
             <Card bordered pad="mid" style={{ padding: '14px 18px' }}>
@@ -421,8 +372,7 @@ export function Connect() {
                 {!disconnected ? (
                   <>
                     <span className="muted pretty" style={{ flex: 1, minWidth: 200 }}>
-                      Printagram can read your posts until you disconnect, or automatically after 60
-                      days.
+                      {tc.readUntil}
                     </span>
                     <Button
                       size="sm"
@@ -433,16 +383,13 @@ export function Connect() {
                         await refreshLibraries();
                       }}
                     >
-                      Disconnect now
+                      {tc.disconnectNow}
                     </Button>
                   </>
                 ) : (
                   <>
                     <span className="check">✓</span>
-                    <span className="muted">
-                      Disconnected. Your copied photos stay until your book is done, then they're
-                      deleted.
-                    </span>
+                    <span className="muted">{tc.disconnected}</span>
                   </>
                 )}
               </div>
@@ -455,12 +402,11 @@ export function Connect() {
           style={{ alignItems: 'flex-start', padding: '0 4px' }}
         >
           <span className="check">✓</span>
-          <span>
-            Your photos are stored only to build your books, kept for 3 months, and deletable by you
-            at any time. Instagram never shares your password with us.
-          </span>
+          <span>{tc.storage}</span>
         </div>
-        {libraryId && conn === 'done' && <span className="sr-only">Library {libraryId} ready</span>}
+        {libraryId && conn === 'done' && (
+          <span className="sr-only">{tc.libraryReady(libraryId)}</span>
+        )}
       </div>
       <WizardBar onBack={() => nav('/start')} />
     </div>

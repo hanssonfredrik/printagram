@@ -1,5 +1,6 @@
 import type { BookFormat, Photo } from './types.js';
 import { fmtDate } from './dates.js';
+import { DEFAULT_LANG, type Lang } from './i18n.js';
 import { MAX_PHOTOS_PER_BOOK } from './pricing.js';
 
 /* ------------------------------------------------------------------ */
@@ -84,6 +85,20 @@ export const TEMPLATE_LABELS: Record<TemplateId, string> = {
   '4-grid': 'Grid of four',
   text: 'Text page',
 };
+
+const TEMPLATE_LABELS_SV: Record<TemplateId, string> = {
+  '1-margin': 'Ett foto',
+  '1-bleed': 'Helsida',
+  '2-stack': 'Två, över varandra',
+  '2-side': 'Två, sida vid sida',
+  '3-hero': 'Ett stort, två små',
+  '4-grid': 'Rutnät med fyra',
+  text: 'Textsida',
+};
+
+export function templateLabel(t: TemplateId, lang: Lang = DEFAULT_LANG): string {
+  return (lang === 'sv' ? TEMPLATE_LABELS_SV : TEMPLATE_LABELS)[t];
+}
 
 export const MAX_TEXT_LENGTH = 400;
 
@@ -540,11 +555,12 @@ export function totalPages(content: PageSpec[]): number {
   return content.length + 3;
 }
 
-export function pageLabel(page: Page, total: number): string {
-  if (page.type === 'cover') return 'Cover';
-  if (page.type === 'back') return 'Back cover';
-  if (page.type === 'title') return 'Title page';
-  return `Page ${page.index - 1} of ${total - 3}`;
+export function pageLabel(page: Page, total: number, lang: Lang = DEFAULT_LANG): string {
+  const sv = lang === 'sv';
+  if (page.type === 'cover') return sv ? 'Omslag' : 'Cover';
+  if (page.type === 'back') return sv ? 'Baksida' : 'Back cover';
+  if (page.type === 'title') return sv ? 'Titelsida' : 'Title page';
+  return sv ? `Sida ${page.index - 1} av ${total - 3}` : `Page ${page.index - 1} of ${total - 3}`;
 }
 
 /** Fallback for books saved before page layouts existed. */
@@ -570,8 +586,9 @@ export const TEXT_PT = {
 export function captionParts(
   p: Pick<Photo, 'caption' | 'likes' | 'takenAt'>,
   showLikes: boolean,
+  lang: Lang = DEFAULT_LANG,
 ): { text: string; meta: string } {
-  const meta = [showLikes && p.likes !== null ? `♥ ${p.likes}` : '', fmtDate(p.takenAt)]
+  const meta = [showLikes && p.likes !== null ? `♥ ${p.likes}` : '', fmtDate(p.takenAt, lang)]
     .filter(Boolean)
     .join('   ');
   return { text: p.caption.replace(/\s+/g, ' ').trim(), meta };

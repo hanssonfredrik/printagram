@@ -18,9 +18,10 @@ import {
   type PDFPage,
 } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
-import type { BookFormat, PageSpec, Photo, PlacedPhoto, Rect } from '@printagram/shared';
+import type { Lang, BookFormat, PageSpec, Photo, PlacedPhoto, Rect } from '@printagram/shared';
 import {
   buildPages,
+  bookText,
   captionParts,
   coverCrop,
   coverLayout,
@@ -59,6 +60,8 @@ export interface BookPdfInput {
   coverPhotoId: string | null;
   dateSpan: string;
   bleedMm: number;
+  /** Language of the printed text (subtitle, caption dates, back cover). Defaults to English. */
+  lang?: Lang;
 }
 
 export interface BookPdfAssets {
@@ -386,6 +389,7 @@ export async function buildBookPdf(
   doc.setAuthor('Printagram');
   doc.setProducer('Printagram');
   doc.setCreator('Printagram');
+  doc.setLanguage(input.lang ?? 'en');
   doc.setCreationDate(new Date());
   doc.setModificationDate(new Date());
   await addOutputIntent(doc, assets.icc);
@@ -394,12 +398,13 @@ export async function buildBookPdf(
   progress('fonts', 0, 1);
   const title = input.title.trim() || 'Printagram';
   const photoCount = flattenPhotoIds(input.pages).length;
-  const subtitle = `${input.dateSpan} · ${photoCount} photos`;
+  const text = bookText(input.lang);
+  const subtitle = `${input.dateSpan} · ${text.photos(photoCount)}`;
   const serifTexts = [title, '…', ...input.pages.map((p) => p.text ?? '')];
-  const sansTexts = [subtitle, 'Made with Printagram', '…'];
+  const sansTexts = [subtitle, text.madeWith, '…'];
   if (input.showMeta) {
     for (const p of input.photos) {
-      const cap = captionParts(p, input.showLikes);
+      const cap = captionParts(p, input.showLikes, input.lang);
       sansTexts.push(cap.text, cap.meta);
     }
   }
@@ -564,7 +569,7 @@ export async function buildBookPdf(
       );
     }
     if (photo && showMeta && placed.caption) {
-      const cap = captionParts(photo, input.showLikes);
+      const cap = captionParts(photo, input.showLikes, input.lang);
       const fs = TEXT_PT.caption;
       const box = toPt(placed.caption);
       const lh = fs * 1.25;
@@ -684,7 +689,7 @@ export async function buildBookPdf(
         { x: 0, y: 0, width: size.width, height: size.height },
         [
           {
-            lines: ['Made with Printagram'],
+            lines: [text.madeWith],
             stack: sansStack,
             size: TEXT_PT.back,
             lineHeight: 1.4,

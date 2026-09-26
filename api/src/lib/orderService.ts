@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto';
+import { normalizeLang } from '@printagram/shared';
 import { config } from './config.js';
 import { mailer, templates } from './email.js';
 import { nowIso } from './ids.js';
@@ -19,7 +20,7 @@ import {
  * while this is unchanged, so revisiting Checkout never creates duplicate orders or payments.
  */
 export function bookContentHash(
-  b: Pick<BookRow, 'photoIds' | 'format' | 'showMeta' | 'title' | 'coverPhotoId'> & {
+  b: Pick<BookRow, 'photoIds' | 'format' | 'showMeta' | 'title' | 'coverPhotoId' | 'lang'> & {
     pages?: unknown;
     layout?: unknown;
   },
@@ -34,6 +35,8 @@ export function bookContentHash(
         c: b.coverPhotoId,
         pg: b.pages ?? null,
         l: b.layout ?? null,
+        // Only non-English books add a key, so hashes of books from before languages don't change.
+        ...(b.lang && b.lang !== 'en' ? { lg: b.lang } : {}),
       }),
     )
     .digest('base64url')
@@ -91,7 +94,9 @@ export async function notifyOrderReady(o: OrderRow): Promise<void> {
   const u = await users.get(o.userId);
   if (!u?.email) return;
   try {
-    await mailer().send(templates.orderReady(u.email, o.title, `${config.appBaseUrl}/books`));
+    await mailer().send(
+      templates.orderReady(u.email, o.title, `${config.appBaseUrl}/books`, normalizeLang(u.lang)),
+    );
   } catch (e) {
     console.warn('order-ready email failed', e);
   }

@@ -2,12 +2,13 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import type { Book, LibrarySummary, Order, Photo } from '@printagram/shared';
 import { fmtDate } from '@printagram/shared';
-import { Banner, Button, Card, Placeholder, Spinner } from '@/components/ui';
+import { Banner, Button, Card, LanguageSelect, Placeholder, Spinner } from '@/components/ui';
 import { CoverThumb } from '@/components/PageRenderer';
 import { api } from '@/services';
 import { useSession } from '@/state/session';
 import { useDraft } from '@/state/draft';
 import { useLibrary } from '@/state/library';
+import { errorText, useLang, useT } from '@/i18n';
 import s from './books.module.css';
 
 interface BookCard {
@@ -27,6 +28,9 @@ interface BookCard {
 
 export function Books() {
   const nav = useNavigate();
+  const t = useT();
+  const tb = t.books;
+  const lang = useLang((x) => x.lang);
   const [params, setParams] = useSearchParams();
   const user = useSession((x) => x.user);
   const libraries = useSession((x) => x.libraries);
@@ -67,7 +71,7 @@ export function Books() {
           setSample(photos.filter((p) => !p.isVideo).slice(0, 8));
         }
       } catch (e) {
-        setErr(e instanceof Error ? e.message : 'Could not load your books.');
+        setErr(errorText(e, t));
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -81,6 +85,9 @@ export function Books() {
     const { photos } = await libState.load(library.id, true);
     d.resetForNewBook();
     d.startLibrary(library.id, photos);
+    // Back from Select should return here, not to the import screens.
+    d.setSource('library');
+    d.setAdding(false);
     nav('/select');
   };
 
@@ -102,7 +109,7 @@ export function Books() {
       setDeleteState('deleted');
       setParams({}, { replace: true });
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Could not delete your photos.');
+      setErr(errorText(e, t));
       setDeleteState('idle');
     }
   };
@@ -111,6 +118,8 @@ export function Books() {
     const { photos } = await libState.load(b.libraryId, true);
     // Restore the exact photos and pages, not a selection rebuilt from filters.
     d.openBook(b, photos);
+    d.setSource('library');
+    d.setAdding(false);
     nav('/preview');
   };
 
@@ -125,8 +134,8 @@ export function Books() {
     const o =
       (b.orderId ? orders.find((x) => x.id === b.orderId) : undefined) ??
       orders.find((x) => x.bookId === b.id);
-    const fmt = b.format === 'square' ? 'Square' : 'Portrait';
-    const meta = `${b.pageCount} pages · ${fmt} · ${b.photoIds.length} photos`;
+    const fmt = b.format === 'square' ? tb.square : tb.portrait;
+    const meta = tb.meta(b.pageCount, fmt, b.photoIds.length);
     const cover =
       sample.find((p) => p.id === b.coverPhotoId)?.thumbUrl ??
       o?.coverThumbUrl ??
@@ -139,9 +148,9 @@ export function Books() {
         meta,
         format: b.format,
         coverSrc: o.coverThumbUrl ?? cover,
-        status: `Ordered ${fmtDate(o.paidAt ?? o.createdAt)} · PDF${o.status !== 'ready' ? ' · generating' : ''}`,
+        status: tb.ordered(fmtDate(o.paidAt ?? o.createdAt, lang), o.status !== 'ready'),
         statusTone: 'primary',
-        primaryLabel: o.status === 'ready' ? 'Download PDF' : 'Finish PDF',
+        primaryLabel: o.status === 'ready' ? tb.downloadPdf : tb.finishPdf,
         primaryVariant: 'outline',
         onPrimary: () => nav(`/done/${o.id}`),
         canDuplicate: hasPhotos,
@@ -154,16 +163,16 @@ export function Books() {
         meta,
         format: b.format,
         coverSrc: cover,
-        status: 'Draft',
+        status: tb.draft,
         statusTone: 'muted',
-        primaryLabel: 'Continue',
+        primaryLabel: tb.continue,
         primaryVariant: 'primary',
         onPrimary: () => openDraft(b),
         canDuplicate: false,
       });
     }
   }
-  const draftCount = cards.filter((c) => c.status === 'Draft').length;
+  const draftCount = cards.filter((c) => c.status === tb.draft).length;
 
   return (
     <div className="screen screen--padded">
@@ -176,8 +185,21 @@ export function Books() {
         >
           Printagram
         </button>
-        <div className="row gap-12 small muted">
-          <span>{user?.email ?? 'your email'}</span>
+        <div
+          className="row row-wrap gap-12 small muted"
+          style={{ justifyContent: 'flex-end', minWidth: 0 }}
+        >
+          <span
+            style={{
+              minWidth: 0,
+              maxWidth: '100%',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {user?.email ?? tb.yourEmail}
+          </span>
           {signedIn && (
             <button
               type="button"
@@ -189,9 +211,10 @@ export function Books() {
                 nav('/');
               }}
             >
-              Sign out
+              {tb.signOut}
             </button>
           )}
+          <LanguageSelect />
         </div>
       </header>
 
@@ -215,26 +238,28 @@ export function Books() {
                 </div>
                 <div className="stack stack-4" style={{ flex: 1, minWidth: 200 }}>
                   <div className="h3" style={{ fontSize: 22 }}>
-                    Your photo library
+                    {tb.libraryTitle}
                   </div>
                   <div className="small muted">
-                    {library.photoCount} photos ·{' '}
-                    {library.source === 'instagram' ? library.sourceLabel : 'Instagram export'} ·
-                    imported {fmtDate(library.importedAt)}
+                    {tb.libraryMeta(
+                      library.photoCount,
+                      library.source === 'instagram' ? library.sourceLabel : tb.exportSource,
+                      fmtDate(library.importedAt, lang),
+                    )}
                   </div>
                   <div className="small muted">
-                    Kept until{' '}
+                    {tb.keptUntilBefore}{' '}
                     <span style={{ color: 'var(--text)', fontWeight: 500 }}>
-                      {fmtDate(library.keptUntil)}
+                      {fmtDate(library.keptUntil, lang)}
                     </span>
-                    . Each new book extends this by 3 months.
+                    {tb.keptUntilAfter}
                   </div>
                 </div>
               </div>
               {deleteState === 'idle' && (
                 <div className="row row-wrap gap-8">
                   <Button size="md" style={{ padding: '11px 18px' }} onClick={newBook}>
-                    New book from these photos
+                    {tb.newBook}
                   </Button>
                   <Button
                     size="md"
@@ -242,7 +267,7 @@ export function Books() {
                     style={{ padding: '11px 18px' }}
                     onClick={addPhotos}
                   >
-                    Add more photos
+                    {tb.addPhotos}
                   </Button>
                   <Button
                     size="md"
@@ -250,20 +275,17 @@ export function Books() {
                     style={{ marginLeft: 'auto' }}
                     onClick={() => setDeleteState('asking')}
                   >
-                    Delete photos now
+                    {tb.deleteNow}
                   </Button>
                 </div>
               )}
               {(deleteState === 'asking' || deleteState === 'deleting') && (
                 <Banner
                   tone="error"
-                  title={`Delete ${library.photoCount} photos and ${draftCount === 1 ? '1 draft' : draftCount > 1 ? `${draftCount} drafts` : 'drafts'}?`}
+                  title={tb.deleteTitle(library.photoCount, draftCount)}
                   className={s.deleteBox}
                 >
-                  <div className="pretty">
-                    This can't be undone. Ordered PDFs stay downloadable. To make another book later
-                    you'd import your photos again.
-                  </div>
+                  <div className="pretty">{tb.deleteBody}</div>
                   <div className="row row-wrap gap-8">
                     <Button
                       size="sm"
@@ -271,7 +293,7 @@ export function Books() {
                       onClick={confirmDelete}
                       disabled={deleteState === 'deleting'}
                     >
-                      {deleteState === 'deleting' ? 'Deleting…' : 'Yes, delete everything'}
+                      {deleteState === 'deleting' ? tb.deleting : tb.deleteConfirm}
                     </Button>
                     <Button
                       size="sm"
@@ -282,7 +304,7 @@ export function Books() {
                       }}
                       disabled={deleteState === 'deleting'}
                     >
-                      Keep my photos
+                      {tb.keepPhotos}
                     </Button>
                   </div>
                 </Banner>
@@ -302,16 +324,16 @@ export function Books() {
               />
               <div className="stack stack-4" style={{ flex: 1, minWidth: 200 }}>
                 <div className="h3" style={{ fontSize: 22 }}>
-                  No photos stored
+                  {tb.noPhotosTitle}
                 </div>
                 <div className="small muted">
                   {deleteState === 'deleted' || (library && library.status === 'expired')
-                    ? 'Your library was deleted. Bring in photos again to make a new book — ordered PDFs below are still yours.'
-                    : 'Bring in your Instagram photos to make your first book.'}
+                    ? tb.libraryDeleted
+                    : tb.bringInFirst}
                 </div>
               </div>
               <Button size="md" style={{ padding: '11px 18px' }} onClick={addPhotos}>
-                Bring in photos
+                {tb.bringIn}
               </Button>
             </div>
           )}
@@ -319,7 +341,7 @@ export function Books() {
 
         <div className="stack stack-14">
           <div className="h3" style={{ fontSize: 22 }}>
-            Your books
+            {tb.yourBooks}
           </div>
           {books === null ? (
             <Spinner />
@@ -333,7 +355,7 @@ export function Books() {
                 fontSize: 15,
               }}
             >
-              No books yet. Start one from your library above.
+              {tb.noBooks}
             </div>
           ) : (
             <div className={s.bookGrid}>
@@ -371,7 +393,7 @@ export function Books() {
                     </Button>
                     {c.canDuplicate && c.onDuplicate && (
                       <Button size="sm" variant="secondary" onClick={c.onDuplicate}>
-                        Duplicate
+                        {tb.duplicate}
                       </Button>
                     )}
                   </div>

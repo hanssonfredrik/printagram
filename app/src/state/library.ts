@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { LibrarySummary, Photo } from '@printagram/shared';
 import { api } from '@/services';
+import { errorText, getT } from '@/i18n';
 
 interface LibraryState {
   libraryId: string | null;
@@ -42,7 +43,7 @@ export const useLibrary = create<LibraryState>((set, get) => ({
     } catch (e) {
       set({
         loading: false,
-        error: e instanceof Error ? e.message : 'Could not load your photos.',
+        error: e instanceof Error ? errorText(e, getT()) : getT().common.loadingPhotos,
       });
       throw e;
     }

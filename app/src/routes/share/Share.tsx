@@ -2,17 +2,21 @@ import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { Banner, Button, Card, Spinner } from '@/components/ui';
 import { api, type ShareInfo } from '@/services';
+import { errorText, useT } from '@/i18n';
 
 export function Share() {
   const { token = '' } = useParams();
+  const t = useT();
+  const ts = t.share;
   const [info, setInfo] = useState<ShareInfo | null>(null);
-  const [err, setErr] = useState<string | null>(null);
+  // The caught error itself, so its text follows the UI language.
+  const [err, setErr] = useState<{ e: unknown } | null>(null);
 
   useEffect(() => {
     api
       .getShare(token)
       .then(setInfo)
-      .catch((e) => setErr(e instanceof Error ? e.message : 'This link is not valid.'));
+      .catch((e: unknown) => setErr({ e }));
   }, [token]);
 
   return (
@@ -31,7 +35,7 @@ export function Share() {
         <span className="brand">Printagram</span>
         {err && (
           <Banner tone="error" tight>
-            {err}
+            {errorText(err.e, t, { NOT_FOUND: ts.invalid })}
           </Banner>
         )}
         {!info && !err && <Spinner />}
@@ -41,22 +45,21 @@ export function Share() {
               {info.title}
             </h2>
             <p className="muted">
-              {info.pages} pages ·{' '}
-              {info.format === 'portrait' ? 'Portrait 21 × 28 cm' : 'Square 21 × 21 cm'}
-              {info.bytes ? ` · ${(info.bytes / 1e6).toFixed(1)} MB` : ''}
+              {ts.pages(info.pages)} · {info.format === 'portrait' ? ts.portrait : ts.square}
+              {info.bytes ? ` · ${ts.size(info.bytes / 1e6)}` : ''}
             </p>
             {info.downloadUrl ? (
               <Button block size="xl" onClick={() => window.location.assign(info.downloadUrl)}>
-                Download the PDF
+                {ts.download}
               </Button>
             ) : (
               <Banner tone="soft" tight>
-                The owner has not finished generating this PDF yet.
+                {ts.notReady}
               </Banner>
             )}
-            <p className="tiny muted">Made with Printagram — your Instagram, as a real book.</p>
+            <p className="tiny muted">{ts.madeWith}</p>
             <Button variant="ghost" size="md" to="/">
-              Make your own
+              {ts.makeOwn}
             </Button>
           </>
         )}

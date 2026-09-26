@@ -1,0 +1,32 @@
+import type { Messages } from '../en';
+
+export const select: Messages['select'] = {
+  noPhotosTitle: 'Inga bilder än',
+  noPhotosBody: 'Hämta först dina Instagrambilder och välj sedan vilka som ska med i boken.',
+  bringIn: 'Hämta bilder',
+  connected: (label: string) => `${label} · ansluten`,
+  title: 'Välj dina bilder',
+  modeAll: 'Alla bilder',
+  modeChoose: 'Välj bilder',
+  mostLiked: '♥ Mest gillade',
+  carouselsAll: 'Karuseller: alla bilder',
+  carouselsFirst: 'Karuseller: första bilden',
+  fromMonth: 'Från månad',
+  to: 'till',
+  toMonth: 'Till månad',
+  notFoundTitle: 'Inga bilder hittades',
+  notFoundBody:
+    'Vi hittade inga inlägg här. Om du laddade upp en export, se till att du valde ”Inlägg” när du begärde den.',
+  goBack: 'Gå tillbaka och försök igen',
+  photos: (n: number) => `${n} ${n === 1 ? 'bild' : 'bilder'}`,
+  deselectYear: 'Avmarkera året',
+  selectYear: 'Välj hela året',
+  deselectAll: 'Avmarkera alla',
+  selectAll: 'Välj alla',
+  photo: 'Bild',
+  noMatch: 'Inga bilder matchar filtren.',
+  continue: 'Fortsätt',
+  selected: (n: number) => `${n} ${n === 1 ? 'bild vald' : 'bilder valda'}`,
+  maxPhotos: (n: number) => `Högst ${n} bilder per bok`,
+  pagesPrice: (pages: number, price: string) => `~${pages} sidor · ${price}`,
+};

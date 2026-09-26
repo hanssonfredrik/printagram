@@ -4,6 +4,7 @@
  */
 
 import type { BookLayout, PageSpec } from './layout.js';
+import type { Lang } from './i18n.js';
 
 export type PhotoSource = 'instagram' | 'export';
 
@@ -77,6 +78,8 @@ export interface BookSettings {
   showMeta: boolean;
   coverPhotoId: string | null;
   layout: BookLayout;
+  /** Language of the text printed in the book (dates, title page, back cover). */
+  lang: Lang;
 }
 
 export interface Book extends BookSettings {
@@ -128,6 +131,8 @@ export interface UserInfo {
   id: string;
   email: string | null;
   authLevel: AuthLevel;
+  /** Last UI language seen from this user; emails are sent in it. */
+  lang: Lang;
 }
 
 export interface PricingConfig {

@@ -1,0 +1,43 @@
+import type { Messages } from '../en';
+
+export const done: Messages['done'] = {
+  noOrder: 'Ingen beställning att visa',
+  myBooks: 'Mina böcker',
+  confirming: 'Bekräftar din betalning…',
+  making: 'Vi gör din bok',
+  generating: 'Lägger upp varje sida i tryckupplösning.',
+  uploading: 'Sparar PDF:en på ditt konto.',
+  waitingPayment: 'Det brukar ta några sekunder.',
+  loading: 'Ett ögonblick.',
+  notConfirmed: 'Vi kunde inte bekräfta din betalning än. Ladda om sidan om en minut.',
+  refundedTitle: 'Beställningen har återbetalats',
+  refundedBody: 'PDF:en är inte längre tillgänglig för den här beställningen.',
+  failedTitle: 'Betalningen gick inte igenom',
+  failedBody: 'Inget har dragits. Du kan försöka igen med ett annat kort eller en annan plånbok.',
+  backToCheckout: 'Tillbaka till kassan',
+  errorTitle: 'Något gick fel',
+  tryAgain: 'Försök igen',
+  readyTitle: 'Din bok är klar',
+  square: 'kvadratisk',
+  portrait: 'stående',
+  yourEmail: 'din e-post',
+  readySummary: (pages: number, format: string, email: string) =>
+    `${pages} ${pages === 1 ? 'sida' : 'sidor'}, ${format}. Vi har också skickat länken till ${email}.`,
+  download: 'Ladda ned din PDF',
+  downloadAgain: 'Nedladdad · Ladda ned igen',
+  share: 'Dela',
+  linkCopied: 'Länken kopierad',
+  another: 'Gör en bok till',
+  shareNote: 'Alla som har delningslänken kan ladda ned den här PDF:en.',
+  newLink: 'Skapa en ny länk',
+  newLinkMade: 'Ny länk skapad, den gamla fungerar inte längre',
+  libraryTitle: 'Ditt bildbibliotek',
+  photos: (n: number) => `${n} ${n === 1 ? 'bild' : 'bilder'}`,
+  keptUntilBefore: 'Sparas till',
+  keptUntilAfter:
+    '– beställningen förlängde tiden med 3 månader. Gör en ny bok när du vill utan att importera igen. Vi mejlar dig en vecka innan bilderna raderas.',
+  libraryDeleted: 'Raderat. Din PDF går fortfarande att ladda ned.',
+  deleteNow: 'Radera bilderna nu',
+  printNote:
+    'Skriv ut den på valfritt tryckeri, eller vänta på tryckta böcker med hemleverans – kommer snart.',
+};

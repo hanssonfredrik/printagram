@@ -7,7 +7,7 @@ import type {
   PageSpec,
   Photo,
 } from '@printagram/shared';
-import { DEFAULT_LAYOUT, legacyPages, totalPages } from '@printagram/shared';
+import { DEFAULT_LAYOUT, legacyPages, normalizeLang, totalPages } from '@printagram/shared';
 import type { BookRow, LibraryRow, OrderRow, PhotoRow } from './tables.js';
 
 export function libraryView(l: LibraryRow): LibrarySummary {
@@ -57,6 +57,7 @@ export function bookView(b: BookRow): Book {
     format: b.format,
     showMeta: b.showMeta,
     coverPhotoId: b.coverPhotoId,
+    lang: normalizeLang(b.lang),
     layout: normalizeLayout(b.layout),
     pages: bookPages(b),
     manualLayout: !!b.manualLayout,

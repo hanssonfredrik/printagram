@@ -1,0 +1,72 @@
+import type { Messages } from '../en';
+
+export const checkout: Messages['checkout'] = {
+  title: 'Kassa',
+  needEmail: 'Fyll i din e-postadress så att vi kan skicka länken till nedladdningen.',
+  needPassword: 'Välj ett lösenord på minst 8 tecken för ditt konto.',
+  emailTaken:
+    'Den e-postadressen har redan ett Printagram-konto. Logga in för att fortsätta med den här boken.',
+  promoAppliedBefore: 'Koden ',
+  promoAppliedAfter: (amount: string) => ` har lagts till · −${amount}`,
+  promoRemove: 'Ta bort',
+  promoPlaceholder: 'Rabattkod',
+  promoChecking: 'Kontrollerar…',
+  promoApply: 'Använd',
+  promoOpen: 'Har du en rabattkod?',
+  bookLine: (pages: number, format: string, photos: number) =>
+    `${pages} sidor · ${format} · ${photos} ${photos === 1 ? 'bild' : 'bilder'}`,
+  square: 'Kvadratisk',
+  portrait: 'Stående',
+  digitalPdf: 'Digital PDF',
+  discount: (code: string) => `Rabatt (${code})`,
+  total: 'Totalt',
+  totalAmount: (amount: string) => `Totalt ${amount}`,
+  summaryNote:
+    'Du får en tryckklar PDF att ladda ner. Tryckta böcker kommer senare – vi mejlar dig när de finns.',
+  accountTitle: 'Ditt Printagram-konto',
+  accountSaved: 'Din PDF och ditt bibliotek sparas på det här kontot.',
+  signedIn: 'Inloggad',
+  email: 'E-post',
+  passwordPlaceholder: 'Välj ett lösenord (minst 8 tecken)',
+  password: 'Lösenord',
+  accountKeeps:
+    'Sparar dina bilder och böcker i 3 månader så att du kan beställa fler utan att importera igen.',
+  haveAccount: 'Har du redan ett konto? ',
+  signIn: 'Logga in',
+  freeBanner: 'Rabatten täcker hela boken – ingen betalning behövs.',
+  oneMoment: 'Ett ögonblick…',
+  getPdf: 'Hämta min PDF',
+  notConfigured: 'Betalningar är inte rätt inställda på den här servern.',
+  chooseFormat: 'Välj format',
+  pdfHint: 'Ladda ner direkt, skriv ut var som helst',
+  softcover: 'Häftad bok',
+  hardcover: 'Inbunden bok',
+  comingSoon: 'Kommer snart',
+  softcoverHint: 'Tryck och frakt',
+  hardcoverHint: 'Linneklädd, ligger platt',
+  from: (price: string) => `från ${price}`,
+  payment: 'Betalning',
+  preparing: 'Förbereder kassan…',
+  processing: 'Bearbetar…',
+  stripe: {
+    failed: 'Betalningen misslyckades. Försök igen.',
+    walletCancelled: 'Betalningen med plånboken avbröts. Försök igen.',
+    orCard: 'eller betala med kort',
+    pay: (amount: string) => `Betala ${amount}`,
+  },
+  fake: {
+    bannerTitle: 'Testbetalning – inga pengar dras',
+    bannerBody:
+      'Printagram är i testläge. Välj ett testkort och se vad som händer – inget debiteras.',
+    cardGroup: 'Testkort',
+    chip: 'TEST',
+    cards: {
+      succeeded: 'Betalningen går igenom',
+      card_declined: 'Kortet nekas',
+      insufficient_funds: 'Otillräckligt saldo',
+    },
+    place: 'Lägg testbeställning',
+    liveCost: (amount: string) =>
+      `På riktigt skulle beställningen kosta ${amount}. Just nu debiteras ingenting.`,
+  },
+};

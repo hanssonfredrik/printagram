@@ -2,6 +2,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
   padding: 18px 24px;
   max-width: var(--max-wide);
   margin: 0 auto;

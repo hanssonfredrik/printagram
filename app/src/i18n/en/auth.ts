@@ -1,0 +1,35 @@
+/** Sign in, reset password and the emailed return link. */
+export const auth = {
+  signIn: {
+    title: 'Welcome back',
+    lead: 'Your photos and books are waiting.',
+    email: 'Email',
+    password: 'Password',
+    submit: 'Sign in',
+    busy: 'Signing in…',
+    wrongPassword: 'Wrong email or password.',
+    failed: 'Could not sign in.',
+    emailFirst: 'Enter your email above first, then tap Forgot password.',
+    resetSent: 'If that address has an account, a reset link is on its way.',
+    forgot: 'Forgot password?',
+    newHere: 'New here?',
+    start: 'Start your book',
+  },
+  reset: {
+    title: 'Choose a new password',
+    newPlaceholder: 'New password (8+ characters)',
+    newLabel: 'New password',
+    repeat: 'Repeat password',
+    tooShort: 'Use at least 8 characters.',
+    mismatch: 'The two passwords do not match.',
+    submit: 'Save and sign in',
+    busy: 'Saving…',
+  },
+  returnLink: {
+    title: 'Welcome back',
+    lead: 'Pick up where you left off: upload the ZIP Instagram sent you and choose your photos.',
+    submit: 'Continue',
+    busy: 'One moment…',
+  },
+  linkInvalid: 'This link is no longer valid.',
+};

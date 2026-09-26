@@ -1,4 +1,5 @@
 import type { PromoType, TestCard } from './types.js';
+import { DEFAULT_LANG, type Lang } from './i18n.js';
 
 /** A discount code as stored by the API (Lookups table, kind "promo"). */
 export interface PromoDefinition {
@@ -25,6 +26,19 @@ export const PROMO_MESSAGES: Record<PromoRejection, string> = {
   used_up: 'That code has been used the maximum number of times.',
   already_used: "You've already used that code.",
 };
+
+const PROMO_MESSAGES_SV: Record<PromoRejection, string> = {
+  not_found: 'Koden finns inte. Kontrollera stavningen och försök igen.',
+  inactive: 'Koden är inte längre aktiv.',
+  not_started: 'Koden gäller inte än.',
+  expired: 'Koden har gått ut.',
+  used_up: 'Koden har redan använts det högsta antalet gånger.',
+  already_used: 'Du har redan använt den koden.',
+};
+
+export function promoMessage(code: PromoRejection, lang: Lang = DEFAULT_LANG): string {
+  return (lang === 'sv' ? PROMO_MESSAGES_SV : PROMO_MESSAGES)[code];
+}
 
 export function normalizePromoCode(raw: string): string {
   return raw.trim().toUpperCase().replace(/\s+/g, '');

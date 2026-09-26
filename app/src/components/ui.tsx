@@ -1,5 +1,7 @@
 import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode } from 'react';
 import { Link } from 'react-router';
+import { LANG_NAMES, LANGS, type Lang } from '@printagram/shared';
+import { useLang, useT } from '@/i18n';
 import s from './ui.module.css';
 
 export function cx(...parts: Array<string | false | null | undefined>): string {
@@ -276,6 +278,23 @@ export function Select({
   );
 }
 
+/* ---------- Language picker ---------- */
+
+/** English / Svenska. Each name is written in its own language so it is findable either way. */
+export function LanguageSelect() {
+  const t = useT();
+  const lang = useLang((l) => l.lang);
+  const setLang = useLang((l) => l.setLang);
+  return (
+    <Select
+      value={lang}
+      onChange={(v) => setLang(v as Lang)}
+      options={LANGS.map((l) => ({ value: l, label: LANG_NAMES[l] }))}
+      ariaLabel={t.common.language}
+    />
+  );
+}
+
 /* ---------- Banner ---------- */
 
 export function Banner({
@@ -357,12 +376,13 @@ export function ScreenHeader({
   children?: ReactNode;
   right?: ReactNode;
 }) {
+  const t = useT();
   return (
     <header className={cx(s.header, wide && s['header--wide'])}>
       <div className="row between gap-12">
         <div className="row gap-12">
           {onBack && (
-            <button type="button" className="back" onClick={onBack} aria-label="Back">
+            <button type="button" className="back" onClick={onBack} aria-label={t.common.back}>
               ←
             </button>
           )}
@@ -387,11 +407,12 @@ export function WizardBar({
   children?: ReactNode;
   action?: ReactNode;
 }) {
+  const t = useT();
   return (
     <div className="footer-bar">
       <div className="footer-bar__inner">
         <Button variant="outline" className="footer-bar__back" onClick={onBack}>
-          ← Back
+          {t.common.backArrow}
         </Button>
         <div className="footer-bar__summary">{children}</div>
         {action}

@@ -6,9 +6,12 @@ import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
 import { api } from '@/services';
 import { artGradient } from '@/components/art';
+import { errorText, useT } from '@/i18n';
 
 export function Waiting() {
   const nav = useNavigate();
+  const t = useT();
+  const w = t.exportFlow.waiting;
   const email = useDraft((d) => d.email);
   const setEmail = useDraft((d) => d.setEmail);
   const returnSentTo = useDraft((d) => d.returnSentTo);
@@ -25,7 +28,7 @@ export function Waiting() {
 
   const send = async () => {
     if (!email.includes('@')) {
-      setErr('Please enter a valid email address.');
+      setErr(t.errors.codes.INVALID_EMAIL);
       return;
     }
     setBusy(true);
@@ -40,7 +43,7 @@ export function Waiting() {
       });
       setReturnSentTo(email);
     } catch (e) {
-      setErr(e instanceof Error ? e.message : 'Could not send the link.');
+      setErr(errorText(e, t));
     } finally {
       setBusy(false);
     }
@@ -48,7 +51,7 @@ export function Waiting() {
 
   return (
     <div className="screen screen--bar">
-      <ScreenHeader title="Almost there">
+      <ScreenHeader title={w.title}>
         <FlowProgress screen="waiting" />
       </ScreenHeader>
       <div
@@ -69,29 +72,24 @@ export function Waiting() {
         </div>
         <div>
           <h2 className="h2" style={{ fontSize: 28, marginBottom: 8 }}>
-            Instagram is preparing your photos
+            {w.heading}
           </h2>
-          <p className="muted pretty">
-            This usually takes a few hours. You'll get an email from Instagram with a download link.
-            Then come back here and upload the ZIP.
-          </p>
+          <p className="muted pretty">{w.body}</p>
         </div>
         <Card bordered pad="mid" style={{ width: '100%', textAlign: 'left', padding: 18 }} gap={10}>
-          <div className="semibold">Get a return link</div>
-          <div className="small muted">
-            Continue on any device — phone, laptop, wherever the ZIP lands.
-          </div>
+          <div className="semibold">{w.returnTitle}</div>
+          <div className="small muted">{w.returnText}</div>
           {!returnSentTo ? (
             <>
               <div className="row row-wrap gap-8">
                 <Input
                   type="email"
                   bg
-                  placeholder="you@example.com"
+                  placeholder={w.emailPlaceholder}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   style={{ flex: 1, minWidth: 180, width: 'auto' }}
-                  aria-label="Email address"
+                  aria-label={w.emailLabel}
                 />
                 <Button
                   size="md"
@@ -99,7 +97,7 @@ export function Waiting() {
                   onClick={send}
                   disabled={busy}
                 >
-                  {busy ? 'Sending…' : 'Send link'}
+                  {busy ? w.sending : w.sendLink}
                 </Button>
               </div>
               {err && (
@@ -118,12 +116,13 @@ export function Waiting() {
                 padding: '12px 14px',
               }}
             >
-              <span>✓</span>Link sent to {returnSentTo}. Check your inbox.
+              <span>✓</span>
+              {w.linkSent(returnSentTo)}
             </div>
           )}
         </Card>
         <div className="stack stack-10" style={{ width: '100%', textAlign: 'left' }}>
-          <div className="tiny semibold muted">Coming up: your book, your way</div>
+          <div className="tiny semibold muted">{w.comingUp}</div>
           <div className="grid-3">
             <div
               className="stack stack-8"
@@ -138,7 +137,7 @@ export function Waiting() {
                   border: '1px solid var(--placeholder)',
                 }}
               />
-              <div className="micro muted">Square or portrait</div>
+              <div className="micro muted">{w.squareOrPortrait}</div>
             </div>
             <div
               className="stack stack-8"
@@ -152,7 +151,7 @@ export function Waiting() {
                   background: artGradient(0),
                 }}
               />
-              <div className="micro muted">Any cover photo</div>
+              <div className="micro muted">{w.anyCover}</div>
             </div>
             <div
               className="stack stack-8"
@@ -173,12 +172,12 @@ export function Waiting() {
               >
                 Aa
               </div>
-              <div className="micro muted">Captions & dates</div>
+              <div className="micro muted">{w.captionsDates}</div>
             </div>
           </div>
         </div>
         <Button block variant="secondary" size="lg" onClick={() => nav('/export/upload')}>
-          I have my ZIP — upload it
+          {w.haveZip}
         </Button>
       </div>
       <WizardBar onBack={() => nav('/export')} />

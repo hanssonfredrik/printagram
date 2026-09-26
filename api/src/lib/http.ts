@@ -6,7 +6,8 @@ import {
   type HttpResponseInit,
   type InvocationContext,
 } from '@azure/functions';
-import type { UserRow } from './tables.js';
+import { langFromAcceptLanguage, matchLang, type Lang } from '@printagram/shared';
+import { users, type UserRow } from './tables.js';
 import { authenticate, type AuthResult } from './auth.js';
 import { config } from './config.js';
 
@@ -63,6 +64,8 @@ export interface Ctx {
   /** Present when the request carried a valid session cookie. */
   user: UserRow | null;
   auth: AuthResult;
+  /** UI language of the caller: X-Lang (sent by the app), else Accept-Language, else English. */
+  lang: Lang;
 }
 
 export interface AuthedCtx extends Ctx {
@@ -140,7 +143,14 @@ export function route(
       }
       const auth = opts.auth === 'none' ? { user: null, expired: false } : await authenticate(req);
       if (opts.auth === 'required' && !auth.user) throw unauthorized();
-      const res = await (handler as Handler<Ctx>)({ req, ctx, user: auth.user, auth });
+      const explicit = matchLang(req.headers.get('x-lang'));
+      const lang = explicit ?? langFromAcceptLanguage(req.headers.get('accept-language'));
+      // Remember the app's language on the user so emails sent later (cron) use it too.
+      if (explicit && auth.user && auth.user.lang !== explicit) {
+        auth.user.lang = explicit;
+        await users.merge(auth.user.userId, { lang: explicit }).catch(() => undefined);
+      }
+      const res = await (handler as Handler<Ctx>)({ req, ctx, user: auth.user, auth, lang });
       return res;
     } catch (e) {
       if (e instanceof HttpError) {

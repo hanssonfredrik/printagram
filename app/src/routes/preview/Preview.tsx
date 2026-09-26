@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router';
-import type { LayoutDensity, PageSpec, TemplateId } from '@printagram/shared';
+import type { Lang, LayoutDensity, PageSpec, TemplateId } from '@printagram/shared';
 import {
+  LANG_NAMES,
+  LANGS,
   aspectOf,
   effectivePpi,
   fmtEuro,
@@ -12,10 +14,20 @@ import {
   placePhoto,
   ppiLevel,
   slotsFor,
-  TEMPLATE_LABELS,
+  templateLabel,
   templatesFor,
 } from '@printagram/shared';
-import { Banner, Button, Input, Label, Segmented, ToggleRow, WizardBar } from '@/components/ui';
+import {
+  Banner,
+  Button,
+  Input,
+  Label,
+  Segmented,
+  Select,
+  ToggleRow,
+  WizardBar,
+} from '@/components/ui';
+import { errorText, useLang, useT } from '@/i18n';
 import { PageRenderer } from '@/components/PageRenderer';
 import { useDraft } from '@/state/draft';
 import { saveCurrentDraft, useBook } from '@/state/useBook';
@@ -36,6 +48,8 @@ export function Preview() {
   const nav = useNavigate();
   const d = useDraft();
   const book = useBook();
+  const t = useT();
+  const lang = useLang((x) => x.lang);
   const [saving, setSaving] = useState(false);
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const [view, setView] = useState<View>('pages');
@@ -81,7 +95,7 @@ export function Preview() {
       await saveCurrentDraft(book);
       nav('/checkout');
     } catch (e) {
-      setSaveErr(e instanceof Error ? e.message : 'Could not save your book.');
+      setSaveErr(errorText(e, t));
     } finally {
       setSaving(false);
     }
@@ -101,13 +115,13 @@ export function Preview() {
         className="container row between gap-12 row-wrap"
         style={{ padding: '14px var(--gutter)' }}
       >
-        <div className="h4">Preview your book</div>
+        <div className="h4">{t.preview.title}</div>
         <Segmented
           value={view}
           onChange={setView}
           options={[
-            { value: 'pages', label: 'Page by page' },
-            { value: 'arrange', label: 'Arrange pages' },
+            { value: 'pages', label: t.preview.viewPages },
+            { value: 'arrange', label: t.preview.viewArrange },
           ]}
         />
       </header>
@@ -137,6 +151,7 @@ export function Preview() {
                 photosById={book.photosById}
                 showMeta={d.showMeta}
                 showLikes={book.hasLikes}
+                lang={book.lang}
                 showPpi
               />
             </div>
@@ -145,19 +160,19 @@ export function Preview() {
                 type="button"
                 className={s.navBtn}
                 onClick={() => d.setPageIdx(Math.max(0, pageIdx - 1))}
-                aria-label="Previous page"
+                aria-label={t.preview.prevPage}
                 disabled={pageIdx === 0}
               >
                 ‹
               </button>
               <div className="small muted center" style={{ minWidth: 120 }}>
-                {pageLabel(page, book.pages.length)}
+                {pageLabel(page, book.pages.length, lang)}
               </div>
               <button
                 type="button"
                 className={s.navBtn}
                 onClick={() => d.setPageIdx(Math.min(book.pages.length - 1, pageIdx + 1))}
-                aria-label="Next page"
+                aria-label={t.preview.nextPage}
                 disabled={pageIdx >= book.pages.length - 1}
               >
                 ›
@@ -168,30 +183,34 @@ export function Preview() {
               <div className={s.pageTools}>
                 {spec.template === 'text' ? (
                   <div className="stack stack-8" style={{ width: '100%' }}>
-                    <Label>Page text</Label>
+                    <Label>{t.preview.pageText}</Label>
                     <textarea
                       className={s.textarea}
                       value={spec.text ?? ''}
                       maxLength={MAX_TEXT_LENGTH}
                       rows={3}
                       onChange={(e) => edit(setPageText(book.content, contentIdx, e.target.value))}
-                      aria-label="Page text"
+                      aria-label={t.preview.pageText}
                     />
                   </div>
                 ) : (
                   <div className="stack stack-8" style={{ width: '100%' }}>
-                    <Label>Layout of this page</Label>
-                    <div className="row row-wrap gap-6" role="radiogroup" aria-label="Page layout">
-                      {templatesFor(spec.photoIds.length).map((t: TemplateId) => (
+                    <Label>{t.preview.pageLayoutLabel}</Label>
+                    <div
+                      className="row row-wrap gap-6"
+                      role="radiogroup"
+                      aria-label={t.preview.pageLayoutAria}
+                    >
+                      {templatesFor(spec.photoIds.length).map((tpl: TemplateId) => (
                         <button
-                          key={t}
+                          key={tpl}
                           type="button"
                           role="radio"
-                          aria-checked={spec.template === t}
-                          className={`${s.tpl} ${spec.template === t ? s['tpl--on'] : ''}`}
-                          onClick={() => edit(setTemplate(book.content, contentIdx, t))}
+                          aria-checked={spec.template === tpl}
+                          className={`${s.tpl} ${spec.template === tpl ? s['tpl--on'] : ''}`}
+                          onClick={() => edit(setTemplate(book.content, contentIdx, tpl))}
                         >
-                          {TEMPLATE_LABELS[t]}
+                          {templateLabel(tpl, lang)}
                         </button>
                       ))}
                     </div>
@@ -207,7 +226,7 @@ export function Preview() {
                       d.setPageIdx(pageIdx - 1);
                     }}
                   >
-                    Move page earlier
+                    {t.preview.moveEarlier}
                   </Button>
                   <Button
                     size="xs"
@@ -218,7 +237,7 @@ export function Preview() {
                       d.setPageIdx(pageIdx + 1);
                     }}
                   >
-                    Move page later
+                    {t.preview.moveLater}
                   </Button>
                   <Button
                     size="xs"
@@ -228,7 +247,7 @@ export function Preview() {
                       d.setPageIdx(pageIdx + 1);
                     }}
                   >
-                    Add text page after
+                    {t.preview.addTextPage}
                   </Button>
                   {spec.template === 'text' && (
                     <Button
@@ -236,7 +255,7 @@ export function Preview() {
                       variant="danger-ghost"
                       onClick={() => edit(removePage(book.content, contentIdx))}
                     >
-                      Remove text page
+                      {t.preview.removeTextPage}
                     </Button>
                   )}
                 </div>
@@ -246,16 +265,28 @@ export function Preview() {
 
           <div className="stack stack-22">
             <div className="stack stack-8">
-              <Label>Book title</Label>
+              <Label>{t.preview.bookTitle}</Label>
               <Input
                 value={d.title}
                 onChange={(e) => d.setBook({ title: e.target.value })}
                 maxLength={80}
-                aria-label="Book title"
+                aria-label={t.preview.bookTitle}
               />
             </div>
             <div className="stack stack-8">
-              <Label>Format</Label>
+              <Label>{t.preview.bookLanguage}</Label>
+              <div className="row gap-8">
+                <Select
+                  value={d.lang}
+                  onChange={(v) => d.setBookLang(v as Lang)}
+                  options={LANGS.map((l) => ({ value: l, label: LANG_NAMES[l] }))}
+                  ariaLabel={t.preview.bookLanguage}
+                />
+                <span className="tiny muted">{t.preview.bookLanguageHint}</span>
+              </div>
+            </div>
+            <div className="stack stack-8">
+              <Label>{t.preview.format}</Label>
               <div className="grid-2">
                 <button
                   type="button"
@@ -267,7 +298,7 @@ export function Preview() {
                 >
                   <div className={s.formatIcon} style={{ width: 36, height: 36 }} />
                   <div className="small medium">
-                    Square
+                    {t.preview.square}
                     <div className="micro muted" style={{ fontWeight: 400 }}>
                       21 × 21 cm
                     </div>
@@ -283,7 +314,7 @@ export function Preview() {
                 >
                   <div className={s.formatIcon} style={{ width: 28, height: 36 }} />
                   <div className="small medium">
-                    Portrait
+                    {t.preview.portrait}
                     <div className="micro muted" style={{ fontWeight: 400 }}>
                       21 × 28 cm
                     </div>
@@ -292,7 +323,7 @@ export function Preview() {
               </div>
             </div>
             <div className="stack stack-8">
-              <Label>Photos per page</Label>
+              <Label>{t.preview.photosPerPage}</Label>
               <Segmented<LayoutDensity>
                 value={d.layout.density}
                 onChange={(density) => {
@@ -300,18 +331,18 @@ export function Preview() {
                   d.resetLayout();
                 }}
                 options={[
-                  { value: 'auto', label: 'Mixed' },
-                  { value: '1', label: 'One' },
-                  { value: '2', label: 'Two' },
-                  { value: '3', label: 'Three' },
-                  { value: '4', label: 'Four' },
+                  { value: 'auto', label: t.preview.density.auto },
+                  { value: '1', label: t.preview.density.one },
+                  { value: '2', label: t.preview.density.two },
+                  { value: '3', label: t.preview.density.three },
+                  { value: '4', label: t.preview.density.four },
                 ]}
               />
               {book.manual && (
                 <div className="row gap-8 tiny muted">
-                  You arranged the pages yourself.
+                  {t.preview.arrangedByHand}
                   <button type="button" className="link-button" onClick={() => d.resetLayout()}>
-                    Reset to automatic layout
+                    {t.preview.resetLayout}
                   </button>
                 </div>
               )}
@@ -319,19 +350,15 @@ export function Preview() {
             <ToggleRow
               on={d.layout.fullBleed && !multiOnly}
               disabled={multiOnly}
-              title="Full-page photos"
-              hint={
-                multiOnly
-                  ? 'Only for pages with one photo'
-                  : 'Single photos fill the page edge to edge (can print a little soft)'
-              }
+              title={t.preview.fullPage}
+              hint={multiOnly ? t.preview.fullPageMultiOnly : t.preview.fullPageHint}
               onToggle={() => {
                 d.setLayout({ fullBleed: !d.layout.fullBleed });
                 d.resetLayout();
               }}
             />
             <div className="stack stack-8">
-              <Label>Cover photo</Label>
+              <Label>{t.preview.coverPhoto}</Label>
               <div className={s.covers}>
                 {book.chosen.map((p) => (
                   <button
@@ -342,7 +369,7 @@ export function Preview() {
                       d.setBook({ coverPhotoId: p.id });
                       d.setPageIdx(0);
                     }}
-                    aria-label={`Use as cover: ${p.caption || p.takenAt.slice(0, 10)}`}
+                    aria-label={t.preview.useAsCover(p.caption || p.takenAt.slice(0, 10))}
                   >
                     <img src={p.thumbUrl} alt="" loading="lazy" />
                   </button>
@@ -351,23 +378,15 @@ export function Preview() {
             </div>
             <ToggleRow
               on={d.showMeta}
-              title="Captions and dates"
-              hint={
-                book.hasLikes
-                  ? 'Caption, likes and date under each photo'
-                  : 'Printed under each photo'
-              }
+              title={t.preview.captions}
+              hint={book.hasLikes ? t.preview.captionsHintLikes : t.preview.captionsHint}
               onToggle={() => d.setBook({ showMeta: !d.showMeta })}
             />
             {(lowRes.soft > 0 || lowRes.low > 0) && (
               <Banner tone={lowRes.low > 0 ? 'error' : 'warn'} tight>
-                {lowRes.low > 0
-                  ? `${lowRes.low} photo${lowRes.low === 1 ? '' : 's'} will print blurry at their current size. `
-                  : ''}
-                {lowRes.soft > 0
-                  ? `${lowRes.soft} photo${lowRes.soft === 1 ? '' : 's'} may print a little soft. `
-                  : ''}
-                Smaller layouts (two or more photos per page) print sharper.
+                {lowRes.low > 0 ? t.preview.lowResBlurry(lowRes.low) : ''}
+                {lowRes.soft > 0 ? t.preview.lowResSoft(lowRes.soft) : ''}
+                {t.preview.lowResTip}
               </Banner>
             )}
             {saveErr && (
@@ -383,14 +402,17 @@ export function Preview() {
         onBack={() => nav('/select')}
         action={
           <Button onClick={checkout} disabled={saving || book.chosen.length === 0}>
-            {saving ? 'Saving…' : 'Checkout'}
+            {saving ? t.preview.saving : t.preview.checkout}
           </Button>
         }
       >
         <div className="semibold">
-          {book.total} pages · {d.format === 'square' ? 'Square' : 'Portrait'}
+          {t.preview.summary(
+            book.total,
+            d.format === 'square' ? t.preview.square : t.preview.portrait,
+          )}
         </div>
-        <div className="tiny muted">PDF {fmtEuro(book.priceCents)}</div>
+        <div className="tiny muted">{t.preview.pdfPrice(fmtEuro(book.priceCents, lang))}</div>
       </WizardBar>
     </div>
   );

@@ -101,6 +101,14 @@ Built in the browser (`app/src/workers/pdfBook.ts`, run by `pdf.worker.ts`):
 - Text: Lora (titles, text pages) and Albert Sans (captions), falling back per glyph to Noto Sans and monochrome Noto Emoji. Fonts are embedded whole, because pdf-lib's subsetter drops composite glyphs; fallback fonts are embedded only when used.
 - If any photo cannot be loaded the PDF is not delivered. Uploads larger than 4 MB go in blocks (Put Block / Put Block List) with retries.
 
+## Languages
+
+English and Swedish (`Lang` in `shared/src/i18n.ts`).
+
+- UI: typed dictionaries in `app/src/i18n/{en,sv}/`; English is the source and `tsc` fails if a Swedish key is missing. The language is the visitor's choice (`printagram.lang` in localStorage), else the browser language, else English.
+- API: the app sends `X-Lang` on every request. `route()` puts it on the context (falling back to `Accept-Language`) and stores it on the user row (`lang`) when it changes, so emails sent later from cron use it. Error messages stay English; the app translates them by `code`.
+- Book: `lang` on the book and on the order snapshot decides the printed text (title-page subtitle, caption dates, back cover, default title, "(copy)"). It enters the content hash only when it is not English, so books from before languages keep their hash.
+
 ## Instagram import (bounded batches)
 
 `POST /libraries/{id}/imports` creates a job; the client calls `POST /imports/{job}/run` until `more=false`. Each run takes a 50 s lease, works for 22 s (page `/me/media`, copy `media_url` → Blob, thumbnail with jimp, upsert Photo rows, 4 in parallel), persists cursor + pending items after every batch, and releases the lease. A killed request loses at most one batch; reruns are idempotent.

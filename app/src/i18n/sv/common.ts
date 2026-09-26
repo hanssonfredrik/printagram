@@ -1,0 +1,60 @@
+import type { Messages } from '../en';
+
+export const common: Messages['common'] = {
+  back: 'Tillbaka',
+  backArrow: '← Tillbaka',
+  close: 'Stäng',
+  language: 'Språk',
+  footer: {
+    tagline: 'Fotoböcker från ditt Instagram.',
+  },
+  notFound: {
+    title: 'Här finns inget',
+    body: 'Sidan du letade efter finns inte.',
+    home: 'Tillbaka till Printagram',
+  },
+  progress: {
+    connect: 'Anslut',
+    export: 'Exportera',
+    upload: 'Ladda upp',
+    photos: 'Bilder',
+    select: 'Välj',
+    preview: 'Förhandsgranska',
+    checkout: 'Kassa',
+  },
+  loadingPhotos: 'Det gick inte att läsa in dina bilder.',
+  noServer: 'Det gick inte att nå servern.',
+};
+
+export const errors: Messages['errors'] = {
+  generic: 'Något gick fel. Försök igen.',
+  codes: {
+    INTERNAL: 'Något gick fel hos oss.',
+    UNAUTHORIZED: 'Logga in för att fortsätta.',
+    NOT_FOUND: 'Vi hittade inte det du letade efter.',
+    RATE_LIMITED: 'För många försök. Vänta en minut och försök igen.',
+    INVALID_EMAIL: 'Ange en giltig e-postadress.',
+    ALREADY_SIGNED_IN: 'Du är inloggad med ett annat konto.',
+    EMAIL_TAKEN: 'Det finns redan ett konto med den e-postadressen. Logga in för att fortsätta.',
+    ACCOUNT_DELETING: 'Kontot håller på att raderas.',
+    INVALID_TOKEN: 'Länken är inte giltig.',
+    EXPIRED_TOKEN: 'Länken har gått ut.',
+    USED_TOKEN: 'Länken har redan använts.',
+    NOT_CONNECTED: 'Anslut ditt Instagram-konto först.',
+    TOO_MANY_PHOTOS: 'Boken har fler bilder än vad som får plats i en bok.',
+    BOOK_ORDERED: 'Boken är redan beställd. Gör en kopia om du vill ändra den.',
+    EMPTY_BOOK: 'Välj minst en bild.',
+    ACCOUNT_REQUIRED: 'Skapa ditt konto först så att vi kan skicka din nedladdningslänk.',
+    ORDER_CLOSED: 'Beställningen kan inte längre ändras.',
+    UNKNOWN_TEST_CARD: 'Använd ett av testkorten som visas på sidan.',
+    CARD_DECLINED: 'Kortet nekades. Prova ett annat kort.',
+    INSUFFICIENT_FUNDS: 'Det finns inte tillräckligt med pengar på kortet. Prova ett annat kort.',
+    NOT_FREE: 'Den här beställningen behöver betalas.',
+    NOT_PAID: 'Beställningen är inte betald än.',
+    PHOTOS_MISSING: 'Några bilder i boken finns inte längre sparade, så PDF:en kan inte skapas.',
+    PDF_MISSING: 'PDF:en är inte klar än.',
+    PDF_INVALID: 'PDF:en kunde inte sparas. Försök igen.',
+    PDF_SIZE_MISMATCH: 'PDF:en kunde inte sparas. Försök igen.',
+    UPLOAD_FAILED: 'Uppladdningen misslyckades. Kontrollera anslutningen och försök igen.',
+  },
+};

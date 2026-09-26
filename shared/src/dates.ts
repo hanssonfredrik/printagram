@@ -1,3 +1,5 @@
+import { DEFAULT_LANG, MONTHS_SHORT_BY_LANG, type Lang } from './i18n.js';
+
 export const MONTHS_SHORT = [
   'Jan',
   'Feb',
@@ -38,10 +40,15 @@ export function parseMonthKey(key: string): { year: number; month: number } {
   return { year: Number(y), month: Number(m) - 1 };
 }
 
-/** "17 Sep 2026" */
-export function fmtDate(iso: string | Date): string {
+/** Short month name: "Sep" (en), "sep" (sv). */
+export function monthShort(month0: number, lang: Lang = DEFAULT_LANG): string {
+  return (MONTHS_SHORT_BY_LANG[lang] ?? MONTHS_SHORT)[month0] ?? '';
+}
+
+/** "17 Sep 2026" (en), "17 sep 2026" (sv) */
+export function fmtDate(iso: string | Date, lang: Lang = DEFAULT_LANG): string {
   const d = typeof iso === 'string' ? new Date(iso) : iso;
-  return `${d.getUTCDate()} ${MONTHS_SHORT[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+  return `${d.getUTCDate()} ${monthShort(d.getUTCMonth(), lang)} ${d.getUTCFullYear()}`;
 }
 
 export function addDays(iso: string | Date, days: number): Date {
@@ -57,18 +64,19 @@ export function addMonths(iso: string | Date, months: number): Date {
 }
 
 /** "Mar – Sep 2025" or "Jan 2023 – Dec 2025" */
-export function fmtSpan(firstIso: string, lastIso: string): string {
+export function fmtSpan(firstIso: string, lastIso: string, lang: Lang = DEFAULT_LANG): string {
   const a = new Date(firstIso);
   const b = new Date(lastIso);
   const [lo, hi] = a <= b ? [a, b] : [b, a];
+  const m = (d: Date) => monthShort(d.getUTCMonth(), lang);
   if (lo.getUTCFullYear() === hi.getUTCFullYear()) {
-    return `${MONTHS_SHORT[lo.getUTCMonth()]} – ${MONTHS_SHORT[hi.getUTCMonth()]} ${hi.getUTCFullYear()}`;
+    return `${m(lo)} – ${m(hi)} ${hi.getUTCFullYear()}`;
   }
-  return `${MONTHS_SHORT[lo.getUTCMonth()]} ${lo.getUTCFullYear()} – ${MONTHS_SHORT[hi.getUTCMonth()]} ${hi.getUTCFullYear()}`;
+  return `${m(lo)} ${lo.getUTCFullYear()} – ${m(hi)} ${hi.getUTCFullYear()}`;
 }
 
 /** "Mar 2021 – Dec 2024" across the earliest and latest photo (order-independent). */
-export function photoSpan(photos: { takenAt: string }[]): string {
+export function photoSpan(photos: { takenAt: string }[], lang: Lang = DEFAULT_LANG): string {
   if (photos.length === 0) return '';
   let lo = photos[0]!.takenAt;
   let hi = lo;
@@ -76,5 +84,5 @@ export function photoSpan(photos: { takenAt: string }[]): string {
     if (p.takenAt < lo) lo = p.takenAt;
     if (p.takenAt > hi) hi = p.takenAt;
   }
-  return fmtSpan(lo, hi);
+  return fmtSpan(lo, hi, lang);
 }

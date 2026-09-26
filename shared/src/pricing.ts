@@ -1,4 +1,5 @@
 import type { PricingConfig } from './types.js';
+import { DEFAULT_LANG, type Lang } from './i18n.js';
 
 export const DEFAULT_PRICING: PricingConfig = {
   baseCents: 900,
@@ -15,9 +16,10 @@ export function pdfPriceCents(cfg: PricingConfig = DEFAULT_PRICING): number {
   return cfg.baseCents;
 }
 
-/** Formats cents the way the design does: "€9", "€9,15", "€0,15". */
-export function fmtEuro(cents: number): string {
+/** Formats cents the way the design does: "€9", "€9,15", "€0,15" (en); "9 €", "9,15 €" (sv). */
+export function fmtEuro(cents: number, lang: Lang = DEFAULT_LANG): string {
   const whole = Math.floor(cents / 100);
   const rest = Math.round(cents % 100);
-  return rest === 0 ? `€${whole}` : `€${whole},${String(rest).padStart(2, '0')}`;
+  const num = rest === 0 ? `${whole}` : `${whole},${String(rest).padStart(2, '0')}`;
+  return lang === 'sv' ? `${num}\u{a0}€` : `€${num}`;
 }

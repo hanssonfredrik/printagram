@@ -11,6 +11,7 @@ import {
   type RegisterResult,
   type ShareInfo,
 } from './api';
+import { getLang } from '@/i18n';
 
 const BASE = '/api';
 
@@ -25,7 +26,11 @@ const readSasCache = new Map<string, ReadSas>();
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
     method,
-    headers: body !== undefined ? { 'Content-Type': 'application/json' } : undefined,
+    // X-Lang: the API sends emails in this language and remembers it for later ones.
+    headers: {
+      'X-Lang': getLang(),
+      ...(body !== undefined ? { 'Content-Type': 'application/json' } : {}),
+    },
     body: body !== undefined ? JSON.stringify(body) : undefined,
     credentials: 'same-origin',
   });

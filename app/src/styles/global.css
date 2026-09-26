@@ -407,6 +407,25 @@ p {
   }
 }
 
+/* Small footer under every screen (language picker). */
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: 16px var(--gutter);
+}
+/* Screens with the fixed wizard bar: keep the footer scrollable above it. */
+body:has(.footer-bar) .site-footer {
+  padding-bottom: calc(96px + var(--safe-bottom));
+}
+.site-footer__inner {
+  max-width: var(--max-wide);
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .sr-only {
   position: absolute;
   width: 1px;

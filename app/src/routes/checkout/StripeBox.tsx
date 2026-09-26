@@ -9,6 +9,7 @@ import {
 } from '@stripe/react-stripe-js';
 import { fmtEuro } from '@printagram/shared';
 import { Button } from '@/components/ui';
+import { useLang, useT } from '@/i18n';
 
 const stripeCache = new Map<string, Promise<Stripe | null>>();
 
@@ -34,11 +35,13 @@ export interface StripeBoxProps {
 /** Stripe Payment Element + Express Checkout (Apple Pay / Google Pay), styled to the design tokens. */
 export default function StripeBox(props: StripeBoxProps) {
   const stripePromise = useMemo(() => getStripe(props.publishableKey), [props.publishableKey]);
+  const lang = useLang((x) => x.lang);
   return (
     <Elements
       stripe={stripePromise}
       options={{
         clientSecret: props.clientSecret,
+        locale: lang,
         appearance: {
           theme: 'stripe',
           variables: {
@@ -79,6 +82,8 @@ function Inner({
   setProcessing,
   accountForm,
 }: StripeBoxProps) {
+  const t = useT();
+  const lang = useLang((x) => x.lang);
   const stripe = useStripe();
   const elements = useElements();
   const [ready, setReady] = useState(false);
@@ -97,7 +102,7 @@ function Inner({
     });
     if (error) {
       setProcessing(false);
-      onError(error.message ?? 'Payment failed. Please try again.');
+      onError(error.message ?? t.checkout.stripe.failed);
       return;
     }
     await onPaid();
@@ -128,7 +133,7 @@ function Inner({
           });
           if (error) {
             setProcessing(false);
-            onError(error.message ?? 'The wallet payment was cancelled. Please try again.');
+            onError(error.message ?? t.checkout.stripe.walletCancelled);
             return;
           }
           await onPaid();
@@ -136,7 +141,7 @@ function Inner({
       />
       <div className="row gap-12 muted tiny">
         <div className="divider" style={{ flex: 1 }} />
-        or pay by card
+        {t.checkout.stripe.orCard}
         <div className="divider" style={{ flex: 1 }} />
       </div>
       <div
@@ -160,7 +165,7 @@ function Inner({
         disabled={!ready || processing}
         style={{ opacity: processing ? 0.7 : 1 }}
       >
-        {processing ? 'Processing…' : `Pay ${fmtEuro(amountCents)}`}
+        {processing ? t.checkout.processing : t.checkout.stripe.pay(fmtEuro(amountCents, lang))}
       </Button>
     </div>
   );

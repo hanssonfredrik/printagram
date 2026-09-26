@@ -7,6 +7,8 @@ import {
   MAX_PHOTOS_PER_LIBRARY,
 } from '@printagram/shared';
 import { api } from '@/services';
+import { ApiClientError } from '@/services/api';
+import { errorText, getT } from '@/i18n';
 
 interface SessionState {
   ready: boolean;
@@ -53,7 +55,10 @@ export const useSession = create<SessionState>((set, get) => ({
         error: null,
       });
     } catch (e) {
-      set({ ready: true, error: e instanceof Error ? e.message : 'Could not reach the server.' });
+      set({
+        ready: true,
+        error: e instanceof ApiClientError ? errorText(e, getT()) : getT().common.noServer,
+      });
     }
   },
 

@@ -9,7 +9,7 @@ import {
 import { promisify } from 'node:util';
 import { SignJWT, jwtVerify } from 'jose';
 import type { HttpRequest, HttpResponseInit } from '@azure/functions';
-import type { UserInfo } from '@printagram/shared';
+import { normalizeLang, type UserInfo } from '@printagram/shared';
 import { config } from './config.js';
 import { users, type UserRow } from './tables.js';
 import { newId, nowIso } from './ids.js';
@@ -144,7 +144,7 @@ export async function createAnonymousUser(): Promise<UserRow> {
 }
 
 export function toUserInfo(u: UserRow): UserInfo {
-  return { id: u.userId, email: u.email, authLevel: u.authLevel };
+  return { id: u.userId, email: u.email, authLevel: u.authLevel, lang: normalizeLang(u.lang) };
 }
 
 /* ------------------------------------------------------------------ */

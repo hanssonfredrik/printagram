@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import type { Photo } from '@printagram/shared';
-import { fmtEuro, MONTHS_SHORT, monthKey, parseMonthKey } from '@printagram/shared';
+import { fmtEuro, monthKey, monthShort, parseMonthKey } from '@printagram/shared';
 import {
   Button,
   Chip,
@@ -15,9 +15,12 @@ import { chosenPhotos, useDraft, visiblePhotos } from '@/state/draft';
 import { useBook } from '@/state/useBook';
 import { useLibrary } from '@/state/library';
 import { useConfig, useSession } from '@/state/session';
+import { useLang, useT } from '@/i18n';
 import s from './select.module.css';
 
 export function Select() {
+  const t = useT();
+  const lang = useLang((x) => x.lang);
   const nav = useNavigate();
   const cfg = useConfig();
   const d = useDraft();
@@ -46,7 +49,7 @@ export function Select() {
   );
   const monthOptions = monthKeys.map((k) => {
     const { year, month } = parseMonthKey(k);
-    return { value: k, label: `${MONTHS_SHORT[month]} ${year}` };
+    return { value: k, label: `${monthShort(month, lang)} ${year}` };
   });
   const filters = useMemo(
     () => ({
@@ -90,11 +93,11 @@ export function Select() {
           .sort((a, b) => (a[0] < b[0] ? 1 : -1))
           .map(([key, ps]) => ({
             key,
-            label: MONTHS_SHORT[parseMonthKey(key).month]!,
+            label: monthShort(parseMonthKey(key).month, lang),
             photos: ps,
           })),
       }));
-  }, [visible]);
+  }, [visible, lang]);
 
   const allOn = (ps: Photo[]) => !isChoose || ps.every((p) => selectedSet.has(p.id));
 
@@ -111,11 +114,9 @@ export function Select() {
               border: '1px dashed var(--placeholder)',
             }}
           />
-          <h2 className="h3">No photos yet</h2>
-          <p className="muted">
-            Bring in your Instagram photos first, then choose the ones for your book.
-          </p>
-          <Button onClick={() => nav('/start')}>Bring in photos</Button>
+          <h2 className="h3">{t.select.noPhotosTitle}</h2>
+          <p className="muted">{t.select.noPhotosBody}</p>
+          <Button onClick={() => nav('/start')}>{t.select.bringIn}</Button>
         </div>
       </div>
     );
@@ -123,18 +124,26 @@ export function Select() {
 
   const sourceLabel = lib.library
     ? lib.library.source === 'instagram'
-      ? `${lib.library.sourceLabel} · connected`
+      ? t.select.connected(lib.library.sourceLabel)
       : lib.library.sourceLabel
     : '';
   const back = () =>
-    nav(d.source === 'connect' ? '/connect' : d.source === 'export' ? '/export/upload' : '/start');
+    nav(
+      d.source === 'library'
+        ? '/books'
+        : d.source === 'connect'
+          ? '/connect'
+          : d.source === 'export'
+            ? '/export/upload'
+            : '/start',
+    );
 
   return (
     <div className="screen screen--bar">
       <header className={s.sticky}>
         <div className={s.stickyInner}>
           <div className="row between gap-12">
-            <div className="h4">Choose your photos</div>
+            <div className="h4">{t.select.title}</div>
             <div
               className="small muted"
               style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
@@ -153,24 +162,24 @@ export function Select() {
                   )
                 }
                 options={[
-                  { value: 'all', label: 'All photos' },
-                  { value: 'choose', label: 'Choose photos' },
+                  { value: 'all', label: t.select.modeAll },
+                  { value: 'choose', label: t.select.modeChoose },
                 ]}
               />
               <div className="row row-wrap gap-8">
                 {hasLikes && (
                   <Chip on={d.favsOnly} onClick={() => d.setFilter({ favsOnly: !d.favsOnly })}>
-                    ♥ Most liked
+                    {t.select.mostLiked}
                   </Chip>
                 )}
                 <Chip
                   on={d.carouselAll}
                   onClick={() => d.setFilter({ carouselAll: !d.carouselAll })}
                 >
-                  {d.carouselAll ? 'Carousels: all images' : 'Carousels: first image'}
+                  {d.carouselAll ? t.select.carouselsAll : t.select.carouselsFirst}
                 </Chip>
                 <SelectBox
-                  ariaLabel="From month"
+                  ariaLabel={t.select.fromMonth}
                   value={d.rangeFrom ?? monthKeys[0] ?? ''}
                   options={monthOptions}
                   onChange={(v) =>
@@ -180,9 +189,9 @@ export function Select() {
                     })
                   }
                 />
-                <span className="muted tiny">to</span>
+                <span className="muted tiny">{t.select.to}</span>
                 <SelectBox
-                  ariaLabel="To month"
+                  ariaLabel={t.select.toMonth}
                   value={d.rangeTo ?? monthKeys[monthKeys.length - 1] ?? ''}
                   options={monthOptions}
                   onChange={(v) =>
@@ -215,12 +224,9 @@ export function Select() {
               border: '1px dashed var(--placeholder)',
             }}
           />
-          <h2 className="h3">No photos found</h2>
-          <p className="muted">
-            We couldn't find any posts here. If you uploaded an export, make sure you selected
-            “Posts” when requesting it.
-          </p>
-          <Button onClick={back}>Go back and try again</Button>
+          <h2 className="h3">{t.select.notFoundTitle}</h2>
+          <p className="muted">{t.select.notFoundBody}</p>
+          <Button onClick={back}>{t.select.goBack}</Button>
         </div>
       )}
 
@@ -231,7 +237,7 @@ export function Select() {
               <div key={y.year} className="stack stack-18">
                 <div className={s.year}>
                   <div className={s.yearLabel}>
-                    {y.year} <span className={s.yearCount}>{y.photos.length} photos</span>
+                    {y.year} <span className={s.yearCount}>{t.select.photos(y.photos.length)}</span>
                   </div>
                   {isChoose && (
                     <button
@@ -244,7 +250,7 @@ export function Select() {
                         )
                       }
                     >
-                      {allOn(y.photos) ? 'Deselect year' : 'Select whole year'}
+                      {allOn(y.photos) ? t.select.deselectYear : t.select.selectYear}
                     </button>
                   )}
                 </div>
@@ -268,7 +274,7 @@ export function Select() {
                             )
                           }
                         >
-                          {allOn(mo.photos) ? 'Deselect all' : 'Select all'}
+                          {allOn(mo.photos) ? t.select.deselectAll : t.select.selectAll}
                         </button>
                       )}
                     </div>
@@ -281,7 +287,7 @@ export function Select() {
                             type="button"
                             className={`${s.tile} ${on ? '' : s['tile--off']}`}
                             aria-pressed={on}
-                            aria-label={`${p.caption || 'Photo'}, ${p.takenAt.slice(0, 10)}`}
+                            aria-label={`${p.caption || t.select.photo}, ${p.takenAt.slice(0, 10)}`}
                             onClick={() =>
                               d.toggleIds([p.id], isChoose ? !selectedSet.has(p.id) : false)
                             }
@@ -314,7 +320,7 @@ export function Select() {
             ))}
             {visible.length === 0 && (
               <div className="center muted" style={{ padding: '48px 0' }}>
-                No photos match these filters.
+                {t.select.noMatch}
               </div>
             )}
           </div>
@@ -325,17 +331,17 @@ export function Select() {
         onBack={back}
         action={
           <Button disabled={chosen.length === 0 || overLimit} onClick={() => nav('/preview')}>
-            Continue
+            {t.select.continue}
           </Button>
         }
       >
         {photos.length > 0 && (
           <>
-            <div className="semibold">{chosen.length} photos selected</div>
+            <div className="semibold">{t.select.selected(chosen.length)}</div>
             <div className="tiny muted">
               {overLimit
-                ? `Maximum ${cfg.limits.maxPhotosPerBook} photos per book`
-                : `~${total} pages · ${fmtEuro(book.priceCents)}`}
+                ? t.select.maxPhotos(cfg.limits.maxPhotosPerBook)
+                : t.select.pagesPrice(total, fmtEuro(book.priceCents, lang))}
             </div>
           </>
         )}

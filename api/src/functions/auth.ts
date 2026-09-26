@@ -185,7 +185,7 @@ async function consumeToken(
 route(
   'authReturnLink',
   { methods: ['POST'], route: 'auth/return-link', auth: 'optional' },
-  async ({ req, user }) => {
+  async ({ req, user, lang }) => {
     const body = await readJson<{ email?: unknown; resumeTo?: unknown }>(req);
     const email = parseEmail(body.email);
     const resumeTo =
@@ -215,7 +215,7 @@ route(
       resumeTo,
     );
     const url = `${config.appBaseUrl}/r/${raw}`;
-    await mailer().send(templates.returnLink(email, url));
+    await mailer().send(templates.returnLink(email, url, target.lang ?? lang));
     const masked = email.replace(/^(.).*(@.*)$/, '$1…$2');
     return json({ maskedEmail: masked }, 202, {
       cookies: user ? undefined : [sessionCookie(await issueSession(target))],
@@ -243,30 +243,36 @@ route(
 route(
   'authExportSteps',
   { methods: ['POST'], route: 'auth/export-steps', auth: 'optional' },
-  async ({ req }) => {
+  async ({ req, lang }) => {
     const body = await readJson<{ email?: unknown }>(req);
     const email = parseEmail(body.email);
     await ensureRate('export-steps', email, 3);
-    await mailer().send(templates.exportSteps(email, `${config.appBaseUrl}/export/upload`));
+    await mailer().send(templates.exportSteps(email, `${config.appBaseUrl}/export/upload`, lang));
     return json({}, 202);
   },
 );
 
-route('authForgot', { methods: ['POST'], route: 'auth/forgot', auth: 'none' }, async ({ req }) => {
-  const body = await readJson<{ email?: unknown }>(req);
-  const email = parseEmail(body.email);
-  await ensureRate('forgot', email, 3);
-  const existing = await lookups.get('email', email);
-  if (existing?.userId) {
-    const raw = await createToken(
-      existing.userId,
-      'reset',
-      new Date(Date.now() + RESET_LINK_HOURS * 3600_000),
-    );
-    await mailer().send(templates.passwordReset(email, `${config.appBaseUrl}/reset/${raw}`));
-  }
-  return json({}, 202); // always 202: do not reveal whether the account exists
-});
+route(
+  'authForgot',
+  { methods: ['POST'], route: 'auth/forgot', auth: 'none' },
+  async ({ req, lang }) => {
+    const body = await readJson<{ email?: unknown }>(req);
+    const email = parseEmail(body.email);
+    await ensureRate('forgot', email, 3);
+    const existing = await lookups.get('email', email);
+    if (existing?.userId) {
+      const raw = await createToken(
+        existing.userId,
+        'reset',
+        new Date(Date.now() + RESET_LINK_HOURS * 3600_000),
+      );
+      await mailer().send(
+        templates.passwordReset(email, `${config.appBaseUrl}/reset/${raw}`, lang),
+      );
+    }
+    return json({}, 202); // always 202: do not reveal whether the account exists
+  },
+);
 
 route('authReset', { methods: ['POST'], route: 'auth/reset', auth: 'none' }, async ({ req }) => {
   const body = await readJson<{ token?: unknown; password?: unknown }>(req);

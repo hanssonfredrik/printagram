@@ -1,5 +1,12 @@
-import type { BookFormat, BookLayout, PageSpec } from '@printagram/shared';
-import { flattenPhotoIds, totalPages, validatePages } from '@printagram/shared';
+import type { BookFormat, BookLayout, Lang, PageSpec } from '@printagram/shared';
+import {
+  bookText,
+  flattenPhotoIds,
+  matchLang,
+  normalizeLang,
+  totalPages,
+  validatePages,
+} from '@printagram/shared';
 import { config } from '../lib/config.js';
 import {
   badRequest,
@@ -25,6 +32,14 @@ interface BookInput {
   layout?: unknown;
   pages?: unknown;
   manualLayout?: unknown;
+  lang?: unknown;
+}
+
+function parseLang(v: unknown, fallback: Lang): Lang {
+  if (v === undefined || v === null) return fallback;
+  const l = matchLang(String(v));
+  if (!l) throw badRequest('INVALID_FIELD', 'lang must be en or sv.');
+  return l;
 }
 
 function parseFormat(v: unknown, fallback: BookFormat): BookFormat {
@@ -69,9 +84,10 @@ route('booksList', { methods: ['GET'], route: 'books', auth: 'required' }, async
 route(
   'booksCreate',
   { methods: ['POST'], route: 'books', auth: 'required' },
-  async ({ req, user }) => {
+  async ({ req, user, lang: uiLang }) => {
     const body = await readJson<BookInput>(req);
     const libraryId = str(body.libraryId, 'libraryId', { max: 64 });
+    const lang = parseLang(body.lang, uiLang);
     const lib = await libraries.get(user.userId, libraryId);
     if (!lib) throw notFound('Library');
     const format = parseFormat(body.format, 'square');
@@ -82,8 +98,9 @@ route(
       bookId: newId(),
       userId: user.userId,
       libraryId,
-      title: str(body.title, 'title', { optional: true, max: 120 }) || 'Our years',
+      title: str(body.title, 'title', { optional: true, max: 120 }) || bookText(lang).defaultTitle,
       format,
+      lang,
       showMeta: body.showMeta !== false,
       coverPhotoId: coverFor(body.coverPhotoId, photoIds, null),
       layout: normalizeLayout(body.layout),
@@ -135,6 +152,7 @@ route(
       format,
       showMeta: body.showMeta === undefined ? b.showMeta : body.showMeta !== false,
       coverPhotoId: coverFor(body.coverPhotoId, photoIds, b.coverPhotoId),
+      lang: parseLang(body.lang, normalizeLang(b.lang)),
       layout,
       pages,
       manualLayout: body.manualLayout === undefined ? !!b.manualLayout : body.manualLayout === true,
@@ -162,7 +180,7 @@ route(
       pages: bookPages(b),
       layout: normalizeLayout(b.layout),
       bookId: newId(),
-      title: `${b.title} (copy)`,
+      title: `${b.title} ${bookText(normalizeLang(b.lang)).copySuffix}`,
       status: 'draft',
       orderId: null,
       version: 1,

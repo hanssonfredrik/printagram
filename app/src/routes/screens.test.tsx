@@ -1,12 +1,13 @@
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { createMemoryRouter, RouterProvider } from 'react-router';
-import { DEFAULT_LAYOUT } from '@printagram/shared';
+import { DEFAULT_LAYOUT, pickLang } from '@printagram/shared';
 import { router as appRouter } from '@/router';
 import { resetMockState, seedDemoExportLibrary, mockFlags } from '@/test/fakeApi';
 import { useDraft } from '@/state/draft';
 import { useLibrary } from '@/state/library';
 import { useSession } from '@/state/session';
+import { useLang } from '@/i18n';
 import { api } from '@/services';
 
 function renderAt(path: string) {
@@ -28,6 +29,7 @@ async function seedLibraryAndDraft() {
 
 beforeEach(() => {
   localStorage.clear();
+  useLang.getState().setLang('en');
   resetMockState();
   useDraft.getState().resetAll();
   useLibrary.getState().clear();
@@ -249,6 +251,7 @@ describe('screens (against the in-memory test API)', () => {
           showMeta: true,
           coverPhotoId: null,
           layout: DEFAULT_LAYOUT,
+          lang: 'en',
         },
         pages: [{ template: '1-margin', photoIds: ['demo_0'] }],
         manualLayout: false,
@@ -263,5 +266,55 @@ describe('screens (against the in-memory test API)', () => {
     expect(within(dialog).getByText(/Delete \d+ photos and 1 draft\?/)).toBeTruthy();
     fireEvent.click(within(dialog).getByText('Keep my photos'));
     expect(await screen.findByText('New book from these photos')).toBeTruthy();
+  });
+
+  it('my books → new book: Back on Choose your photos returns to My books', async () => {
+    // The library came from an export, so the old flow state points at the upload screen.
+    await seedLibraryAndDraft();
+    await act(async () => {
+      await api.login('mara@example.com', 'hunter2hunter2');
+      await useSession.getState().init();
+    });
+    const { router } = renderAt('/books');
+    fireEvent.click(await screen.findByText('New book from these photos'));
+    expect(await screen.findByText('Choose your photos')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: '← Back' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/books'));
+    expect(await screen.findByText('Your photo library')).toBeTruthy();
+  });
+});
+
+describe('languages', () => {
+  it('follows a Swedish browser and falls back to English otherwise', () => {
+    expect(pickLang(['sv-SE', 'en-US'])).toBe('sv');
+    expect(pickLang(['de-DE', 'fr'])).toBe('en');
+  });
+
+  it('shows Swedish, switches with the picker and remembers the choice', async () => {
+    useLang.getState().setLang('sv');
+    renderAt('/');
+    expect(await screen.findByText('Ditt Instagram som en riktig bok.')).toBeTruthy();
+    expect(document.documentElement.lang).toBe('sv');
+
+    const picker = screen.getAllByRole('combobox', { name: 'Språk' })[0]!;
+    fireEvent.change(picker, { target: { value: 'en' } });
+    expect(await screen.findByText('Your Instagram, as a real book.')).toBeTruthy();
+    expect(document.documentElement.lang).toBe('en');
+    expect(localStorage.getItem('printagram.lang')).toContain('"lang":"en"');
+  });
+
+  it('new books take the UI language; changing it renames a default title', async () => {
+    useLang.getState().setLang('sv');
+    const { photos, lib } = await seedLibraryAndDraft();
+    useDraft.getState().resetForNewBook();
+    useDraft.getState().startLibrary(lib.id, photos);
+    const d = useDraft.getState();
+    expect(d.lang).toBe('sv');
+    expect(d.title.startsWith('Våra år')).toBe(true);
+    d.setBookLang('en');
+    expect(useDraft.getState().title.startsWith('Our years')).toBe(true);
+    useDraft.getState().setBook({ title: 'Sommar' });
+    useDraft.getState().setBookLang('sv');
+    expect(useDraft.getState().title).toBe('Sommar');
   });
 });

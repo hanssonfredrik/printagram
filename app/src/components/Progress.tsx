@@ -1,5 +1,6 @@
 import { ProgressSteps } from './ui';
 import { useDraft, type FlowSource } from '@/state/draft';
+import { useT, type Messages } from '@/i18n';
 
 type Screen =
   | 'choose'
@@ -15,9 +16,10 @@ type Screen =
 export function progressFor(
   source: FlowSource | null,
   screen: Screen,
+  t: Messages['common']['progress'],
 ): { labels: string[]; current: number } {
   if (source === 'connect' || (!source && ['choose', 'connect'].includes(screen))) {
-    const labels = ['Connect', 'Select', 'Preview', 'Checkout'];
+    const labels = [t.connect, t.select, t.preview, t.checkout];
     const map: Record<Screen, number> = {
       choose: 0,
       connect: 0,
@@ -32,7 +34,7 @@ export function progressFor(
     return { labels, current: map[screen] };
   }
   if (source === 'export' || ['guide', 'waiting', 'upload'].includes(screen)) {
-    const labels = ['Export', 'Upload', 'Select', 'Preview', 'Checkout'];
+    const labels = [t.export, t.upload, t.select, t.preview, t.checkout];
     const map: Record<Screen, number> = {
       choose: 0,
       connect: 0,
@@ -46,7 +48,7 @@ export function progressFor(
     };
     return { labels, current: map[screen] };
   }
-  const labels = ['Photos', 'Select', 'Preview', 'Checkout'];
+  const labels = [t.photos, t.select, t.preview, t.checkout];
   const map: Record<Screen, number> = {
     choose: 0,
     connect: 0,
@@ -63,6 +65,7 @@ export function progressFor(
 
 export function FlowProgress({ screen }: { screen: Screen }) {
   const source = useDraft((d) => d.source);
-  const { labels, current } = progressFor(source, screen);
+  const t = useT();
+  const { labels, current } = progressFor(source, screen, t.common.progress);
   return <ProgressSteps labels={labels} current={current} />;
 }

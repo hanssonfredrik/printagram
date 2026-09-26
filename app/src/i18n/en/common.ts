@@ -1,0 +1,60 @@
+/** Shared UI text: buttons, headers, footer, 404 and the progress steps. */
+export const common = {
+  back: 'Back',
+  backArrow: '← Back',
+  close: 'Close',
+  language: 'Language',
+  footer: {
+    tagline: 'Photo books from your Instagram.',
+  },
+  notFound: {
+    title: 'Nothing here',
+    body: 'The page you were looking for does not exist.',
+    home: 'Back to Printagram',
+  },
+  progress: {
+    connect: 'Connect',
+    export: 'Export',
+    upload: 'Upload',
+    photos: 'Photos',
+    select: 'Select',
+    preview: 'Preview',
+    checkout: 'Checkout',
+  },
+  loadingPhotos: 'Could not load your photos.',
+  noServer: 'Could not reach the server.',
+};
+
+/** Error text by API error code (api/src/lib/http.ts call sites), plus a generic fallback. */
+export const errors = {
+  generic: 'Something went wrong. Please try again.',
+  codes: {
+    INTERNAL: 'Something went wrong on our side.',
+    UNAUTHORIZED: 'Please sign in.',
+    NOT_FOUND: 'We could not find that.',
+    RATE_LIMITED: 'Too many attempts. Please wait a minute and try again.',
+    INVALID_EMAIL: 'Please enter a valid email address.',
+    ALREADY_SIGNED_IN: 'You are signed in with a different account.',
+    EMAIL_TAKEN: 'That email already has an account. Sign in to continue.',
+    ACCOUNT_DELETING: 'This account is being deleted.',
+    INVALID_TOKEN: 'This link is not valid.',
+    EXPIRED_TOKEN: 'This link has expired.',
+    USED_TOKEN: 'This link was already used.',
+    NOT_CONNECTED: 'Connect your Instagram account first.',
+    TOO_MANY_PHOTOS: 'This book has more photos than a book can hold.',
+    BOOK_ORDERED: 'This book was already ordered. Duplicate it to make changes.',
+    EMPTY_BOOK: 'Choose at least one photo.',
+    ACCOUNT_REQUIRED: 'Create your account first so we can send your download link.',
+    ORDER_CLOSED: 'This order can no longer be changed.',
+    UNKNOWN_TEST_CARD: 'Use one of the test cards shown on the page.',
+    CARD_DECLINED: 'Your card was declined. Try another card.',
+    INSUFFICIENT_FUNDS: 'Your card has insufficient funds. Try another card.',
+    NOT_FREE: 'This order needs a payment.',
+    NOT_PAID: 'This order has not been paid yet.',
+    PHOTOS_MISSING: 'Some photos in this book are no longer stored, so the PDF cannot be built.',
+    PDF_MISSING: 'The PDF is not ready yet.',
+    PDF_INVALID: 'The PDF could not be saved. Please try again.',
+    PDF_SIZE_MISMATCH: 'The PDF could not be saved. Please try again.',
+    UPLOAD_FAILED: 'The upload failed. Check your connection and try again.',
+  },
+};

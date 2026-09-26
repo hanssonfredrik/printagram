@@ -67,7 +67,10 @@ async function run(job: PdfJob) {
     const n = result.failed.length;
     post({
       type: 'error',
-      message: `${n} photo${n === 1 ? '' : 's'} could not be loaded. Check your connection and try again.`,
+      message:
+        job.lang === 'sv'
+          ? `${n === 1 ? '1 bild' : `${n} bilder`} kunde inte läsas in. Kontrollera anslutningen och försök igen.`
+          : `${n} photo${n === 1 ? '' : 's'} could not be loaded. Check your connection and try again.`,
       failedPhotos: result.failed,
     });
     return;

@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router';
-import type { Order, PaymentProviderName } from '@printagram/shared';
-import { fmtEuro, pdfPriceCents } from '@printagram/shared';
+import type { Order, PaymentProviderName, PromoRejection } from '@printagram/shared';
+import { fmtEuro, pdfPriceCents, promoMessage } from '@printagram/shared';
 import {
   Banner,
   Button,
@@ -15,6 +15,7 @@ import {
   WizardBar,
 } from '@/components/ui';
 import { CoverThumb } from '@/components/PageRenderer';
+import { errorText, useLang, useT } from '@/i18n';
 import { ApiClientError, api } from '@/services';
 import { useDraft } from '@/state/draft';
 import { saveCurrentDraft, useBook } from '@/state/useBook';
@@ -27,6 +28,8 @@ const StripeBox = lazy(() => import('./StripeBox'));
 type PayState = 'idle' | 'processing' | 'error';
 
 export function Checkout() {
+  const t = useT();
+  const lang = useLang((x) => x.lang);
   const nav = useNavigate();
   const cfg = useConfig();
   const d = useDraft();
@@ -73,7 +76,7 @@ export function Checkout() {
         }
       } catch (e) {
         setPay('error');
-        setPayMsg(e instanceof Error ? e.message : 'Could not start checkout.');
+        setPayMsg(errorText(e, t));
       } finally {
         creating.current = false;
       }
@@ -94,12 +97,12 @@ export function Checkout() {
     if (hasAccount) return true;
     if (!d.email.includes('@')) {
       setPay('error');
-      setPayMsg('Please enter an email address so we can send your download link.');
+      setPayMsg(t.checkout.needEmail);
       return false;
     }
     if (password.length < 8) {
       setPay('error');
-      setPayMsg('Please choose a password of at least 8 characters for your account.');
+      setPayMsg(t.checkout.needPassword);
       return false;
     }
     try {
@@ -109,15 +112,13 @@ export function Checkout() {
     } catch (e) {
       setPay('error');
       if (e instanceof ApiClientError && e.code === 'EMAIL_TAKEN') {
-        setPayMsg(
-          'That email already has a Printagram account. Sign in to continue with this book.',
-        );
+        setPayMsg(t.checkout.emailTaken);
       } else {
-        setPayMsg(e instanceof Error ? e.message : 'Could not create your account.');
+        setPayMsg(errorText(e, t));
       }
       return false;
     }
-  }, [d.email, hasAccount, password, setUser]);
+  }, [d.email, hasAccount, password, setUser, t]);
 
   const finishPaid = (o: Order) => {
     d.setLastOrderId(o.id);
@@ -132,7 +133,7 @@ export function Checkout() {
       finishPaid(await fn());
     } catch (e) {
       setPay('error');
-      setPayMsg(e instanceof Error ? e.message : 'Payment failed.');
+      setPayMsg(errorText(e, t));
     }
   };
 
@@ -144,10 +145,11 @@ export function Checkout() {
       const res = await api.applyPromo(order.id, code);
       setOrder(res.order);
       if (res.clientSecret) setClientSecret(res.clientSecret);
-      if (res.rejected) setPromoMsg(res.rejected.reason);
+      if (res.rejected)
+        setPromoMsg(promoMessage(res.rejected.code as PromoRejection, lang) ?? res.rejected.reason);
       else setPromoInput('');
     } catch (e) {
-      setPromoMsg(e instanceof Error ? e.message : 'Could not apply the code.');
+      setPromoMsg(errorText(e, t));
     } finally {
       setPromoBusy(false);
     }
@@ -158,7 +160,9 @@ export function Checkout() {
       {order?.promoCode ? (
         <div className={s.promoApplied}>
           <span>
-            Code <strong>{order.promoCode}</strong> applied · −{fmtEuro(discount)}
+            {t.checkout.promoAppliedBefore}
+            <strong>{order.promoCode}</strong>
+            {t.checkout.promoAppliedAfter(fmtEuro(discount, lang))}
           </span>
           <button
             type="button"
@@ -166,7 +170,7 @@ export function Checkout() {
             onClick={() => applyPromo('')}
             disabled={promoBusy}
           >
-            Remove
+            {t.checkout.promoRemove}
           </button>
         </div>
       ) : promoOpen ? (
@@ -178,13 +182,13 @@ export function Checkout() {
           }}
         >
           <Input
-            placeholder="Discount code"
+            placeholder={t.checkout.promoPlaceholder}
             value={promoInput}
             onChange={(e) => {
               setPromoInput(e.target.value);
               setPromoMsg(null);
             }}
-            aria-label="Discount code"
+            aria-label={t.checkout.promoPlaceholder}
             autoCapitalize="characters"
             style={{ flex: 1 }}
           />
@@ -194,7 +198,7 @@ export function Checkout() {
             size="md"
             disabled={promoBusy || !order || !promoInput.trim()}
           >
-            {promoBusy ? 'Checking…' : 'Apply'}
+            {promoBusy ? t.checkout.promoChecking : t.checkout.promoApply}
           </Button>
         </form>
       ) : (
@@ -204,7 +208,7 @@ export function Checkout() {
           style={{ alignSelf: 'flex-start' }}
           onClick={() => setPromoOpen(true)}
         >
-          Have a discount code?
+          {t.checkout.promoOpen}
         </button>
       )}
       {promoMsg && (
@@ -224,54 +228,54 @@ export function Checkout() {
             {d.title}
           </div>
           <div className="tiny muted">
-            {order?.pageCount ?? book.total} pages · {d.format === 'square' ? 'Square' : 'Portrait'}{' '}
-            · {book.chosen.length} photos
+            {t.checkout.bookLine(
+              order?.pageCount ?? book.total,
+              d.format === 'square' ? t.checkout.square : t.checkout.portrait,
+              book.chosen.length,
+            )}
           </div>
         </div>
       </div>
       <div className="divider" />
       <div className="row between" style={{ fontSize: 15 }}>
-        <span>Digital PDF</span>
-        <span>{fmtEuro(subtotal)}</span>
+        <span>{t.checkout.digitalPdf}</span>
+        <span>{fmtEuro(subtotal, lang)}</span>
       </div>
       {discount > 0 && (
         <div className="row between" style={{ fontSize: 15, color: 'var(--primary-deep)' }}>
-          <span>Discount ({order?.promoCode})</span>
-          <span>−{fmtEuro(discount)}</span>
+          <span>{t.checkout.discount(order?.promoCode ?? '')}</span>
+          <span>−{fmtEuro(discount, lang)}</span>
         </div>
       )}
       <div className="divider" />
       <div className="row between semibold" style={{ fontSize: 18 }}>
-        <span>Total</span>
-        <span>{fmtEuro(total)}</span>
+        <span>{t.checkout.total}</span>
+        <span>{fmtEuro(total, lang)}</span>
       </div>
       {promo}
-      <p className="tiny muted center pretty">
-        You receive a downloadable, print‑ready PDF. Printed books ship later — we'll email you when
-        they're ready.
-      </p>
+      <p className="tiny muted center pretty">{t.checkout.summaryNote}</p>
     </Card>
   );
 
   const accountForm = (
     <>
       <div className="tiny semibold muted" style={{ marginTop: 8 }}>
-        Your Printagram account
+        {t.checkout.accountTitle}
       </div>
       {hasAccount ? (
         <Card bordered pad="tight" gap={4} style={{ padding: '14px 16px' }}>
           <div className="row between gap-12">
             <div>
               <div className="medium">{user?.email}</div>
-              <div className="tiny muted">Your PDF and library will be saved to this account.</div>
+              <div className="tiny muted">{t.checkout.accountSaved}</div>
             </div>
-            <Pill>Signed in</Pill>
+            <Pill>{t.checkout.signedIn}</Pill>
           </div>
         </Card>
       ) : (
         <Fieldset>
           <FieldInput
-            placeholder="Email"
+            placeholder={t.checkout.email}
             type="email"
             autoComplete="email"
             value={d.email}
@@ -279,10 +283,10 @@ export function Checkout() {
               d.setEmail(e.target.value);
               clearError();
             }}
-            aria-label="Email"
+            aria-label={t.checkout.email}
           />
           <FieldInput
-            placeholder="Create a password (8+ characters)"
+            placeholder={t.checkout.passwordPlaceholder}
             type="password"
             autoComplete="new-password"
             value={password}
@@ -290,15 +294,16 @@ export function Checkout() {
               setPassword(e.target.value);
               clearError();
             }}
-            aria-label="Password"
+            aria-label={t.checkout.password}
           />
         </Fieldset>
       )}
       <div className="tiny muted pretty">
-        Keeps your photos and books for 3 months so you can order more without importing again.{' '}
+        {t.checkout.accountKeeps}{' '}
         {!hasAccount && (
           <>
-            Already have an account? <Link to="/signin?next=/checkout">Sign in</Link>
+            {t.checkout.haveAccount}
+            <Link to="/signin?next=/checkout">{t.checkout.signIn}</Link>
           </>
         )}
       </div>
@@ -315,7 +320,7 @@ export function Checkout() {
     payment = (
       <div className="stack stack-10">
         <Banner tone="info" tight>
-          Your discount covers the whole book — no payment needed.
+          {t.checkout.freeBanner}
         </Banner>
         {accountForm}
         <Button
@@ -324,7 +329,7 @@ export function Checkout() {
           onClick={() => run(() => api.confirmFree(order.id))}
           disabled={pay === 'processing'}
         >
-          {pay === 'processing' ? 'One moment…' : 'Get my PDF'}
+          {pay === 'processing' ? t.checkout.oneMoment : t.checkout.getPdf}
         </Button>
       </div>
     );
@@ -362,7 +367,7 @@ export function Checkout() {
   } else if (order && provider === 'stripe') {
     payment = (
       <Banner tone="error" tight>
-        Payments are not configured correctly on this server.
+        {t.checkout.notConfigured}
       </Banner>
     );
   }
@@ -370,51 +375,51 @@ export function Checkout() {
   return (
     <div className="screen screen--bar">
       <header className="container row gap-12" style={{ padding: '14px var(--gutter)' }}>
-        <div className="h4">Checkout</div>
+        <div className="h4">{t.checkout.title}</div>
       </header>
 
       <div className="container grid-auto grid-auto--320" style={{ paddingTop: 8 }}>
         <div className="stack stack-22">
           <div className="stack stack-10">
-            <Label>Choose a format</Label>
+            <Label>{t.checkout.chooseFormat}</Label>
             <button type="button" className={`${s.option} ${s['option--on']}`}>
               <div>
-                <div className="semibold">Digital PDF</div>
-                <div className="tiny muted">Download instantly, print anywhere</div>
+                <div className="semibold">{t.checkout.digitalPdf}</div>
+                <div className="tiny muted">{t.checkout.pdfHint}</div>
               </div>
               <div className="serif" style={{ fontSize: 20 }}>
-                {fmtEuro(total)}
+                {fmtEuro(total, lang)}
               </div>
             </button>
             <div className={`${s.option} ${s['option--soon']}`}>
               <div>
                 <div className="semibold" style={{ color: 'var(--text)' }}>
-                  Softcover book <Pill tone="tag">Coming soon</Pill>
+                  {t.checkout.softcover} <Pill tone="tag">{t.checkout.comingSoon}</Pill>
                 </div>
-                <div className="tiny">Printing & shipping</div>
+                <div className="tiny">{t.checkout.softcoverHint}</div>
               </div>
               <div className="serif" style={{ fontSize: 20 }}>
-                from {fmtEuro(cfg.pricing.printedFrom.softcoverCents)}
+                {t.checkout.from(fmtEuro(cfg.pricing.printedFrom.softcoverCents, lang))}
               </div>
             </div>
             <div className={`${s.option} ${s['option--soon']}`}>
               <div>
                 <div className="semibold" style={{ color: 'var(--text)' }}>
-                  Hardcover book <Pill tone="tag">Coming soon</Pill>
+                  {t.checkout.hardcover} <Pill tone="tag">{t.checkout.comingSoon}</Pill>
                 </div>
-                <div className="tiny">Linen cover, lay‑flat</div>
+                <div className="tiny">{t.checkout.hardcoverHint}</div>
               </div>
               <div className="serif" style={{ fontSize: 20 }}>
-                from {fmtEuro(cfg.pricing.printedFrom.hardcoverCents)}
+                {t.checkout.from(fmtEuro(cfg.pricing.printedFrom.hardcoverCents, lang))}
               </div>
             </div>
           </div>
 
           <div className="stack stack-10">
-            <Label>Payment</Label>
+            <Label>{t.checkout.payment}</Label>
             {!order && pay !== 'error' && (
               <div className="row gap-10 small muted">
-                <Spinner variant="inline" /> Preparing checkout…
+                <Spinner variant="inline" /> {t.checkout.preparing}
               </div>
             )}
             {payment}
@@ -430,8 +435,8 @@ export function Checkout() {
       </div>
 
       <WizardBar onBack={() => nav('/preview')}>
-        <div className="semibold">Total {fmtEuro(total)}</div>
-        <div className="tiny muted">Digital PDF</div>
+        <div className="semibold">{t.checkout.totalAmount(fmtEuro(total, lang))}</div>
+        <div className="tiny muted">{t.checkout.digitalPdf}</div>
       </WizardBar>
     </div>
   );
