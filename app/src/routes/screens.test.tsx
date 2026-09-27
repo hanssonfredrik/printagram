@@ -119,8 +119,24 @@ describe('screens (against the in-memory test API)', () => {
     fireEvent.click(screen.getByText('Send via Google Photos'));
     await waitFor(() => expect(router.state.location.pathname).toBe('/google'));
     expect(await screen.findByText('Bring in photos via Google Photos')).toBeTruthy();
-    expect(screen.getByText('Choose Google Photos')).toBeTruthy();
+    expect(
+      screen.getByText('Have you already sent your Instagram photos to Google Photos?'),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByText('Not yet — show me how'));
+    expect(await screen.findByText('Choose Google Photos')).toBeTruthy();
     expect(screen.getByText(/captions and likes stay on Instagram/)).toBeTruthy();
+    fireEvent.click(screen.getByText("I've started the transfer — continue"));
+    expect(await screen.findByText('Next: sign in with Google')).toBeTruthy();
+    expect(screen.getByText('Sign in with Google')).toBeTruthy();
+    fireEvent.click(screen.getByText('Show the Instagram steps again'));
+    expect(await screen.findByText('Choose Google Photos')).toBeTruthy();
+  });
+
+  it('google: "yes" skips straight to the sign-in step', async () => {
+    renderAt('/google');
+    fireEvent.click(await screen.findByText("Yes, they're in Google Photos"));
+    expect(await screen.findByText('Next: sign in with Google')).toBeTruthy();
+    expect(screen.queryByText('Choose Google Photos')).toBeNull();
   });
 
   it('google: back from Google → pick in the Picker → import → found photos', async () => {

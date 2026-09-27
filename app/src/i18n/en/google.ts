@@ -3,6 +3,19 @@ export const google = {
   title: 'Bring in photos via Google Photos',
   intro:
     'Instagram can send a copy of your posts straight to Google Photos — for every account, private ones too. Then you pick the photos in Google Photos and we copy them. No ZIP to download.',
+  ask: {
+    question: 'Have you already sent your Instagram photos to Google Photos?',
+    hint: 'This is done inside Instagram, not here. It takes two minutes to start, and Instagram does the copying in the background.',
+    yes: "Yes, they're in Google Photos",
+    no: 'Not yet — show me how',
+  },
+  howTo: 'How to send your posts to Google Photos',
+  started: "I've started the transfer — continue",
+  ready: {
+    title: 'Next: sign in with Google',
+    text: 'Sign in once the photos have arrived in Google Photos (look for the Data Transfer album). Started the transfer just now? Come back later — nothing is lost, and the steps are in your inbox if you emailed them.',
+    back: 'Show the Instagram steps again',
+  },
   steps: [
     {
       title: 'Open Accounts Center',
@@ -21,8 +34,6 @@ export const google = {
       text: 'Instagram copies your photos in the background — usually within an hour, sometimes longer. Google Photos shows them in a folder or album called Data Transfer.',
     },
   ],
-  /** Placeholder labels for the step pictures until drawings exist. */
-  stepShots: ['Accounts Center', 'Transfer a copy', 'Destination', 'Data Transfer'],
   goodToKnow: {
     title: 'Good to know',
     text: 'Only the photos make the trip: captions and likes stay on Instagram. Dates are what Google Photos knows about each file, which is often the day of the transfer rather than the day you posted. You can still put pages in any order when arranging the book.',
@@ -31,7 +42,7 @@ export const google = {
   sendToAddress: 'Send to this address',
   sent: 'Sent ✓',
   emailPlaceholder: 'your@email.com',
-  signIn: 'My photos are in Google Photos — sign in with Google',
+  signIn: 'Sign in with Google',
   opensWindow: 'Opens accounts.google.com. You sign in there — we never see your password.',
   signedIn: {
     title: 'Signed in with Google',

@@ -4,6 +4,19 @@ export const google: Messages['google'] = {
   title: 'Hämta bilder via Google Foto',
   intro:
     'Instagram kan skicka en kopia av dina inlägg direkt till Google Foto – för alla konton, privata också. Sedan väljer du bilderna i Google Foto och vi kopierar dem. Ingen ZIP-fil att ladda ner.',
+  ask: {
+    question: 'Har du redan skickat dina Instagram-bilder till Google Foto?',
+    hint: 'Det gör du inne i Instagram, inte här. Det tar två minuter att starta, sedan kopierar Instagram i bakgrunden.',
+    yes: 'Ja, de finns i Google Foto',
+    no: 'Inte än – visa hur',
+  },
+  howTo: 'Så skickar du dina inlägg till Google Foto',
+  started: 'Jag har startat överföringen – fortsätt',
+  ready: {
+    title: 'Nästa steg: logga in med Google',
+    text: 'Logga in när bilderna har kommit fram i Google Foto (leta efter albumet Data Transfer). Startade du överföringen nyss? Kom tillbaka senare – inget går förlorat, och stegen finns i din inkorg om du mejlade dem.',
+    back: 'Visa Instagram-stegen igen',
+  },
   steps: [
     {
       title: 'Öppna Kontocenter',
@@ -22,7 +35,6 @@ export const google: Messages['google'] = {
       text: 'Instagram kopierar dina bilder i bakgrunden – oftast inom en timme, ibland längre. I Google Foto hamnar de i en mapp eller ett album som heter Data Transfer.',
     },
   ],
-  stepShots: ['Kontocenter', 'Överför en kopia', 'Destination', 'Data Transfer'],
   goodToKnow: {
     title: 'Bra att veta',
     text: 'Bara bilderna följer med: bildtexter och gilla-markeringar stannar på Instagram. Datumen är vad Google Foto vet om varje fil, ofta dagen för överföringen snarare än dagen du publicerade. Du kan ändå lägga sidorna i vilken ordning du vill när du arrangerar boken.',
@@ -31,7 +43,7 @@ export const google: Messages['google'] = {
   sendToAddress: 'Skicka till den här adressen',
   sent: 'Skickat ✓',
   emailPlaceholder: 'din@epost.se',
-  signIn: 'Mina bilder finns i Google Foto – logga in med Google',
+  signIn: 'Logga in med Google',
   opensWindow: 'Öppnar accounts.google.com. Du loggar in där – vi ser aldrig ditt lösenord.',
   signedIn: {
     title: 'Inloggad med Google',

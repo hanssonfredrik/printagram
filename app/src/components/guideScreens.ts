@@ -55,6 +55,14 @@ const IG_EN = {
   business: 'Business',
   next: 'Next',
   professionalDashboard: 'Professional dashboard',
+  transferCopy: 'Transfer a copy of your information',
+  chooseDestination: 'Choose destination',
+  googlePhotos: 'Google Photos',
+  dropbox: 'Dropbox',
+  koofr: 'Koofr',
+  startTransfer: 'Start transfer',
+  albums: 'Albums',
+  dataTransfer: 'Data Transfer',
 };
 
 const IG: Record<Lang, typeof IG_EN> = {
@@ -97,6 +105,14 @@ const IG: Record<Lang, typeof IG_EN> = {
     business: 'Företag',
     next: 'Nästa',
     professionalDashboard: 'Professionell översikt',
+    transferCopy: 'Överför en kopia av din information',
+    chooseDestination: 'Välj destination',
+    googlePhotos: 'Google Foto',
+    dropbox: 'Dropbox',
+    koofr: 'Koofr',
+    startTransfer: 'Starta överföring',
+    albums: 'Album',
+    dataTransfer: 'Data Transfer',
   },
 };
 
@@ -197,6 +213,37 @@ export function exportScreens(lang: Lang): Record<'mobile' | 'desktop', GuideScr
       },
     ],
   };
+}
+
+/* ---------- Screens for sending posts to Google Photos ---------- */
+
+export function transferScreens(lang: Lang): GuideScreenSpec[] {
+  const l = IG[lang];
+  return [
+    {
+      title: l.settingsAndActivity,
+      rows: [{ label: l.accountsCenter, hi: true }, ...bars(55, 62, 40, 50)],
+    },
+    {
+      title: l.yourInformation,
+      rows: [...bars(58), { label: l.transferCopy, hi: true }, ...bars(46, 52)],
+    },
+    {
+      title: l.chooseDestination,
+      rows: [
+        { label: l.googlePhotos, check: true, hi: true },
+        { label: l.dropbox, check: false },
+        { label: l.koofr, check: false },
+        { label: l.posts, value: l.allTime },
+        { label: l.startTransfer, button: true },
+      ],
+    },
+    {
+      title: l.googlePhotos,
+      section: l.albums,
+      rows: [{ label: l.dataTransfer, hi: true }, ...bars(48, 56, 40)],
+    },
+  ];
 }
 
 /* ---------- Screens for switching to a professional account ---------- */

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import type { GoogleError } from '@printagram/shared';
 import {
@@ -18,9 +18,13 @@ import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
 import { useLibrary } from '@/state/library';
 import { artGradient } from '@/components/art';
-import { getT, useT } from '@/i18n';
+import { GuideScreen } from '@/components/guideArt';
+import { transferScreens } from '@/components/guideScreens';
+import { getT, useLang, useT } from '@/i18n';
 
 type Phase = 'guide' | 'waiting' | 'connected' | 'picking' | 'importing' | 'done' | 'error';
+/** Sub-steps of the guide: the question, the Instagram how-to, and the sign-in. */
+type GuideStep = 'ask' | 'howto' | 'ready';
 
 function isGoogleError(e: string | null): e is GoogleError {
   return !!e && Object.hasOwn(getT().google.errors, e);
@@ -45,6 +49,9 @@ export function GooglePhotos() {
   const setPhotos = useLibrary((l) => l.setPhotos);
 
   const [phase, setPhase] = useState<Phase>('guide');
+  const [step, setStep] = useState<GuideStep>('ask');
+  const lang = useLang((x) => x.lang);
+  const transferShots = useMemo(() => transferScreens(lang), [lang]);
   const [err, setErr] = useState<GoogleError | null>(null);
   const [pct, setPct] = useState(0);
   const [libraryId, setLibraryId] = useState<string | null>(null);
@@ -237,9 +244,35 @@ export function GooglePhotos() {
       </ScreenHeader>
 
       <div className="container container--narrow stack stack-20" style={{ paddingTop: 8 }}>
-        {phase === 'guide' && (
+        {phase === 'guide' && step === 'ask' && (
           <>
             <p className="muted pretty">{tg.intro}</p>
+            <Card bordered radius="2xl" pad="mid" gap={14}>
+              <div className="h3" style={{ fontSize: 20 }}>
+                {tg.ask.question}
+              </div>
+              <div className="small muted pretty">{tg.ask.hint}</div>
+              <div
+                className="grid-auto"
+                style={{
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
+                  gap: 10,
+                }}
+              >
+                <Button size="lg" onClick={() => setStep('ready')}>
+                  {tg.ask.yes}
+                </Button>
+                <Button size="lg" variant="secondary" onClick={() => setStep('howto')}>
+                  {tg.ask.no}
+                </Button>
+              </div>
+            </Card>
+          </>
+        )}
+
+        {phase === 'guide' && step === 'howto' && (
+          <>
+            <div className="semibold">{tg.howTo}</div>
             <div className="stack stack-12">
               {tg.steps.map(({ title, text }, i) => (
                 <StepCard
@@ -247,7 +280,7 @@ export function GooglePhotos() {
                   n={i + 1}
                   title={title}
                   text={text}
-                  shot={tg.stepShots[i] ?? ''}
+                  shot={<GuideScreen spec={transferShots[i]!} />}
                 />
               ))}
             </div>
@@ -255,10 +288,9 @@ export function GooglePhotos() {
               {tg.goodToKnow.text}
             </Banner>
             <div className="stack stack-10">
-              <Button block size="xl" onClick={startSignIn}>
-                {tg.signIn}
+              <Button block size="xl" onClick={() => setStep('ready')}>
+                {tg.started}
               </Button>
-              <div className="tiny muted center pretty">{tg.opensWindow}</div>
               {askEmail && (
                 <input
                   type="email"
@@ -278,6 +310,26 @@ export function GooglePhotos() {
                 {sent ? tg.sent : askEmail ? tg.sendToAddress : tg.emailSteps}
               </Button>
             </div>
+          </>
+        )}
+
+        {phase === 'guide' && step === 'ready' && (
+          <>
+            <Card bordered radius="2xl" pad="hero" center gap={16}>
+              <div>
+                <div className="h3">{tg.ready.title}</div>
+                <div className="small muted pretty" style={{ marginTop: 6, maxWidth: '44ch' }}>
+                  {tg.ready.text}
+                </div>
+              </div>
+              <Button size="xl" style={{ width: '100%', maxWidth: 360 }} onClick={startSignIn}>
+                {tg.signIn}
+              </Button>
+              <div className="tiny muted pretty">{tg.opensWindow}</div>
+            </Card>
+            <button type="button" className="link-button" onClick={() => setStep('howto')}>
+              {tg.ready.back}
+            </button>
           </>
         )}
 
