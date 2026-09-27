@@ -35,41 +35,33 @@ export function ChooseSource() {
         <p className="muted pretty">{tc.intro}</p>
 
         <div className="grid-auto grid-auto--300" style={{ alignItems: 'stretch' }}>
-          <Card bordered radius="xl">
-            <div className="row gap-8">
-              {cfg.connectEnabled ? (
-                <Pill>{tc.instant}</Pill>
-              ) : (
-                <Pill tone="muted">{tc.comingSoon}</Pill>
-              )}
-            </div>
-            <div className="h3">{tc.connect.title}</div>
-            <p className="muted pretty" style={{ fontSize: 15 }}>
-              {tc.connect.text}
-            </p>
-            <div className="stack stack-10">
-              <Bullet>{tc.connect.needsPro}</Bullet>
-              <Bullet>{tc.connect.likes}</Bullet>
-              <Bullet warn>{tc.connect.public}</Bullet>
-            </div>
-            <div className="stack stack-8" style={{ marginTop: 'auto', paddingTop: 6 }}>
-              {cfg.connectEnabled ? (
+          {cfg.googlePhotosEnabled && (
+            <Card bordered radius="xl">
+              <div className="row gap-8">
+                <Pill>{tc.google.pill}</Pill>
+              </div>
+              <div className="h3">{tc.google.title}</div>
+              <p className="muted pretty" style={{ fontSize: 15 }}>
+                {tc.google.text}
+              </p>
+              <div className="stack stack-10">
+                <Bullet>{tc.google.every}</Bullet>
+                <Bullet>{tc.google.background}</Bullet>
+                <Bullet warn>{tc.google.noCaptions}</Bullet>
+              </div>
+              <div style={{ marginTop: 'auto', paddingTop: 6 }}>
                 <Button
                   block
                   onClick={() => {
-                    setSource('connect');
-                    nav('/connect');
+                    setSource('google');
+                    nav('/google');
                   }}
                 >
-                  {tc.connect.button}
+                  {tc.google.button}
                 </Button>
-              ) : (
-                <Banner tone="soft" tight>
-                  <span className="tiny">{tc.connect.waiting}</span>
-                </Banner>
-              )}
-            </div>
-          </Card>
+              </div>
+            </Card>
+          )}
 
           <Card bordered radius="xl">
             <div className="row gap-8">
@@ -98,34 +90,42 @@ export function ChooseSource() {
             </div>
           </Card>
 
-          {cfg.googlePhotosEnabled && (
-            <Card bordered radius="xl">
-              <div className="row gap-8">
-                <Pill>{tc.google.pill}</Pill>
-              </div>
-              <div className="h3">{tc.google.title}</div>
-              <p className="muted pretty" style={{ fontSize: 15 }}>
-                {tc.google.text}
-              </p>
-              <div className="stack stack-10">
-                <Bullet>{tc.google.every}</Bullet>
-                <Bullet>{tc.google.background}</Bullet>
-                <Bullet warn>{tc.google.noCaptions}</Bullet>
-              </div>
-              <div style={{ marginTop: 'auto', paddingTop: 6 }}>
+          <Card bordered radius="xl">
+            <div className="row gap-8">
+              {cfg.connectEnabled ? (
+                <Pill>{tc.instant}</Pill>
+              ) : (
+                <Pill tone="muted">{tc.comingSoon}</Pill>
+              )}
+            </div>
+            <div className="h3">{tc.connect.title}</div>
+            <p className="muted pretty" style={{ fontSize: 15 }}>
+              {tc.connect.text}
+            </p>
+            <div className="stack stack-10">
+              <Bullet>{tc.connect.needsPro}</Bullet>
+              <Bullet>{tc.connect.likes}</Bullet>
+              <Bullet warn>{tc.connect.public}</Bullet>
+            </div>
+            <div className="stack stack-8" style={{ marginTop: 'auto', paddingTop: 6 }}>
+              {cfg.connectEnabled ? (
                 <Button
                   block
                   variant="outline"
                   onClick={() => {
-                    setSource('google');
-                    nav('/google');
+                    setSource('connect');
+                    nav('/connect');
                   }}
                 >
-                  {tc.google.button}
+                  {tc.connect.button}
                 </Button>
-              </div>
-            </Card>
-          )}
+              ) : (
+                <Banner tone="soft" tight>
+                  <span className="tiny">{tc.connect.waiting}</span>
+                </Banner>
+              )}
+            </div>
+          </Card>
         </div>
 
         <div
