@@ -416,6 +416,11 @@ p {
 body:has(.footer-bar) .site-footer {
   padding-bottom: calc(96px + var(--safe-bottom));
 }
+.site-footer__link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 .site-footer__inner {
   max-width: var(--max-wide);
   margin: 0 auto;

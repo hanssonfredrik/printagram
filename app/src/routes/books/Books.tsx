@@ -183,7 +183,7 @@ export function Books() {
           style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer' }}
           onClick={() => nav('/')}
         >
-          Printagram
+          {t.common.brand}
         </button>
         <div
           className="row row-wrap gap-12 small muted"

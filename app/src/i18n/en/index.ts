@@ -11,6 +11,7 @@ import { done } from './done';
 import { books } from './books';
 import { auth } from './auth';
 import { share } from './share';
+import { about } from './about';
 
 /** English is the source of truth: Swedish must have exactly the same shape (checked by tsc). */
 export const en = {
@@ -28,6 +29,7 @@ export const en = {
   books,
   auth,
   share,
+  about,
 };
 
 export type Messages = typeof en;

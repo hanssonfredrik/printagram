@@ -5,19 +5,19 @@ export const choose: Messages['choose'] = {
   adding: (n: number) =>
     `Lägger till i ditt bibliotek. Bara inlägg som är nyare än din senaste import läggs till – de ${n} bilder du redan har ligger kvar som de är.`,
   intro:
-    'Några sätt att få in dina inlägg i Printagram. Alla ger bara läsåtkomst, och inget av dem delar ditt lösenord med oss.',
+    'Några sätt att få in dina inlägg i Inbunden. Alla ger bara läsåtkomst, och inget av dem delar ditt lösenord med oss.',
   instant: 'Direkt',
   comingSoon: 'Kommer snart',
   connect: {
     title: 'Anslut Instagram',
-    text: 'Logga in på Instagrams egen webbplats och ge Printagram tillåtelse att läsa dina inlägg. Dina bilder dyker upp här direkt.',
+    text: 'Logga in på Instagrams egen webbplats och ge Inbunden tillåtelse att läsa dina inlägg. Dina bilder dyker upp här direkt.',
     needsPro:
       'Kräver ett kreatörs- eller företagskonto. Att byta är gratis, tar två minuter och går att ångra.',
     likes: 'Dina gilla-markeringar följer med, så att du kan skriva ut dina mest gillade inlägg.',
     public: 'Professionella konton är offentliga. Vill du vara privat? Använd exporten.',
     button: 'Anslut Instagram',
     waiting:
-      'Vi väntar på att Instagram ska godkänna Printagram. Tills dess kan du använda exporten – den funkar för alla konton.',
+      'Vi väntar på att Instagram ska godkänna Inbunden. Tills dess kan du använda exporten – den funkar för alla konton.',
   },
   export: {
     pill: 'Funkar för alla konton',

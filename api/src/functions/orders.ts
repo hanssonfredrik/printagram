@@ -410,7 +410,7 @@ function pdfFileName(o: OrderRow): string {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
       .slice(0, 48) || 'book';
-  return `printagram-${slug}.pdf`;
+  return `inbunden-${slug}.pdf`;
 }
 
 route(

@@ -1,4 +1,4 @@
-# Printagram — User stories
+# Inbunden — User stories
 
 Status legend
 
@@ -9,7 +9,7 @@ Status legend
 | 🟡 Partial | Built but blocked on an external prerequisite (noted) |
 | ⬜ Future | Specified, not built |
 
-Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas** (Creator account, wants his most-liked posts printed), **Ops** (the person running Printagram).
+Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas** (Creator account, wants his most-liked posts printed), **Ops** (the person running Inbunden).
 
 ---
 
@@ -17,12 +17,13 @@ Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
-| 1.1 | As a visitor I want to understand what Printagram does in 10 seconds so I decide whether to start. | Hero headline, sub-line that promises a PDF today and printed books "coming soon", primary CTA "Start your book", "PDF from €9" from config; hero cover and phone rendered from sample images; "Test mode" pill while payments are simulated. | ✅ UI |
+| 1.1 | As a visitor I want to understand what Inbunden does in 10 seconds so I decide whether to start. | Hero headline, sub-line that promises a PDF today and printed books "coming soon", primary CTA "Start your book", "PDF from €9" from config; hero cover and phone rendered from sample images; "Test mode" pill while payments are simulated. | ✅ UI |
 | 1.2 | As a visitor I want to see how it works in three steps. | Bring in / Pick / Print cards. | ✅ UI |
 | 1.3 | As a visitor I want to see sample spreads so I trust the layout quality. | Three spreads (trip, summer, year in review) rendered by the real `PageRenderer` and templates from CC0 illustrations in `app/public/samples`. | ✅ UI |
 | 1.4 | As a visitor I want transparent pricing. | Flat €9 per PDF, whatever the number of photos or pages (`PRICE_BASE_CENTS`, from `/api/config`), softcover/hardcover "from" prices (`pricing.printedFrom`) marked "Coming soon". | ✅ UI ✅ API |
 | 1.5 | As a visitor I want answers to safety, account-type, private-account, export-time, retention, deliverable and layout questions. | FAQ block with the seven questions from the design. | ✅ UI |
 | 1.6 | As a returning customer I want "Sign in" / "My books" in the header. | Header switches based on session. | ✅ UI |
+| 1.8 | As a visitor I want to know what the name means and who is behind it. | `/about` (linked from every footer): the name (Swedish for hardcover, "bound in"), what the service does, how photos are handled, a founder line and a contact address; in English and Swedish; listed in `sitemap.xml`. | ✅ UI |
 | 1.7 | As Ops I want the landing page to look right when shared and be indexable. | Open Graph/Twitter tags and `og-image.jpg`; the build emits `robots.txt`, and with `VITE_SITE_URL` also canonical, `og:url` and `sitemap.xml`. | ✅ UI |
 
 ## Epic 2 — Bring in photos: choose a source
@@ -75,7 +76,7 @@ Why: no Instagram API can read a private account and professional accounts canno
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
 | 4b.1 | As Mara I want to be asked whether my posts are already in Google Photos, and if not, step-by-step instructions I can also get by email. | Wizard: "Have you already sent your Instagram photos to Google Photos?" → *Yes* goes to sign-in; *Not yet* shows four drawn steps (Accounts Center → Transfer a copy → Google Photos → wait), "Good to know" on captions/dates, "Email me these steps" → `POST /api/auth/export-steps` with `kind: 'google'`, then "I've started the transfer" → sign-in step with a come-back-later note. | ✅ UI ✅ API |
-| 4b.2 | As Mara I want to sign in with Google without giving Printagram my whole library. | `GET /api/google/start` (signed state) → Google consent, Picker scope only, 1-hour online token → `GET /api/google/callback` → token encrypted on the library row → `/google?connected=1`. Errors `denied`, `expired`, `unknown`. | 🟡 Partial — code complete; needs a Google OAuth client verified for the Picker scope |
+| 4b.2 | As Mara I want to sign in with Google without giving Inbunden my whole library. | `GET /api/google/start` (signed state) → Google consent, Picker scope only, 1-hour online token → `GET /api/google/callback` → token encrypted on the library row → `/google?connected=1`. Errors `denied`, `expired`, `unknown`. | 🟡 Partial — code complete; needs a Google OAuth client verified for the Picker scope |
 | 4b.3 | As Mara I want to pick the photos inside Google Photos. | `POST /api/google/session` opens a Picker session and returns `pickerUri` (opened with `/autoclose`); the app polls `GET /api/google/session` at Google's interval until `mediaItemsSet`. | ✅ UI ✅ API |
 | 4b.4 | As Mara I want the copy to run with progress and survive a slow connection. | Same job loop as connect: `POST /api/libraries/{id}/imports` → `POST /api/imports/{job}/run` (22 s batches, lease, resumable, idempotent on `gp_<mediaId>`); bytes fetched with the bearer token and `=d`, jimp thumbnails; HEIC skipped, videos recorded never printed; the session is deleted afterwards. Route-tested with a stubbed Google client. | ✅ UI ✅ API |
 | 4b.5 | As Mara I want the best possible dates. | EXIF `DateTimeOriginal` read from the JPEG when present (`api/src/lib/exif.ts`, unit-tested), else Google's `createTime`; the UI warns that dates may be the transfer date. | ✅ API |

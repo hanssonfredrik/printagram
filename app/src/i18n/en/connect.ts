@@ -2,7 +2,7 @@
 export const connect = {
   title: 'Connect your Instagram',
   intro:
-    "You'll log in on instagram.com and allow Printagram to read your posts. Instagram only lets Creator and Business accounts connect, so first a quick check.",
+    "You'll log in on instagram.com and allow Inbunden to read your posts. Instagram only lets Creator and Business accounts connect, so first a quick check.",
   acctQuestion: 'What kind of account do you have?',
   acct: {
     pro: 'Creator or Business',
@@ -10,7 +10,7 @@ export const connect = {
     unsure: 'Not sure',
   },
   askFor: {
-    title: 'What Printagram will ask for',
+    title: 'What Inbunden will ask for',
     profile: 'Your username and profile picture',
     posts: 'Your posts — photos, captions, dates and likes',
     readOnly:
@@ -69,7 +69,7 @@ export const connect = {
     },
     denied: {
       title: 'No access was granted',
-      text: "The Instagram window was closed or you tapped Cancel, so nothing was shared with Printagram. Try again whenever you're ready, or use the export instead.",
+      text: "The Instagram window was closed or you tapped Cancel, so nothing was shared with Inbunden. Try again whenever you're ready, or use the export instead.",
     },
     expired: {
       title: 'The connection timed out',
@@ -95,7 +95,7 @@ export const connect = {
     `${posts} posts · ${carousels} carousels · ${videos} videos skipped by default · likes included`,
   backToBooks: 'Back to My books',
   choosePhotos: 'Choose photos',
-  readUntil: 'Printagram can read your posts until you disconnect, or automatically after 60 days.',
+  readUntil: 'Inbunden can read your posts until you disconnect, or automatically after 60 days.',
   disconnectNow: 'Disconnect now',
   disconnected:
     "Disconnected. Your copied photos stay until your book is done, then they're deleted.",

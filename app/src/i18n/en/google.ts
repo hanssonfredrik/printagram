@@ -48,7 +48,7 @@ export const google = {
     title: 'Signed in with Google',
     text: 'Next, pick the photos for your book inside Google Photos. Look for the Data Transfer album — that is where Instagram put them. Choose as many as you like, then tap Done.',
     pick: 'Pick photos in Google Photos',
-    note: 'Google only shares the photos you pick. Printagram never sees the rest of your library.',
+    note: 'Google only shares the photos you pick. Inbunden never sees the rest of your library.',
   },
   picking: {
     title: 'Waiting for your selection…',
@@ -58,7 +58,7 @@ export const google = {
   errors: {
     denied: {
       title: 'No access was granted',
-      text: 'The Google window was closed or you tapped Cancel, so nothing was shared with Printagram. Try again whenever you are ready, or use the export instead.',
+      text: 'The Google window was closed or you tapped Cancel, so nothing was shared with Inbunden. Try again whenever you are ready, or use the export instead.',
     },
     expired: {
       title: 'The sign-in timed out',
@@ -83,7 +83,7 @@ export const google = {
     `${videos} videos skipped · no captions or likes — those stay on Instagram`,
   backToBooks: 'Back to My books',
   choosePhotos: 'Choose photos',
-  readUntil: "Printagram's access to Google Photos ends by itself within an hour.",
+  readUntil: "Inbunden's access to Google Photos ends by itself within an hour.",
   disconnectNow: 'End it now',
   disconnected:
     'Access ended. Your copied photos stay until your book is done, then they are deleted.',

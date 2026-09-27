@@ -44,7 +44,7 @@ They are set by the Bicep deployment; change them in the portal or redeploy with
 
 Free plan allows 2 custom domains with free SSL: Static Web App → Custom domains. Then:
 
-1. Redeploy with `-AppBaseUrl https://printagram.app -ExtraCorsOrigins https://printagram.app,https://www.printagram.app`
+1. Redeploy with `-AppBaseUrl https://inbunden.app -ExtraCorsOrigins https://inbunden.app,https://www.inbunden.app`
    (Blob CORS must list every origin that uploads/downloads).
 2. Register the domain under Stripe → Payment method domains (needed for Apple Pay / Google Pay).
 3. Update `IG_REDIRECT_URI` in the Meta app dashboard and the redirect URI of the Google OAuth client.

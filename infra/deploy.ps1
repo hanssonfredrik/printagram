@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Provisions Printagram on Azure (Storage account + Static Web App Free) and prints the
+  Provisions Inbunden on Azure (Storage account + Static Web App Free) and prints the
   GitHub secrets you need. Nothing is created until you run this yourself.
 
 .EXAMPLE
@@ -9,7 +9,7 @@
 
 .EXAMPLE
   # With Stripe + Resend configured
-  ./infra/deploy.ps1 -ResourceGroup printagram-rg -PaymentProvider stripe -StripeSecretKey sk_live_... -StripePublishableKey pk_live_... -StripeWebhookSecret whsec_... -ResendApiKey re_... -EmailFrom "Printagram <hello@printagram.app>"
+  ./infra/deploy.ps1 -ResourceGroup printagram-rg -PaymentProvider stripe -StripeSecretKey sk_live_... -StripePublishableKey pk_live_... -StripeWebhookSecret whsec_... -ResendApiKey re_... -EmailFrom "Inbunden <hello@inbunden.app>"
 #>
 [CmdletBinding()]
 param(
@@ -27,7 +27,7 @@ param(
   [string] $StripePublishableKey = '',
   [string] $StripeWebhookSecret = '',
   [string] $ResendApiKey = '',
-  [string] $EmailFrom = 'Printagram <hello@printagram.app>',
+  [string] $EmailFrom = 'Inbunden <hello@inbunden.app>',
   [string] $IgAppId = '',
   [string] $IgAppSecret = '',
   [string] $GoogleClientId = '',

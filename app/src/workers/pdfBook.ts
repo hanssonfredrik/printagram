@@ -333,9 +333,9 @@ function addXmp(doc: PDFDocument, title: string) {
     '<rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/" ' +
     'xmlns:xmp="http://ns.adobe.com/xap/1.0/" xmlns:pdf="http://ns.adobe.com/pdf/1.3/">' +
     `<dc:title><rdf:Alt><rdf:li xml:lang="x-default">${xmlEscape(title)}</rdf:li></rdf:Alt></dc:title>` +
-    '<dc:creator><rdf:Seq><rdf:li>Printagram</rdf:li></rdf:Seq></dc:creator>' +
-    `<xmp:CreatorTool>Printagram</xmp:CreatorTool><xmp:CreateDate>${now}</xmp:CreateDate>` +
-    `<xmp:ModifyDate>${now}</xmp:ModifyDate><pdf:Producer>Printagram</pdf:Producer>` +
+    '<dc:creator><rdf:Seq><rdf:li>Inbunden</rdf:li></rdf:Seq></dc:creator>' +
+    `<xmp:CreatorTool>Inbunden</xmp:CreatorTool><xmp:CreateDate>${now}</xmp:CreateDate>` +
+    `<xmp:ModifyDate>${now}</xmp:ModifyDate><pdf:Producer>Inbunden</pdf:Producer>` +
     '</rdf:Description></rdf:RDF></x:xmpmeta><?xpacket end="w"?>';
   const stream = doc.context.stream(new TextEncoder().encode(xmp), {
     Type: 'Metadata',
@@ -386,9 +386,9 @@ export async function buildBookPdf(
   const doc = await PDFDocument.create();
   doc.registerFontkit(fontkit);
   doc.setTitle(input.title, { showInWindowTitleBar: true });
-  doc.setAuthor('Printagram');
-  doc.setProducer('Printagram');
-  doc.setCreator('Printagram');
+  doc.setAuthor('Inbunden');
+  doc.setProducer('Inbunden');
+  doc.setCreator('Inbunden');
   doc.setLanguage(input.lang ?? 'en');
   doc.setCreationDate(new Date());
   doc.setModificationDate(new Date());
@@ -396,7 +396,7 @@ export async function buildBookPdf(
   addXmp(doc, input.title);
 
   progress('fonts', 0, 1);
-  const title = input.title.trim() || 'Printagram';
+  const title = input.title.trim() || 'Inbunden';
   const photoCount = flattenPhotoIds(input.pages).length;
   const text = bookText(input.lang);
   const subtitle = `${input.dateSpan} · ${text.photos(photoCount)}`;

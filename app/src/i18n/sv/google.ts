@@ -49,7 +49,7 @@ export const google: Messages['google'] = {
     title: 'Inloggad med Google',
     text: 'Välj nu bilderna till din bok inne i Google Foto. Leta efter albumet Data Transfer – det är dit Instagram lade dem. Välj hur många du vill och tryck sedan på Klar.',
     pick: 'Välj bilder i Google Foto',
-    note: 'Google delar bara de bilder du väljer. Printagram ser aldrig resten av ditt bibliotek.',
+    note: 'Google delar bara de bilder du väljer. Inbunden ser aldrig resten av ditt bibliotek.',
   },
   picking: {
     title: 'Väntar på ditt val…',
@@ -59,7 +59,7 @@ export const google: Messages['google'] = {
   errors: {
     denied: {
       title: 'Ingen åtkomst gavs',
-      text: 'Google-fönstret stängdes eller du tryckte på Avbryt, så inget delades med Printagram. Försök igen när du vill, eller använd exporten i stället.',
+      text: 'Google-fönstret stängdes eller du tryckte på Avbryt, så inget delades med Inbunden. Försök igen när du vill, eller använd exporten i stället.',
     },
     expired: {
       title: 'Inloggningen tog för lång tid',
@@ -84,7 +84,7 @@ export const google: Messages['google'] = {
     `${videos} videor hoppades över · inga bildtexter eller gilla-markeringar – de stannar på Instagram`,
   backToBooks: 'Tillbaka till Mina böcker',
   choosePhotos: 'Välj bilder',
-  readUntil: 'Printagrams åtkomst till Google Foto upphör av sig själv inom en timme.',
+  readUntil: 'Inbundens åtkomst till Google Foto upphör av sig själv inom en timme.',
   disconnectNow: 'Avsluta nu',
   disconnected:
     'Åtkomsten är avslutad. Dina kopierade bilder ligger kvar tills boken är klar, sedan raderas de.',

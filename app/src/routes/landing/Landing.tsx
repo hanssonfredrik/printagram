@@ -48,7 +48,7 @@ export function Landing() {
     <div className="screen">
       <header className={s.header}>
         <div className="row gap-8">
-          <span className="brand">Printagram</span>
+          <span className="brand">{t.common.brand}</span>
           {testMode && (
             <span className={s.testPill} title={tl.testModeTitle}>
               {tl.testMode}

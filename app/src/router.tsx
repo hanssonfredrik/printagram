@@ -17,6 +17,7 @@ import { ResetPassword } from './routes/auth/ResetPassword';
 import { Books } from './routes/books/Books';
 import { Share } from './routes/share/Share';
 import { NotFound } from './routes/NotFound';
+import { About } from './routes/about/About';
 
 export const router = createBrowserRouter([
   {
@@ -40,6 +41,7 @@ export const router = createBrowserRouter([
       { path: 'reset/:token', element: <ResetPassword /> },
       { path: 'books', element: <Books /> },
       { path: 's/:token', element: <Share /> },
+      { path: 'about', element: <About /> },
       { path: '*', element: <NotFound /> },
     ],
   },

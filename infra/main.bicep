@@ -1,4 +1,4 @@
-// Printagram — near-zero-cost infrastructure
+// Inbunden — near-zero-cost infrastructure
 //   • 1 Storage account (Blob for photos/PDFs, Table for metadata)  ≈ cents/month at low usage
 //   • 1 Static Web App (Free plan) hosting the SPA + managed Functions ≈ €0
 //
@@ -53,7 +53,7 @@ param stripePublishableKey string = ''
 param stripeWebhookSecret string = ''
 @secure()
 param resendApiKey string = ''
-param emailFrom string = 'Printagram <hello@printagram.app>'
+param emailFrom string = 'Inbunden <hello@inbunden.app>'
 param igAppId string = ''
 @secure()
 param igAppSecret string = ''

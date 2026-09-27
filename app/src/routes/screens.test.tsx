@@ -73,7 +73,7 @@ describe('screens (against the in-memory test API)', () => {
   it('shows the coming-soon state when connect is disabled', async () => {
     mockFlags.connectMode = 'coming-soon';
     renderAt('/start');
-    expect(await screen.findByText(/waiting for Instagram to approve Printagram/)).toBeTruthy();
+    expect(await screen.findByText(/waiting for Instagram to approve Inbunden/)).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Connect Instagram' })).toBeNull();
   });
 
@@ -162,6 +162,22 @@ describe('screens (against the in-memory test API)', () => {
     renderAt('/google?error=denied');
     expect(await screen.findByText('No access was granted')).toBeTruthy();
     expect(screen.getByText('Use the export instead')).toBeTruthy();
+  });
+
+  it('about: the footer links to the About page with the name and founder', async () => {
+    const { router } = renderAt('/');
+    expect(await screen.findByText('Your Instagram, as a real book.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('link', { name: 'About' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/about'));
+    expect(await screen.findByRole('heading', { name: 'About Inbunden' })).toBeTruthy();
+    expect(screen.getByText(/Swedish word for a hardcover book/)).toBeTruthy();
+    expect(screen.getByText(/made in Sweden by Fredrik Hansson/)).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'hello@inbunden.app' })).toBeTruthy();
+    cleanup();
+    useLang.getState().setLang('sv');
+    renderAt('/about');
+    expect(await screen.findByRole('heading', { name: 'Om Inbunden' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Om Inbunden' })).toBeTruthy();
   });
 
   it('upload: shows the drop zone', async () => {

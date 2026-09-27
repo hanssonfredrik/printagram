@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-  Starts the whole Printagram stack locally with one command:
+  Starts the whole Inbunden stack locally with one command:
   Azurite (Blob + Table), the Azure Functions API, and the web app behind the
   Static Web Apps emulator. Open http://localhost:4280 when it says "ready".
 

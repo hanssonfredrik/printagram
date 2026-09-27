@@ -1,17 +1,19 @@
 import type { Messages } from '../en';
 
 export const common: Messages['common'] = {
+  brand: 'Inbunden',
   back: 'Tillbaka',
   backArrow: '← Tillbaka',
   close: 'Stäng',
   language: 'Språk',
   footer: {
+    about: 'Om Inbunden',
     tagline: 'Fotoböcker från ditt Instagram.',
   },
   notFound: {
     title: 'Här finns inget',
     body: 'Sidan du letade efter finns inte.',
-    home: 'Tillbaka till Printagram',
+    home: 'Tillbaka till Inbunden',
   },
   progress: {
     connect: 'Anslut',

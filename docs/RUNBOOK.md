@@ -92,7 +92,7 @@ Stripe stays dormant until `PAYMENT_PROVIDER=stripe` is set together with the ke
 
 ### Resend
 1. Add and verify the sending domain (SPF, DKIM, DMARC records).
-2. API key → `RESEND_API_KEY`, `EMAIL_FROM` → `Printagram <hello@yourdomain>`; `EMAIL_PROVIDER` becomes `resend` automatically when the key is set.
+2. API key → `RESEND_API_KEY`, `EMAIL_FROM` → `Inbunden <hello@yourdomain>`; `EMAIL_PROVIDER` becomes `resend` automatically when the key is set.
 
 ### Meta / Instagram (connect path)
 1. developers.facebook.com → create an app → add *Instagram* → *API setup with Instagram business login*.
@@ -101,7 +101,7 @@ Stripe stays dormant until `PAYMENT_PROVIDER=stripe` is set together with the ke
 4. Submit App Review for `instagram_business_basic` (Advanced Access): business verification, privacy policy URL, screencast. Only then enable the flag in production.
 
 ### Custom domain
-Static Web App → Custom domains (2 on Free). Then redeploy with `-AppBaseUrl https://printagram.app -ExtraCorsOrigins https://printagram.app,https://www.printagram.app` so emails, OAuth and Blob CORS use the new origin.
+Static Web App → Custom domains (2 on Free). Then redeploy with `-AppBaseUrl https://inbunden.app -ExtraCorsOrigins https://inbunden.app,https://www.inbunden.app` so emails, OAuth and Blob CORS use the new origin.
 
 ## Operations
 

@@ -139,7 +139,7 @@ export function Done() {
 
   const download = async () => {
     if (!order) return;
-    const name = `printagram-${slugify(order.title)}.pdf`;
+    const name = `inbunden-${slugify(order.title)}.pdf`;
     try {
       if (localPdf.current) {
         downloadBytes(localPdf.current, name);

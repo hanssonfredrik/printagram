@@ -59,13 +59,13 @@ const BOOK_TEXT: Record<Lang, BookText> = {
   en: {
     defaultTitle: 'Our years',
     photos: (n) => (n === 1 ? '1 photo' : `${n} photos`),
-    madeWith: 'Made with Printagram',
+    madeWith: 'Made with Inbunden',
     copySuffix: '(copy)',
   },
   sv: {
     defaultTitle: 'Våra år',
     photos: (n) => (n === 1 ? '1 foto' : `${n} foton`),
-    madeWith: 'Skapad med Printagram',
+    madeWith: 'Skapad med Inbunden',
     copySuffix: '(kopia)',
   },
 };

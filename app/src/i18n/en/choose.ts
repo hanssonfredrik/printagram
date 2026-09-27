@@ -4,19 +4,19 @@ export const choose = {
   adding: (n: number) =>
     `Adding to your library. Only posts newer than your last import are added — the ${n} photos you already have stay as they are.`,
   intro:
-    'A few ways to get your posts into Printagram. All of them are read‑only, and none shares your password with us.',
+    'A few ways to get your posts into Inbunden. All of them are read‑only, and none shares your password with us.',
   instant: 'Instant',
   comingSoon: 'Coming soon',
   connect: {
     title: 'Connect Instagram',
-    text: "Log in on Instagram's own site and allow Printagram to read your posts. Your photos show up here right away.",
+    text: "Log in on Instagram's own site and allow Inbunden to read your posts. Your photos show up here right away.",
     needsPro:
       'Needs a Creator or Business account. Switching is free, takes two minutes and is reversible.',
     likes: 'Brings your likes along, so you can print your most‑loved posts.',
     public: 'Professional accounts are public. Want to stay private? Use the export.',
     button: 'Connect Instagram',
     waiting:
-      "We're waiting for Instagram to approve Printagram. Until then, use the export — it works for every account.",
+      "We're waiting for Instagram to approve Inbunden. Until then, use the export — it works for every account.",
   },
   export: {
     pill: 'Works for every account',

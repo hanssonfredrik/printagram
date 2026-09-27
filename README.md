@@ -1,10 +1,14 @@
-# Printagram
+# Inbunden
 
-Your Instagram, as a real book. Pick the photos, Printagram lays out the pages and delivers a print-ready PDF (printed books coming later).
+Your Instagram, as a real book. Pick the photos, Inbunden lays out the pages and delivers a print-ready PDF (printed books coming later).
 
 - **App**: React 19 + Vite + TypeScript, deployed to an Azure Static Web App (Free plan).
 - **API**: Azure Functions (managed by Static Web Apps), Node 20, Table + Blob Storage.
 - **Cost target**: ≈ €0/month until real usage; see `docs/ARCHITECTURE.md`.
+
+## Naming
+
+The product is called **Inbunden** (Swedish for "hardcover"; see the About page and `docs/Inbunden name deep dive.md`). It was called Printagram before, and some technical identifiers keep that name on purpose, because renaming them would break existing users or the deployment: the GitHub repo `hanssonfredrik/printagram`, the `@printagram/*` workspace packages, the browser storage keys `printagram.draft.v2` / `printagram.lang`, the `pg_session` cookie, and the Azure names (`printagram-rg`, Bicep `baseName`, `printagram-prod`).
 
 ## Quick start
 

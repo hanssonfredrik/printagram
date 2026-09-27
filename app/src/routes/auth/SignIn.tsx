@@ -69,7 +69,7 @@ export function SignIn() {
           >
             ←
           </button>
-          <span className="brand">Printagram</span>
+          <span className="brand">{t.common.brand}</span>
         </div>
         <div>
           <h2 className="h2" style={{ fontSize: 28, marginBottom: 6 }}>

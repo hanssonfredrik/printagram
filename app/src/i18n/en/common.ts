@@ -1,16 +1,19 @@
 /** Shared UI text: buttons, headers, footer, 404 and the progress steps. */
 export const common = {
+  /** Product name; shown as the wordmark in headers and the footer. */
+  brand: 'Inbunden',
   back: 'Back',
   backArrow: '← Back',
   close: 'Close',
   language: 'Language',
   footer: {
+    about: 'About',
     tagline: 'Photo books from your Instagram.',
   },
   notFound: {
     title: 'Nothing here',
     body: 'The page you were looking for does not exist.',
-    home: 'Back to Printagram',
+    home: 'Back to Inbunden',
   },
   progress: {
     connect: 'Connect',

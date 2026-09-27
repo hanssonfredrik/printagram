@@ -24,7 +24,7 @@ describe('emails in the user language', () => {
 
   it('defaults to English', () => {
     const reset = templates.passwordReset('a@b.com', 'https://x/reset/1');
-    expect(reset.subject).toBe('Reset your Printagram password');
+    expect(reset.subject).toBe('Reset your Inbunden password');
     expect(reset.html).toContain('<html lang="en">');
     const reminder = templates.libraryReminder('a@b.com', 3, '2026-10-03T00:00:00Z', 5, 'k', 'd');
     expect(reminder.subject).toBe('Your photos are deleted in 5 days');

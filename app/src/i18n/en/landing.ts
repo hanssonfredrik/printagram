@@ -87,7 +87,7 @@ export const landing = {
     },
     {
       q: 'What happens to my photos?',
-      a: 'They stay in your Printagram library for 3 months so you can make more books without importing again. Every new book extends that by 3 months. Delete them yourself anytime, or we delete them when the 3 months are up — after a reminder email. Ordered PDFs stay downloadable either way.',
+      a: 'They stay in your Inbunden library for 3 months so you can make more books without importing again. Every new book extends that by 3 months. Delete them yourself anytime, or we delete them when the 3 months are up — after a reminder email. Ordered PDFs stay downloadable either way.',
     },
     {
       q: 'What do I get right now?',

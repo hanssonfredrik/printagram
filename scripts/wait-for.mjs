@@ -81,5 +81,5 @@ if (openUrl) {
         ? `open "${openUrl}"`
         : `xdg-open "${openUrl}"`;
   exec(cmd);
-  console.log(`\n  Printagram is running at ${openUrl}\n  Press Ctrl+C to stop everything.\n`);
+  console.log(`\n  Inbunden is running at ${openUrl}\n  Press Ctrl+C to stop everything.\n`);
 }

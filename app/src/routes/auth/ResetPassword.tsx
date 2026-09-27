@@ -38,7 +38,7 @@ export function ResetPassword() {
       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
     >
       <Card bordered radius="2xl" pad="hero" style={{ width: '100%', maxWidth: 420 }} gap={16}>
-        <span className="brand">Printagram</span>
+        <span className="brand">{t.common.brand}</span>
         <h2 className="h2" style={{ fontSize: 26 }}>
           {tr.title}
         </h2>

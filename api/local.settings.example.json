@@ -37,7 +37,7 @@
 
     "EMAIL_PROVIDER": "console",
     "RESEND_API_KEY": "",
-    "EMAIL_FROM": "Printagram <hello@printagram.app>"
+    "EMAIL_FROM": "Inbunden <hello@inbunden.app>"
   },
   "Host": {
     "LocalHttpPort": 7071,

@@ -3,7 +3,7 @@ export const checkout = {
   title: 'Checkout',
   needEmail: 'Please enter an email address so we can send your download link.',
   needPassword: 'Please choose a password of at least 8 characters for your account.',
-  emailTaken: 'That email already has a Printagram account. Sign in to continue with this book.',
+  emailTaken: 'That email already has a Inbunden account. Sign in to continue with this book.',
   promoAppliedBefore: 'Code ',
   promoAppliedAfter: (amount: string) => ` applied · −${amount}`,
   promoRemove: 'Remove',
@@ -21,7 +21,7 @@ export const checkout = {
   totalAmount: (amount: string) => `Total ${amount}`,
   summaryNote:
     "You receive a downloadable, print‑ready PDF. Printed books ship later — we'll email you when they're ready.",
-  accountTitle: 'Your Printagram account',
+  accountTitle: 'Your Inbunden account',
   accountSaved: 'Your PDF and library will be saved to this account.',
   signedIn: 'Signed in',
   email: 'Email',
@@ -55,7 +55,7 @@ export const checkout = {
   fake: {
     bannerTitle: 'Test payment — no money is taken',
     bannerBody:
-      'Printagram is in test mode. Choose a test card to see what happens; nothing is charged.',
+      'Inbunden is in test mode. Choose a test card to see what happens; nothing is charged.',
     cardGroup: 'Test card',
     chip: 'TEST',
     cards: {

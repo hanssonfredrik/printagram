@@ -2,7 +2,7 @@
   "name": "@printagram/api",
   "version": "0.1.0",
   "private": true,
-  "description": "Printagram managed Azure Functions (Node 20, v4 programming model)",
+  "description": "Inbunden managed Azure Functions (Node 20, v4 programming model)",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc --noEmit && node esbuild.config.mjs",

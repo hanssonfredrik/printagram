@@ -54,26 +54,26 @@ Until step 4 is done, the site takes **test payments only**. The "Test mode" pil
 
 ## 2. Custom domain and `SITE_URL`
 
-**You need:** a domain (the examples use `printagram.app`) and access to its DNS.
+**You need:** a domain (the examples use `inbunden.app`) and access to its DNS.
 
 1. In the portal, open **Static Web App → Custom domains → Add**.
-   - `www.printagram.app` takes a CNAME to `<name>.azurestaticapps.net`.
-   - The apex `printagram.app` needs a TXT validation record, then an ALIAS/ANAME record (or an A record if your DNS host has no ALIAS).
+   - `www.inbunden.app` takes a CNAME to `<name>.azurestaticapps.net`.
+   - The apex `inbunden.app` needs a TXT validation record, then an ALIAS/ANAME record (or an A record if your DNS host has no ALIAS).
    - The Free plan allows 2 custom domains with free certificates.
 2. Point the app at the new origin: e-mail links, OAuth redirect and blob upload CORS all use it. Redeploy with *all* the parameters you already use:
    ```powershell
    ./infra/deploy.ps1 -ResourceGroup printagram-rg `
-     -AppBaseUrl https://printagram.app `
-     -ExtraCorsOrigins https://printagram.app,https://www.printagram.app
+     -AppBaseUrl https://inbunden.app `
+     -ExtraCorsOrigins https://inbunden.app,https://www.inbunden.app
    ```
    Every origin users open the site from must be in `-ExtraCorsOrigins`. Otherwise photo uploads fail with a CORS error.
-3. Set the repository **variable**, not secret, `SITE_URL` = `https://printagram.app` under **Settings → Secrets and variables → Actions → Variables**. The next build then adds the canonical link, `og:url` and an absolute `og:image`, and emits `sitemap.xml` plus a `Sitemap:` line in `robots.txt`.
-4. Update `CRON_URL` to `https://printagram.app`. Optional, but the cron then hits the domain users use.
+3. Set the repository **variable**, not secret, `SITE_URL` = `https://inbunden.app` under **Settings → Secrets and variables → Actions → Variables**. The next build then adds the canonical link, `og:url` and an absolute `og:image`, and emits `sitemap.xml` plus a `Sitemap:` line in `robots.txt`.
+4. Update `CRON_URL` to `https://inbunden.app`. Optional, but the cron then hits the domain users use.
 5. Push `main`, or re-run the latest deploy workflow.
 6. Check that it worked:
-   - `https://printagram.app/robots.txt` lists the sitemap.
-   - `https://printagram.app/sitemap.xml` exists.
-   - The page source has `<link rel="canonical" href="https://printagram.app/">`.
+   - `https://inbunden.app/robots.txt` lists the sitemap.
+   - `https://inbunden.app/sitemap.xml` exists.
+   - The page source has `<link rel="canonical" href="https://inbunden.app/">`.
    - Paste the URL into a link preview (Slack, LinkedIn post inspector) and see the card image.
 
 ---
@@ -84,15 +84,15 @@ Without this, emails are only written to the Functions log. That covers return l
 
 **You need:** a Resend account (the free tier is 3 000 emails/month) and DNS access for the sending domain.
 
-1. **Resend → Domains → Add domain**, e.g. `printagram.app`. It's better to use a subdomain such as `mail.printagram.app` so your main domain's reputation is separate.
+1. **Resend → Domains → Add domain**, e.g. `inbunden.app`. It's better to use a subdomain such as `mail.inbunden.app` so your main domain's reputation is separate.
 2. Add the DNS records Resend shows: SPF (TXT), DKIM (CNAME/TXT) and the recommended DMARC TXT (`v=DMARC1; p=none; rua=mailto:you@…` to start). Wait for Resend to show **Verified**.
 3. **Resend → API keys → Create** with *Sending access* only, limited to that domain.
 4. Apply it (one of the two):
    ```powershell
    # redeploy with all your parameters plus:
-   ./infra/deploy.ps1 -ResourceGroup printagram-rg ... -ResendApiKey re_xxx -EmailFrom "Printagram <hello@printagram.app>"
+   ./infra/deploy.ps1 -ResourceGroup printagram-rg ... -ResendApiKey re_xxx -EmailFrom "Inbunden <hello@inbunden.app>"
    # or change only these settings:
-   az staticwebapp appsettings set -n <swa name> -g printagram-rg --setting-names EMAIL_PROVIDER=resend RESEND_API_KEY=re_xxx "EMAIL_FROM=Printagram <hello@printagram.app>"
+   az staticwebapp appsettings set -n <swa name> -g printagram-rg --setting-names EMAIL_PROVIDER=resend RESEND_API_KEY=re_xxx "EMAIL_FROM=Inbunden <hello@inbunden.app>"
    ```
    The `EMAIL_FROM` address must be on the verified domain.
 5. Check that it worked:
@@ -112,7 +112,7 @@ The code for Stripe is in place but switched off. It runs only when `PAYMENT_PRO
 
 1. **Stripe Dashboard → Developers → API keys** (test mode): copy `pk_test_…` and `sk_test_…`.
 2. **Developers → Webhooks → Add endpoint**:
-   - URL: `https://printagram.app/api/stripe/webhook`, or your `*.azurestaticapps.net` host.
+   - URL: `https://inbunden.app/api/stripe/webhook`, or your `*.azurestaticapps.net` host.
    - Events: `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, `charge.refunded`.
    - Copy the **Signing secret** `whsec_…`.
 3. **Settings → Payment methods → Payment method domains**: add every domain the site runs on (the `azurestaticapps.net` host and each custom domain). Apple Pay and Google Pay only show up on registered domains.
@@ -150,9 +150,9 @@ Until this is approved, the "Connect Instagram" card shows "coming soon" and eve
 2. Under *Instagram → API setup → Business login settings*, set:
    | Field | Value |
    | --- | --- |
-   | OAuth redirect URI | `https://printagram.app/api/instagram/callback` |
-   | Deauthorize callback URL | `https://printagram.app/api/instagram/deauthorize` |
-   | Data deletion request URL | `https://printagram.app/api/instagram/data-deletion` |
+   | OAuth redirect URI | `https://inbunden.app/api/instagram/callback` |
+   | Deauthorize callback URL | `https://inbunden.app/api/instagram/deauthorize` |
+   | Data deletion request URL | `https://inbunden.app/api/instagram/data-deletion` |
 3. Copy the **Instagram app ID** and **Instagram app secret**.
 4. Test with Standard Access first:
    - Add yourself and a few testers under **App roles → Roles → Instagram Testers**. Each tester accepts the invite in Instagram → Settings → Apps and websites.
@@ -174,18 +174,18 @@ Until this is approved, the "Connect Instagram" card shows "coming soon" and eve
 
 ## 6. Google Photos import (Google OAuth verification)
 
-The third source card. It works for every Instagram account, private ones included: the user has Instagram transfer their posts to Google Photos (Accounts Center → Transfer a copy of your information), then picks them in Google's Picker and Printagram copies the selection. Captions and likes do not come along; dates are what Google Photos knows. The flag is on by default; the card stays hidden until the client ID and secret are set. Step-by-step console instructions: `docs/GOOGLE_OAUTH_SETUP.md`.
+The third source card. It works for every Instagram account, private ones included: the user has Instagram transfer their posts to Google Photos (Accounts Center → Transfer a copy of your information), then picks them in Google's Picker and Inbunden copies the selection. Captions and likes do not come along; dates are what Google Photos knows. The flag is on by default; the card stays hidden until the client ID and secret are set. Step-by-step console instructions: `docs/GOOGLE_OAUTH_SETUP.md`.
 
 **You need:**
 - A Google Cloud project with the **Google Photos Picker API** enabled.
 - The public privacy policy URL (same as for Meta) and ownership of the domain verified in Google Search Console.
 
 1. **console.cloud.google.com → APIs & Services → Library**: enable *Google Photos Picker API*.
-2. **OAuth consent screen**: user type *External*, app name Printagram, support email, app logo, homepage, privacy policy and terms URLs, authorized domain `printagram.app`. Add the scope `https://www.googleapis.com/auth/photospicker.mediaitems.readonly`. Publish the app (it stays "unverified" with a warning screen and a 100-user cap until step 5).
+2. **OAuth consent screen**: user type *External*, app name Inbunden, support email, app logo, homepage, privacy policy and terms URLs, authorized domain `inbunden.app`. Add the scope `https://www.googleapis.com/auth/photospicker.mediaitems.readonly`. Publish the app (it stays "unverified" with a warning screen and a 100-user cap until step 5).
 3. **Credentials → Create credentials → OAuth client ID**, type *Web application*:
    | Field | Value |
    | --- | --- |
-   | Authorized redirect URI | `https://printagram.app/api/google/callback` (and the PR preview host while testing) |
+   | Authorized redirect URI | `https://inbunden.app/api/google/callback` (and the PR preview host while testing) |
    Copy the client ID and secret.
 4. Test with your own Google account (add it under *Test users* while the consent screen is in testing):
    ```powershell
@@ -199,7 +199,7 @@ The third source card. It works for every Instagram account, private ones includ
 
 ## 7. Meta transfer destination (future, the real fix for private accounts)
 
-Becoming a destination in Meta's "Transfer a copy of your information" tool would let any Instagram account, private ones included, push posts (with captions) straight to Printagram. Nothing is built for it yet; the prerequisites are yours and take weeks, so start them early if you want this path (details and sources in `docs/RESEARCH.md`):
+Becoming a destination in Meta's "Transfer a copy of your information" tool would let any Instagram account, private ones included, push posts (with captions) straight to Inbunden. Nothing is built for it yet; the prerequisites are yours and take weeks, so start them early if you want this path (details and sources in `docs/RESEARCH.md`):
 
 1. **DTI Data Trust Registry, Level 1** at https://dt-reg.org/: company registration number (LEI/DUNS), homepage, a privacy policy that covers collection, use, sharing, protection, retention and data-subject rights, a security contact, a service description.
 2. **Meta Business Manager verification** (shared with section 5).

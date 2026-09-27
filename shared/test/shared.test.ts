@@ -352,7 +352,7 @@ describe('languages', () => {
     expect(bookText('sv').photos(1)).toBe('1 foto');
     expect(bookText('sv').photos(3)).toBe('3 foton');
     expect(bookText('en').photos(1)).toBe('1 photo');
-    expect(bookText('sv').madeWith).toBe('Skapad med Printagram');
+    expect(bookText('sv').madeWith).toBe('Skapad med Inbunden');
     expect(templateLabel('4-grid', 'sv')).toBe('Rutnät med fyra');
     expect(templateLabel('4-grid')).toBe('Grid of four');
     expect(fmtEuro(900, 'sv')).toBe('9\u{a0}€');

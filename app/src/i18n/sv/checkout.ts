@@ -5,7 +5,7 @@ export const checkout: Messages['checkout'] = {
   needEmail: 'Fyll i din e-postadress så att vi kan skicka länken till nedladdningen.',
   needPassword: 'Välj ett lösenord på minst 8 tecken för ditt konto.',
   emailTaken:
-    'Den e-postadressen har redan ett Printagram-konto. Logga in för att fortsätta med den här boken.',
+    'Den e-postadressen har redan ett Inbunden-konto. Logga in för att fortsätta med den här boken.',
   promoAppliedBefore: 'Koden ',
   promoAppliedAfter: (amount: string) => ` har lagts till · −${amount}`,
   promoRemove: 'Ta bort',
@@ -23,7 +23,7 @@ export const checkout: Messages['checkout'] = {
   totalAmount: (amount: string) => `Totalt ${amount}`,
   summaryNote:
     'Du får en tryckklar PDF att ladda ner. Tryckta böcker kommer senare – vi mejlar dig när de finns.',
-  accountTitle: 'Ditt Printagram-konto',
+  accountTitle: 'Ditt Inbunden-konto',
   accountSaved: 'Din PDF och ditt bibliotek sparas på det här kontot.',
   signedIn: 'Inloggad',
   email: 'E-post',
@@ -57,7 +57,7 @@ export const checkout: Messages['checkout'] = {
   fake: {
     bannerTitle: 'Testbetalning – inga pengar dras',
     bannerBody:
-      'Printagram är i testläge. Välj ett testkort och se vad som händer – inget debiteras.',
+      'Inbunden är i testläge. Välj ett testkort och se vad som händer – inget debiteras.',
     cardGroup: 'Testkort',
     chip: 'TEST',
     cards: {

@@ -117,7 +117,7 @@ export const config = {
     return {
       provider: (process.env.EMAIL_PROVIDER ?? 'console') as 'console' | 'resend',
       resendApiKey: process.env.RESEND_API_KEY ?? '',
-      from: process.env.EMAIL_FROM ?? 'Printagram <hello@printagram.app>',
+      from: process.env.EMAIL_FROM ?? 'Inbunden <hello@inbunden.app>',
     };
   },
   get isDev() {

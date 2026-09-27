@@ -7,6 +7,6 @@ export const share = {
   size: (mb: number) => `${mb.toFixed(1)} MB`,
   download: 'Download the PDF',
   notReady: 'The owner has not finished generating this PDF yet.',
-  madeWith: 'Made with Printagram — your Instagram, as a real book.',
+  madeWith: 'Made with Inbunden — your Instagram, as a real book.',
   makeOwn: 'Make your own',
 };

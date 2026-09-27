@@ -3,7 +3,7 @@
  * Works against Azurite (default) and against a real storage account:
  *
  *   npx tsx scripts/storage-setup.ts                           # Azurite
- *   STORAGE_CONNECTION_STRING="DefaultEndpointsProtocol=…" APP_ORIGINS="https://printagram.app,https://www.printagram.app" npx tsx scripts/storage-setup.ts
+ *   STORAGE_CONNECTION_STRING="DefaultEndpointsProtocol=…" APP_ORIGINS="https://inbunden.app,https://www.inbunden.app" npx tsx scripts/storage-setup.ts
  */
 import { ensureContainer, PDF_CONTAINER, setBlobCors } from '../api/src/lib/blobs.js';
 import { ensureTables } from '../api/src/lib/tables.js';

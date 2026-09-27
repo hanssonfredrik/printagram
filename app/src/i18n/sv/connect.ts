@@ -3,7 +3,7 @@ import type { Messages } from '../en';
 export const connect: Messages['connect'] = {
   title: 'Anslut ditt Instagram',
   intro:
-    'Du loggar in på instagram.com och ger Printagram tillåtelse att läsa dina inlägg. Instagram låter bara kreatörs- och företagskonton ansluta, så först en snabb koll.',
+    'Du loggar in på instagram.com och ger Inbunden tillåtelse att läsa dina inlägg. Instagram låter bara kreatörs- och företagskonton ansluta, så först en snabb koll.',
   acctQuestion: 'Vilken typ av konto har du?',
   acct: {
     pro: 'Kreatör eller företag',
@@ -11,7 +11,7 @@ export const connect: Messages['connect'] = {
     unsure: 'Vet inte',
   },
   askFor: {
-    title: 'Det här ber Printagram om',
+    title: 'Det här ber Inbunden om',
     profile: 'Ditt användarnamn och din profilbild',
     posts: 'Dina inlägg – bilder, bildtexter, datum och gilla-markeringar',
     readOnly:
@@ -70,7 +70,7 @@ export const connect: Messages['connect'] = {
     },
     denied: {
       title: 'Ingen åtkomst gavs',
-      text: 'Instagram-fönstret stängdes eller så tryckte du på Avbryt, så inget delades med Printagram. Försök igen när du är redo, eller använd exporten i stället.',
+      text: 'Instagram-fönstret stängdes eller så tryckte du på Avbryt, så inget delades med Inbunden. Försök igen när du är redo, eller använd exporten i stället.',
     },
     expired: {
       title: 'Anslutningen tog för lång tid',
@@ -97,7 +97,7 @@ export const connect: Messages['connect'] = {
     `${posts} inlägg · ${carousels} ${carousels === 1 ? 'karusell' : 'karuseller'} · ${videos} ${videos === 1 ? 'video' : 'videor'} hoppas över som standard · gilla-markeringar ingår`,
   backToBooks: 'Tillbaka till Mina böcker',
   choosePhotos: 'Välj bilder',
-  readUntil: 'Printagram kan läsa dina inlägg tills du kopplar från, eller som längst i 60 dagar.',
+  readUntil: 'Inbunden kan läsa dina inlägg tills du kopplar från, eller som längst i 60 dagar.',
   disconnectNow: 'Koppla från nu',
   disconnected:
     'Frånkopplat. Dina kopierade bilder finns kvar tills din bok är klar, sedan raderas de.',

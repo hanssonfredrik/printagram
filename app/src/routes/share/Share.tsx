@@ -32,7 +32,7 @@ export function Share() {
         style={{ width: '100%', maxWidth: 440 }}
         gap={16}
       >
-        <span className="brand">Printagram</span>
+        <span className="brand">{t.common.brand}</span>
         {err && (
           <Banner tone="error" tight>
             {errorText(err.e, t, { NOT_FOUND: ts.invalid })}

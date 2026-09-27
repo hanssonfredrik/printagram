@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Outlet, useLocation } from 'react-router';
+import { Link, Outlet, useLocation } from 'react-router';
 import { LanguageSelect } from '@/components/ui';
 import { useT } from '@/i18n';
 import { useSession } from '@/state/session';
@@ -9,7 +9,12 @@ function SiteFooter() {
   return (
     <footer className="site-footer">
       <div className="site-footer__inner">
-        <span className="tiny muted">Printagram · {t.common.footer.tagline}</span>
+        <span className="tiny muted">
+          {t.common.brand} · {t.common.footer.tagline} ·{' '}
+          <Link to="/about" className="site-footer__link">
+            {t.common.footer.about}
+          </Link>
+        </span>
         <LanguageSelect />
       </div>
     </footer>

@@ -12,6 +12,7 @@ import { done } from './done';
 import { books } from './books';
 import { auth } from './auth';
 import { share } from './share';
+import { about } from './about';
 
 export const sv: Messages = {
   common,
@@ -28,4 +29,5 @@ export const sv: Messages = {
   books,
   auth,
   share,
+  about,
 };

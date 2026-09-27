@@ -6,8 +6,8 @@ While the site is not public you only need steps 1–5 (about 15 minutes). Verif
 
 ## 1. Create a Google Cloud project
 
-1. Go to https://console.cloud.google.com/ and sign in with the Google account that should own Printagram's integration.
-2. Top bar → project picker → **New project**. Name: `Printagram`. Organisation: leave as is. **Create**, then select the new project.
+1. Go to https://console.cloud.google.com/ and sign in with the Google account that should own Inbunden's integration.
+2. Top bar → project picker → **New project**. Name: `Inbunden`. Organisation: leave as is. **Create**, then select the new project.
 
 ## 2. Enable the Picker API
 
@@ -25,7 +25,7 @@ Google calls this **Google Auth Platform** in newer consoles and **OAuth consent
 2. Fill in:
    | Field | Value |
    | --- | --- |
-   | App name | `Printagram` |
+   | App name | `Inbunden` |
    | User support email | your email |
    | Audience / User type | **External** |
    | Developer contact email | your email |
@@ -43,21 +43,21 @@ Logo, homepage, privacy policy and terms URLs are only required for verification
 ## 5. Create the OAuth client
 
 1. **Clients** (older console: **Credentials → Create credentials → OAuth client ID**).
-2. Application type: **Web application**. Name: `Printagram web`.
+2. Application type: **Web application**. Name: `Inbunden web`.
 3. Under **Authorised redirect URIs** add one line per environment you test on:
 
    | Environment | Redirect URI |
    | --- | --- |
    | Local (`start-local.ps1`) | `http://localhost:4280/api/google/callback` |
    | Azure Static Web App | `https://<your-swa-hostname>.azurestaticapps.net/api/google/callback` |
-   | Custom domain, later | `https://printagram.app/api/google/callback` |
+   | Custom domain, later | `https://inbunden.app/api/google/callback` |
 
    Google accepts plain `http` for localhost only. Every other host must be `https`, and the path must match exactly.
 4. **Create**. Copy the **Client ID** (ends in `.apps.googleusercontent.com`) and the **Client secret**. The secret is shown once; you can create a new one later if you lose it.
 
 Authorised JavaScript origins can stay empty; the browser never talks to Google directly.
 
-## 6. Put the keys where Printagram reads them
+## 6. Put the keys where Inbunden reads them
 
 **Locally:** in `api/local.settings.json` (git-ignored) set
 
@@ -76,7 +76,7 @@ then restart `start-local.ps1`. The redirect URI must be the one you entered in 
 ./infra/deploy.ps1 -ResourceGroup printagram-rg -Location westeurope -GoogleClientId <id> -GoogleClientSecret <secret>
 ```
 
-Add `-AppBaseUrl https://printagram.app` once the custom domain exists, plus any Stripe, Resend or Instagram keys you already pass. Then add the printed hostname's callback URL (`https://<name>.azurestaticapps.net/api/google/callback`) to the client in step 5 if you have not already.
+Add `-AppBaseUrl https://inbunden.app` once the custom domain exists, plus any Stripe, Resend or Instagram keys you already pass. Then add the printed hostname's callback URL (`https://<name>.azurestaticapps.net/api/google/callback`) to the client in step 5 if you have not already.
 
 Or set them in the portal: Static Web App → Environment variables → `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
 
@@ -89,7 +89,7 @@ Or set them in the portal: Static Web App → Environment variables → `GOOGLE_
 
 1. Open the app → Start your book → the third card **Via Google Photos** is visible → **Send via Google Photos**.
 2. Click **My photos are in Google Photos — sign in with Google**. Google shows an "unverified app" warning while in Testing mode; click *Continue*. Choose the account you added as a test user.
-3. Back in Printagram click **Pick photos in Google Photos**. A Google Photos tab opens; pick a few photos and press **Done**. The tab closes, the copy runs, and the photos appear without captions.
+3. Back in Inbunden click **Pick photos in Google Photos**. A Google Photos tab opens; pick a few photos and press **Done**. The tab closes, the copy runs, and the photos appear without captions.
 
 If Google says `redirect_uri_mismatch`, the URI in step 5 and `GOOGLE_REDIRECT_URI` (or `APP_BASE_URL`) differ; fix either side so they match character for character.
 
@@ -98,7 +98,7 @@ If Google says `redirect_uri_mismatch`, the URI in step 5 and `GOOGLE_REDIRECT_U
 In Testing mode only test users can sign in. To open it to everyone:
 
 1. Publish the privacy policy and terms pages on the live domain, and verify domain ownership in **Google Search Console** with the same Google account.
-2. Consent screen / Branding: add the logo, homepage, privacy policy and terms URLs, and `printagram.app` under authorised domains.
+2. Consent screen / Branding: add the logo, homepage, privacy policy and terms URLs, and `inbunden.app` under authorised domains.
 3. **Publish app** (Testing → In production), then **Prepare for verification** in the Verification Center.
-4. Justify the scope in one or two sentences, for example: *"Users pick their own photos in Google Photos to build a printable photo book. Read-only; Printagram only receives the photos the user selects."* Attach a short screen recording of the flow in step 6.
+4. Justify the scope in one or two sentences, for example: *"Users pick their own photos in Google Photos to build a printable photo book. Read-only; Inbunden only receives the photos the user selects."* Attach a short screen recording of the flow in step 6.
 5. Google usually answers within a few business days. Until then the flow keeps working for test users, so nothing needs to be switched off.

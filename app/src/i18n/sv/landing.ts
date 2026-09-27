@@ -91,7 +91,7 @@ export const landing: Messages['landing'] = {
     },
     {
       q: 'Vad händer med mina bilder?',
-      a: 'De ligger kvar i ditt Printagram-bibliotek i 3 månader, så att du kan göra fler böcker utan att importera igen. Varje ny bok förlänger tiden med 3 månader. Radera dem själv när du vill, annars raderar vi dem när de 3 månaderna har gått – efter ett påminnelsemejl. Beställda PDF:er går att ladda ner oavsett.',
+      a: 'De ligger kvar i ditt Inbunden-bibliotek i 3 månader, så att du kan göra fler böcker utan att importera igen. Varje ny bok förlänger tiden med 3 månader. Radera dem själv när du vill, annars raderar vi dem när de 3 månaderna har gått – efter ett påminnelsemejl. Beställda PDF:er går att ladda ner oavsett.',
     },
     {
       q: 'Vad får jag just nu?',
