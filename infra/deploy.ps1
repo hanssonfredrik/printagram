@@ -9,7 +9,7 @@
 
 .EXAMPLE
   # With Stripe + Resend configured
-  ./infra/deploy.ps1 -ResourceGroup printagram-rg -PaymentProvider stripe -StripeSecretKey sk_live_... -StripePublishableKey pk_live_... -StripeWebhookSecret whsec_... -ResendApiKey re_... -EmailFrom "Inbunden <hello@inbunden.app>"
+  ./infra/deploy.ps1 -ResourceGroup printagram-rg -PaymentProvider stripe -StripeSecretKey sk_live_... -StripePublishableKey pk_live_... -StripeWebhookSecret whsec_... -ResendApiKey re_... -EmailFrom "Inbunden <hello@inbunden.com>"
 #>
 [CmdletBinding()]
 param(
@@ -27,7 +27,7 @@ param(
   [string] $StripePublishableKey = '',
   [string] $StripeWebhookSecret = '',
   [string] $ResendApiKey = '',
-  [string] $EmailFrom = 'Inbunden <hello@inbunden.app>',
+  [string] $EmailFrom = 'Inbunden <hello@inbunden.com>',
   [string] $IgAppId = '',
   [string] $IgAppSecret = '',
   [string] $GoogleClientId = '',

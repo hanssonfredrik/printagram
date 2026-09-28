@@ -5,7 +5,7 @@ import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
 
 /**
- * Search/social metadata that needs the public origin (VITE_SITE_URL, e.g. https://inbunden.app):
+ * Search/social metadata that needs the public origin (VITE_SITE_URL, e.g. https://inbunden.com):
  * canonical + og:url + absolute og:image in index.html, and robots.txt / sitemap.xml in the build.
  * Without it the build still works: relative og:image, robots.txt without a sitemap.
  */

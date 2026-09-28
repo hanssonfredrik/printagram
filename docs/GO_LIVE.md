@@ -52,53 +52,55 @@ Until step 4 is done, the site takes **test payments only**. The "Test mode" pil
 
 ---
 
-## 2. Custom domain and `SITE_URL`
+## 2. Custom domain: inbunden.com
 
-**You need:** a domain (the examples use `inbunden.app`) and access to its DNS.
+**Domains:** `inbunden.com` is the only custom domain on the Static Web App. `www.inbunden.com` and `inbunden.se` are plain redirects set up at the registrar (Loopia), so they never serve the app and need no CORS entry.
 
-1. In the portal, open **Static Web App → Custom domains → Add**.
-   - `www.inbunden.app` takes a CNAME to `<name>.azurestaticapps.net`.
-   - The apex `inbunden.app` needs a TXT validation record, then an ALIAS/ANAME record (or an A record if your DNS host has no ALIAS).
-   - The Free plan allows 2 custom domains with free certificates.
-2. Point the app at the new origin: e-mail links, OAuth redirect and blob upload CORS all use it. Redeploy with *all* the parameters you already use:
+**You need:** DNS access at Loopia and the Static Web App's default hostname (portal → Static Web App → Overview → URL, currently `green-glacier-0dadae803.5.azurestaticapps.net`).
+
+1. **Add `inbunden.com`.** Portal → Static Web App → **Custom domains → Add → Custom domain on other DNS**, enter `inbunden.com`, choose **TXT** validation. At Loopia add the TXT record the portal shows, then point the bare domain at the app with an ALIAS/ANAME record to the default hostname, or the A record the portal suggests if Loopia offers no ALIAS. Wait until the portal shows **Ready**: the domain is only live when `https://inbunden.com` serves the app with a certificate for `inbunden.com` (before that Azure answers with a generic `*.azurewebsites.net` certificate and a 404).
+2. **Redirects at Loopia.** Set a permanent (301) web forward to `https://inbunden.com` for `www.inbunden.com`, `inbunden.se` and `www.inbunden.se`. Replace Loopia's "parked" page.
+3. **Nothing else in Azure DNS.** The TXT record must stay.
+4. **Point the app at the new origin.** E-mail links, the Google/Instagram redirect URIs and the blob-upload CORS rules all use it. Redeploy with *all* the parameters you already use, plus:
    ```powershell
-   ./infra/deploy.ps1 -ResourceGroup printagram-rg `
-     -AppBaseUrl https://inbunden.app `
-     -ExtraCorsOrigins https://inbunden.app,https://www.inbunden.app
+   ./infra/deploy.ps1 -ResourceGroup printagram-rg -Location westeurope `
+     -AppBaseUrl https://inbunden.com `
+     -ExtraCorsOrigins https://inbunden.com `
+     -GoogleClientId <id> -GoogleClientSecret <secret>
    ```
-   Every origin users open the site from must be in `-ExtraCorsOrigins`. Otherwise photo uploads fail with a CORS error.
-3. Set the repository **variable**, not secret, `SITE_URL` = `https://inbunden.app` under **Settings → Secrets and variables → Actions → Variables**. The next build then adds the canonical link, `og:url` and an absolute `og:image`, and emits `sitemap.xml` plus a `Sitemap:` line in `robots.txt`.
-4. Update `CRON_URL` to `https://inbunden.app`. Optional, but the cron then hits the domain users use.
-5. Push `main`, or re-run the latest deploy workflow.
-6. Check that it worked:
-   - `https://inbunden.app/robots.txt` lists the sitemap.
-   - `https://inbunden.app/sitemap.xml` exists.
-   - The page source has `<link rel="canonical" href="https://inbunden.app/">`.
-   - Paste the URL into a link preview (Slack, LinkedIn post inspector) and see the card image.
+   Every origin users open the site from must be in `-ExtraCorsOrigins`, otherwise photo uploads fail with a CORS error. `GOOGLE_REDIRECT_URI` follows `-AppBaseUrl` automatically.
+5. **GitHub.** The repository **variable** `SITE_URL` = `https://inbunden.com` is set (Settings → Secrets and variables → Actions → Variables). `CRON_URL` can stay on the azurestaticapps.net host; it keeps working either way. Re-run the latest deploy workflow (or push `main`) so the build picks up `SITE_URL`: canonical link, `og:url`, absolute `og:image`, `sitemap.xml`.
+6. **Google console** (see `docs/GOOGLE_OAUTH_SETUP.md`): add `https://inbunden.com/api/google/callback` to the client's redirect URIs; keep the azurestaticapps.net one until the domain works.
+7. Check that it worked:
+   - `https://inbunden.com/api/health` returns `{"ok":true,…}`, and `https://www.inbunden.com` and `https://inbunden.se` redirect to it.
+   - `https://inbunden.com/sitemap.xml` lists `/` and `/about`; the page source has `<link rel="canonical" href="https://inbunden.com/">`.
+   - Via Google Photos → sign in → you come back to `https://inbunden.com/google`.
+   - Uploading an export ZIP on `https://inbunden.com` works (proves CORS).
 
 ---
 
-## 3. Email with Resend
+## 3. Email with Resend, and receiving mail
 
-Without this, emails are only written to the Functions log. That covers return links, "your book is ready", password reset and the deletion reminders.
+Without Resend, emails are only written to the Functions log. That covers return links, "your book is ready", password reset and the deletion reminders.
 
-**You need:** a Resend account (the free tier is 3 000 emails/month) and DNS access for the sending domain.
+**You need:** a Resend account (the free tier is 3 000 emails/month) and DNS access for `inbunden.com`.
 
-1. **Resend → Domains → Add domain**, e.g. `inbunden.app`. It's better to use a subdomain such as `mail.inbunden.app` so your main domain's reputation is separate.
-2. Add the DNS records Resend shows: SPF (TXT), DKIM (CNAME/TXT) and the recommended DMARC TXT (`v=DMARC1; p=none; rua=mailto:you@…` to start). Wait for Resend to show **Verified**.
-3. **Resend → API keys → Create** with *Sending access* only, limited to that domain.
+1. **Resend → Domains → Add domain** `inbunden.com`, region EU.
+2. Add the DNS records Resend shows: DKIM (`resend._domainkey` TXT), and the MX + SPF TXT on the `send` subdomain that Resend uses for bounces. They don't touch your own mailbox records. Add a DMARC TXT too: name `_dmarc`, value `v=DMARC1; p=none; rua=mailto:hello@inbunden.com`. Wait for **Verified**.
+3. **Resend → API keys → Create** with *Sending access* only, limited to `inbunden.com`.
 4. Apply it (one of the two):
    ```powershell
    # redeploy with all your parameters plus:
-   ./infra/deploy.ps1 -ResourceGroup printagram-rg ... -ResendApiKey re_xxx -EmailFrom "Inbunden <hello@inbunden.app>"
+   ./infra/deploy.ps1 -ResourceGroup printagram-rg ... -ResendApiKey re_xxx -EmailFrom "Inbunden <hello@inbunden.com>"
    # or change only these settings:
-   az staticwebapp appsettings set -n <swa name> -g printagram-rg --setting-names EMAIL_PROVIDER=resend RESEND_API_KEY=re_xxx "EMAIL_FROM=Inbunden <hello@inbunden.app>"
+   az staticwebapp appsettings set -n <swa name> -g printagram-rg --setting-names EMAIL_PROVIDER=resend RESEND_API_KEY=re_xxx "EMAIL_FROM=Inbunden <hello@inbunden.com>"
    ```
-   The `EMAIL_FROM` address must be on the verified domain.
-5. Check that it worked:
+5. **Receiving mail.** The About page and the email replies go to `hello@inbunden.com`, and Resend only sends. Give that address somewhere to land: your registrar's free e-mail forwarding (to your own inbox) or a mailbox provider. Either one adds MX records on `inbunden.com`; follow its instructions.
+6. Check that it worked:
    - On the waiting screen, enter your address under "Send me a link"; the return-link email arrives.
    - Place a test order; "Your book is ready" arrives.
-   - Check the headers show `dkim=pass` and `spf=pass`.
+   - The headers show `dkim=pass` and `spf=pass`.
+   - A mail sent to `hello@inbunden.com` reaches you.
 
 ---
 
@@ -112,7 +114,7 @@ The code for Stripe is in place but switched off. It runs only when `PAYMENT_PRO
 
 1. **Stripe Dashboard → Developers → API keys** (test mode): copy `pk_test_…` and `sk_test_…`.
 2. **Developers → Webhooks → Add endpoint**:
-   - URL: `https://inbunden.app/api/stripe/webhook`, or your `*.azurestaticapps.net` host.
+   - URL: `https://inbunden.com/api/stripe/webhook` (or the `*.azurestaticapps.net` host before the domain works).
    - Events: `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, `charge.refunded`.
    - Copy the **Signing secret** `whsec_…`.
 3. **Settings → Payment methods → Payment method domains**: add every domain the site runs on (the `azurestaticapps.net` host and each custom domain). Apple Pay and Google Pay only show up on registered domains.
@@ -150,9 +152,9 @@ Until this is approved, the "Connect Instagram" card shows "coming soon" and eve
 2. Under *Instagram → API setup → Business login settings*, set:
    | Field | Value |
    | --- | --- |
-   | OAuth redirect URI | `https://inbunden.app/api/instagram/callback` |
-   | Deauthorize callback URL | `https://inbunden.app/api/instagram/deauthorize` |
-   | Data deletion request URL | `https://inbunden.app/api/instagram/data-deletion` |
+   | OAuth redirect URI | `https://inbunden.com/api/instagram/callback` |
+   | Deauthorize callback URL | `https://inbunden.com/api/instagram/deauthorize` |
+   | Data deletion request URL | `https://inbunden.com/api/instagram/data-deletion` |
 3. Copy the **Instagram app ID** and **Instagram app secret**.
 4. Test with Standard Access first:
    - Add yourself and a few testers under **App roles → Roles → Instagram Testers**. Each tester accepts the invite in Instagram → Settings → Apps and websites.
@@ -181,11 +183,11 @@ The third source card. It works for every Instagram account, private ones includ
 - The public privacy policy URL (same as for Meta) and ownership of the domain verified in Google Search Console.
 
 1. **console.cloud.google.com → APIs & Services → Library**: enable *Google Photos Picker API*.
-2. **OAuth consent screen**: user type *External*, app name Inbunden, support email, app logo, homepage, privacy policy and terms URLs, authorized domain `inbunden.app`. Add the scope `https://www.googleapis.com/auth/photospicker.mediaitems.readonly`. Publish the app (it stays "unverified" with a warning screen and a 100-user cap until step 5).
+2. **OAuth consent screen**: user type *External*, app name Inbunden, support email, app logo, homepage, privacy policy and terms URLs, authorized domain `inbunden.com`. Add the scope `https://www.googleapis.com/auth/photospicker.mediaitems.readonly`. Publish the app (it stays "unverified" with a warning screen and a 100-user cap until step 5).
 3. **Credentials → Create credentials → OAuth client ID**, type *Web application*:
    | Field | Value |
    | --- | --- |
-   | Authorized redirect URI | `https://inbunden.app/api/google/callback` (and the PR preview host while testing) |
+   | Authorized redirect URI | `https://inbunden.com/api/google/callback` (and the PR preview host while testing) |
    Copy the client ID and secret.
 4. Test with your own Google account (add it under *Test users* while the consent screen is in testing):
    ```powershell

@@ -172,7 +172,7 @@ describe('screens (against the in-memory test API)', () => {
     expect(await screen.findByRole('heading', { name: 'About Inbunden' })).toBeTruthy();
     expect(screen.getByText(/Swedish word for a hardcover book/)).toBeTruthy();
     expect(screen.getByText(/made in Sweden by Fredrik Hansson/)).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'hello@inbunden.app' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'hello@inbunden.com' })).toBeTruthy();
     cleanup();
     useLang.getState().setLang('sv');
     renderAt('/about');

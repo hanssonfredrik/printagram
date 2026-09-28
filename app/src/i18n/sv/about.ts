@@ -33,6 +33,6 @@ export const about: Messages['about'] = {
   ],
   contactTitle: 'Kontakt',
   contactText: 'Frågor, idéer eller något som gick fel? Skriv till',
-  contactEmail: 'hello@inbunden.app',
+  contactEmail: 'hello@inbunden.com',
   start: 'Börja din bok',
 };

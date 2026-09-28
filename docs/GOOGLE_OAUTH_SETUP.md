@@ -50,7 +50,7 @@ Logo, homepage, privacy policy and terms URLs are only required for verification
    | --- | --- |
    | Local (`start-local.ps1`) | `http://localhost:4280/api/google/callback` |
    | Azure Static Web App | `https://<your-swa-hostname>.azurestaticapps.net/api/google/callback` |
-   | Custom domain, later | `https://inbunden.app/api/google/callback` |
+   | Custom domain, later | `https://inbunden.com/api/google/callback` |
 
    Google accepts plain `http` for localhost only. Every other host must be `https`, and the path must match exactly.
 4. **Create**. Copy the **Client ID** (ends in `.apps.googleusercontent.com`) and the **Client secret**. The secret is shown once; you can create a new one later if you lose it.
@@ -76,7 +76,7 @@ then restart `start-local.ps1`. The redirect URI must be the one you entered in 
 ./infra/deploy.ps1 -ResourceGroup printagram-rg -Location westeurope -GoogleClientId <id> -GoogleClientSecret <secret>
 ```
 
-Add `-AppBaseUrl https://inbunden.app` once the custom domain exists, plus any Stripe, Resend or Instagram keys you already pass. Then add the printed hostname's callback URL (`https://<name>.azurestaticapps.net/api/google/callback`) to the client in step 5 if you have not already.
+Add `-AppBaseUrl https://inbunden.com` once the custom domain exists, plus any Stripe, Resend or Instagram keys you already pass. Then add the printed hostname's callback URL (`https://<name>.azurestaticapps.net/api/google/callback`) to the client in step 5 if you have not already.
 
 Or set them in the portal: Static Web App → Environment variables → `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`.
 
@@ -98,7 +98,7 @@ If Google says `redirect_uri_mismatch`, the URI in step 5 and `GOOGLE_REDIRECT_U
 In Testing mode only test users can sign in. To open it to everyone:
 
 1. Publish the privacy policy and terms pages on the live domain, and verify domain ownership in **Google Search Console** with the same Google account.
-2. Consent screen / Branding: add the logo, homepage, privacy policy and terms URLs, and `inbunden.app` under authorised domains.
+2. Consent screen / Branding: add the logo, homepage, privacy policy and terms URLs, and `inbunden.com` under authorised domains.
 3. **Publish app** (Testing → In production), then **Prepare for verification** in the Verification Center.
 4. Justify the scope in one or two sentences, for example: *"Users pick their own photos in Google Photos to build a printable photo book. Read-only; Inbunden only receives the photos the user selects."* Attach a short screen recording of the flow in step 6.
 5. Google usually answers within a few business days. Until then the flow keeps working for test users, so nothing needs to be switched off.

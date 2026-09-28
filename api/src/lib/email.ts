@@ -75,7 +75,7 @@ const TEXT = {
       body: 'When the ZIP from Instagram arrives, open this link on any device and upload it. It works for 30 days.',
       button: 'Continue to Inbunden',
       footer:
-        'You asked for this link on inbunden.app. If that was not you, you can ignore this email.',
+        'You asked for this link on inbunden.com. If that was not you, you can ignore this email.',
       text: (url: string) =>
         `Pick up where you left off.\n\nWhen the ZIP from Instagram arrives, open this link on any device and upload it (valid 30 days):\n${url}\n`,
     },
@@ -90,7 +90,7 @@ const TEXT = {
         'Instagram emails you a download link (hours to a couple of days). Download the ZIP within 4 days.',
       ],
       button: 'Upload the ZIP when it arrives',
-      footer: 'Sent from inbunden.app at your request.',
+      footer: 'Sent from inbunden.com at your request.',
       uploadHere: 'Upload it here when it arrives:',
     },
     googleSteps: {
@@ -104,7 +104,7 @@ const TEXT = {
         'Back in Inbunden, sign in with Google and pick the photos for your book.',
       ],
       button: 'Continue in Inbunden',
-      footer: 'Sent from inbunden.app at your request.',
+      footer: 'Sent from inbunden.com at your request.',
       uploadHere: 'Continue here once the photos are in Google Photos:',
     },
     passwordReset: {
@@ -152,7 +152,7 @@ const TEXT = {
       body: 'När ZIP-filen från Instagram kommer öppnar du den här länken på valfri enhet och laddar upp den. Länken fungerar i 30 dagar.',
       button: 'Fortsätt till Inbunden',
       footer:
-        'Du bad om den här länken på inbunden.app. Om det inte var du kan du strunta i det här mejlet.',
+        'Du bad om den här länken på inbunden.com. Om det inte var du kan du strunta i det här mejlet.',
       text: (url: string) =>
         `Fortsätt där du slutade.\n\nNär ZIP-filen från Instagram kommer öppnar du den här länken på valfri enhet och laddar upp den (gäller i 30 dagar):\n${url}\n`,
     },
@@ -167,7 +167,7 @@ const TEXT = {
         'Instagram mejlar dig en nedladdningslänk (efter några timmar upp till ett par dagar). Ladda ner ZIP-filen inom 4 dagar.',
       ],
       button: 'Ladda upp ZIP-filen när den kommer',
-      footer: 'Skickat från inbunden.app på din begäran.',
+      footer: 'Skickat från inbunden.com på din begäran.',
       uploadHere: 'Ladda upp den här när den kommer:',
     },
     googleSteps: {
@@ -181,7 +181,7 @@ const TEXT = {
         'Tillbaka i Inbunden: logga in med Google och välj bilderna till din bok.',
       ],
       button: 'Fortsätt i Inbunden',
-      footer: 'Skickat från inbunden.app på din begäran.',
+      footer: 'Skickat från inbunden.com på din begäran.',
       uploadHere: 'Fortsätt här när bilderna finns i Google Foto:',
     },
     passwordReset: {

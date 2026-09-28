@@ -53,7 +53,7 @@ param stripePublishableKey string = ''
 param stripeWebhookSecret string = ''
 @secure()
 param resendApiKey string = ''
-param emailFrom string = 'Inbunden <hello@inbunden.app>'
+param emailFrom string = 'Inbunden <hello@inbunden.com>'
 param igAppId string = ''
 @secure()
 param igAppSecret string = ''

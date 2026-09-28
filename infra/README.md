@@ -42,9 +42,9 @@ They are set by the Bicep deployment; change them in the portal or redeploy with
 
 ## Custom domain
 
-Free plan allows 2 custom domains with free SSL: Static Web App → Custom domains. Then:
+`inbunden.com` is the one custom domain (Static Web App → Custom domains); `www.inbunden.com` and `inbunden.se` are forwarded at the registrar. Step by step: `docs/GO_LIVE.md` §2. Then:
 
-1. Redeploy with `-AppBaseUrl https://inbunden.app -ExtraCorsOrigins https://inbunden.app,https://www.inbunden.app`
+1. Redeploy with `-AppBaseUrl https://inbunden.com -ExtraCorsOrigins https://inbunden.com`
    (Blob CORS must list every origin that uploads/downloads).
 2. Register the domain under Stripe → Payment method domains (needed for Apple Pay / Google Pay).
 3. Update `IG_REDIRECT_URI` in the Meta app dashboard and the redirect URI of the Google OAuth client.

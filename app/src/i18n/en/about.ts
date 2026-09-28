@@ -32,6 +32,6 @@ export const about = {
   ],
   contactTitle: 'Contact',
   contactText: 'Questions, ideas or something that went wrong? Write to',
-  contactEmail: 'hello@inbunden.app',
+  contactEmail: 'hello@inbunden.com',
   start: 'Start your book',
 };
