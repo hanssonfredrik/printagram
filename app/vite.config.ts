@@ -11,7 +11,7 @@ import { fileURLToPath } from 'node:url';
  */
 function seo(siteUrl: string): Plugin {
   const site = siteUrl.replace(/\/$/, '');
-  const pages = ['/', '/about'];
+  const pages = ['/', '/about', '/privacy', '/terms'];
   return {
     name: 'printagram-seo',
     transformIndexHtml(html) {

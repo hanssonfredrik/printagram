@@ -13,6 +13,14 @@ function SiteFooter() {
           {t.common.brand} · {t.common.footer.tagline} ·{' '}
           <Link to="/about" className="site-footer__link">
             {t.common.footer.about}
+          </Link>{' '}
+          ·{' '}
+          <Link to="/privacy" className="site-footer__link">
+            {t.common.footer.privacy}
+          </Link>{' '}
+          ·{' '}
+          <Link to="/terms" className="site-footer__link">
+            {t.common.footer.terms}
           </Link>
         </span>
         <LanguageSelect />

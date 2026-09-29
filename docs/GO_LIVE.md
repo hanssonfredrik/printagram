@@ -146,7 +146,7 @@ Until this is approved, the "Connect Instagram" card shows "coming soon" and eve
 **You need:**
 - A Meta developer account.
 - **Business verification** of your company (Meta Business Manager).
-- **A public privacy policy URL, and ideally terms of service. The app doesn't have these pages yet**, so write them (or ask me to add `/privacy` and `/terms` pages) before submitting.
+- The privacy policy URL `https://inbunden.com/privacy` and terms `https://inbunden.com/terms` (both built, English and Swedish).
 
 1. **developers.facebook.com → My Apps → Create app.** Choose type *Business*, then add the **Instagram** product → *API setup with Instagram business login*.
 2. Under *Instagram → API setup → Business login settings*, set:
@@ -167,7 +167,7 @@ Until this is approved, the "Connect Instagram" card shows "coming soon" and eve
    - Check: Choose source → Connect Instagram → log in on Instagram → back in the app, the import runs and the photos show likes.
 5. Submit **App Review** for `instagram_business_basic` (Advanced Access). You'll need:
    - Business verification completed.
-   - The privacy policy URL, plus an app icon and category.
+   - The privacy policy URL `https://inbunden.com/privacy`, plus an app icon and category.
    - A screencast showing: log in on Instagram → grant permission → your posts appear → building a book from them.
    - A short text explaining the use: *"Users connect their own professional Instagram account to import their own posts into a printable photo book. We read media and captions only; nothing is posted."*
 6. Once approved, `FEATURE_CONNECT_ENABLED=true` in production opens connect to everyone (`-ConnectEnabled` on the deploy, or `az staticwebapp appsettings set … --setting-names FEATURE_CONNECT_ENABLED=true`).
@@ -183,7 +183,7 @@ The third source card. It works for every Instagram account, private ones includ
 - The public privacy policy URL (same as for Meta) and ownership of the domain verified in Google Search Console.
 
 1. **console.cloud.google.com → APIs & Services → Library**: enable *Google Photos Picker API*.
-2. **OAuth consent screen**: user type *External*, app name Inbunden, support email, app logo, homepage, privacy policy and terms URLs, authorized domain `inbunden.com`. Add the scope `https://www.googleapis.com/auth/photospicker.mediaitems.readonly`. Publish the app (it stays "unverified" with a warning screen and a 100-user cap until step 5).
+2. **OAuth consent screen**: user type *External*, app name Inbunden, support email, app logo, homepage `https://inbunden.com`, privacy policy `https://inbunden.com/privacy` and terms `https://inbunden.com/terms`, authorized domain `inbunden.com`. Add the scope `https://www.googleapis.com/auth/photospicker.mediaitems.readonly`. Publish the app (it stays "unverified" with a warning screen and a 100-user cap until step 5).
 3. **Credentials → Create credentials → OAuth client ID**, type *Web application*:
    | Field | Value |
    | --- | --- |
@@ -217,6 +217,6 @@ Becoming a destination in Meta's "Transfer a copy of your information" tool woul
 - [ ] Emails arrive (return link, book ready) and pass DKIM/SPF.
 - [ ] Live Stripe purchase and refund tested; test promo codes disabled.
 - [ ] `SITE_URL` variable set; the link preview shows the card image.
-- [ ] Privacy policy and terms pages exist (needed for Meta and Google; good practice for GDPR anyway).
+- [x] Privacy policy and terms pages exist (`/privacy`, `/terms`). They name Venueve AB as the operator; add its organisation number before launch.
 - [ ] Google OAuth client verified for the Picker scope before `FEATURE_GOOGLE_PHOTOS_ENABLED` goes on (section 6).
 - [ ] Optional: Application Insights attached to the Static Web App (Monitoring) if you want server logs. It isn't provisioned by default, to keep the cost at €0.

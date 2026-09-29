@@ -8,6 +8,8 @@ export const common = {
   language: 'Language',
   footer: {
     about: 'About',
+    privacy: 'Privacy',
+    terms: 'Terms',
     tagline: 'Photo books from your Instagram.',
   },
   notFound: {

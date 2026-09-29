@@ -191,7 +191,7 @@ Why: no Instagram API can read a private account and professional accounts canno
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
-| 15.1 | Privacy policy and terms pages (required by Meta App Review and Stripe). | Routes `/privacy`, `/terms`. | ⬜ Future |
+| 15.1 | Privacy policy and terms pages (required by Meta App Review, Google verification and Stripe). | `/privacy` and `/terms` in English and Swedish, linked from every footer and listed in `sitemap.xml`: controller, data stored, legal bases, retention, processors (Azure, Resend, Stripe, Google, Meta, Google Fonts), the one cookie, rights and IMY; terms cover the service, photos, payment, the digital-content withdrawal rule, liability, ARN. | ✅ UI |
 | 15.2 | Cookie notice (only a strictly necessary session cookie; no analytics). | Banner not required for essential cookies; document in privacy policy. | ⬜ Future |
 | 15.3 | Data deletion confirmation page for Meta (`/privacy/deletion?code=`). | — | ⬜ Future |
 | 15.4 | Instagram tokens encrypted at rest; no passwords stored in plain text; account deletion. | AES-256-GCM, scrypt, `DELETE /api/account`. | ✅ API |

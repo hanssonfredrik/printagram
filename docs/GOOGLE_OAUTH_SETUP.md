@@ -97,8 +97,8 @@ If Google says `redirect_uri_mismatch`, the URI in step 5 and `GOOGLE_REDIRECT_U
 
 In Testing mode only test users can sign in. To open it to everyone:
 
-1. Publish the privacy policy and terms pages on the live domain, and verify domain ownership in **Google Search Console** with the same Google account.
-2. Consent screen / Branding: add the logo, homepage, privacy policy and terms URLs, and `inbunden.com` under authorised domains.
+1. The privacy policy (`https://inbunden.com/privacy`) and terms (`https://inbunden.com/terms`) are live. Verify domain ownership in **Google Search Console** with the same Google account.
+2. Consent screen / Branding: add the logo, homepage `https://inbunden.com`, privacy policy `https://inbunden.com/privacy`, terms `https://inbunden.com/terms`, and `inbunden.com` under authorised domains.
 3. **Publish app** (Testing → In production), then **Prepare for verification** in the Verification Center.
 4. Justify the scope in one or two sentences, for example: *"Users pick their own photos in Google Photos to build a printable photo book. Read-only; Inbunden only receives the photos the user selects."* Attach a short screen recording of the flow in step 6.
 5. Google usually answers within a few business days. Until then the flow keeps working for test users, so nothing needs to be switched off.

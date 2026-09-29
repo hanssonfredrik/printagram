@@ -8,6 +8,8 @@ export const common: Messages['common'] = {
   language: 'Språk',
   footer: {
     about: 'Om Inbunden',
+    privacy: 'Integritet',
+    terms: 'Villkor',
     tagline: 'Fotoböcker från ditt Instagram.',
   },
   notFound: {

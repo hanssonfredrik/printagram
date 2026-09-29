@@ -13,6 +13,7 @@ import { books } from './books';
 import { auth } from './auth';
 import { share } from './share';
 import { about } from './about';
+import { legal } from './legal';
 
 export const sv: Messages = {
   common,
@@ -30,4 +31,5 @@ export const sv: Messages = {
   auth,
   share,
   about,
+  legal,
 };

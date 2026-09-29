@@ -171,13 +171,30 @@ describe('screens (against the in-memory test API)', () => {
     await waitFor(() => expect(router.state.location.pathname).toBe('/about'));
     expect(await screen.findByRole('heading', { name: 'About Inbunden' })).toBeTruthy();
     expect(screen.getByText(/Swedish word for a hardcover book/)).toBeTruthy();
-    expect(screen.getByText(/made in Sweden by Fredrik Hansson/)).toBeTruthy();
+    expect(screen.getByText(/made in Sweden by Venueve AB/)).toBeTruthy();
     expect(screen.getByRole('link', { name: 'hello@inbunden.com' })).toBeTruthy();
     cleanup();
     useLang.getState().setLang('sv');
     renderAt('/about');
     expect(await screen.findByRole('heading', { name: 'Om Inbunden' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Om Inbunden' })).toBeTruthy();
+  });
+
+  it('legal: footer links open the privacy policy and terms in both languages', async () => {
+    const { router } = renderAt('/');
+    expect(await screen.findByText('Your Instagram, as a real book.')).toBeTruthy();
+    fireEvent.click(screen.getByRole('link', { name: 'Privacy' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/privacy'));
+    expect(await screen.findByRole('heading', { name: 'Privacy policy' })).toBeTruthy();
+    expect(screen.getByText(/one cookie, pg_session/)).toBeTruthy();
+    fireEvent.click(screen.getByRole('link', { name: 'Terms' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/terms'));
+    expect(await screen.findByRole('heading', { name: 'Terms of use' })).toBeTruthy();
+    cleanup();
+    useLang.getState().setLang('sv');
+    renderAt('/privacy');
+    expect(await screen.findByRole('heading', { name: 'Integritetspolicy' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Villkor' })).toBeTruthy();
   });
 
   it('upload: shows the drop zone', async () => {

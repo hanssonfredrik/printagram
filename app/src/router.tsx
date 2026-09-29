@@ -18,6 +18,7 @@ import { Books } from './routes/books/Books';
 import { Share } from './routes/share/Share';
 import { NotFound } from './routes/NotFound';
 import { About } from './routes/about/About';
+import { LegalPage } from './routes/legal/LegalPage';
 
 export const router = createBrowserRouter([
   {
@@ -42,6 +43,8 @@ export const router = createBrowserRouter([
       { path: 'books', element: <Books /> },
       { path: 's/:token', element: <Share /> },
       { path: 'about', element: <About /> },
+      { path: 'privacy', element: <LegalPage doc="privacy" /> },
+      { path: 'terms', element: <LegalPage doc="terms" /> },
       { path: '*', element: <NotFound /> },
     ],
   },
