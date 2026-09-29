@@ -88,13 +88,11 @@ Without Resend, emails are only written to the Functions log. That covers return
 1. **Resend → Domains → Add domain** `inbunden.com`, region EU.
 2. Add the DNS records Resend shows: DKIM (`resend._domainkey` TXT), and the MX + SPF TXT on the `send` subdomain that Resend uses for bounces. They don't touch your own mailbox records. Add a DMARC TXT too: name `_dmarc`, value `v=DMARC1; p=none; rua=mailto:hello@inbunden.com`. Wait for **Verified**.
 3. **Resend → API keys → Create** with *Sending access* only, limited to `inbunden.com`.
-4. Apply it (one of the two):
+4. Apply it by changing only these three settings (the other settings stay as they are):
    ```powershell
-   # redeploy with all your parameters plus:
-   ./infra/deploy.ps1 -ResourceGroup printagram-rg ... -ResendApiKey re_xxx -EmailFrom "Inbunden <hello@inbunden.com>"
-   # or change only these settings:
-   az staticwebapp appsettings set -n <swa name> -g printagram-rg --setting-names EMAIL_PROVIDER=resend RESEND_API_KEY=re_xxx "EMAIL_FROM=Inbunden <hello@inbunden.com>"
+   az staticwebapp appsettings set -n <swa name> -g printagram-rg --setting-names EMAIL_PROVIDER=resend RESEND_API_KEY=<key> "EMAIL_FROM=Inbunden <hello@inbunden.com>"
    ```
+   `az staticwebapp list -o table` shows the Static Web App name. Avoid re-running `deploy.ps1` just for this: it rewrites *every* app setting from its parameters, so any setting you don't pass again (Google keys, `APP_BASE_URL`, …) is reset.
 5. **Receiving mail.** The About page and the email replies go to `hello@inbunden.com`, and Resend only sends. Give that address somewhere to land: your registrar's free e-mail forwarding (to your own inbox) or a mailbox provider. Either one adds MX records on `inbunden.com`; follow its instructions.
 6. Check that it worked:
    - On the waiting screen, enter your address under "Send me a link"; the return-link email arrives.
@@ -120,10 +118,8 @@ The code for Stripe is in place but switched off. It runs only when `PAYMENT_PRO
 3. **Settings → Payment methods → Payment method domains**: add every domain the site runs on (the `azurestaticapps.net` host and each custom domain). Apple Pay and Google Pay only show up on registered domains.
 4. Switch the provider:
    ```powershell
-   ./infra/deploy.ps1 -ResourceGroup printagram-rg ... -PaymentProvider stripe `
-     -StripeSecretKey sk_test_xxx -StripePublishableKey pk_test_xxx -StripeWebhookSecret whsec_xxx
+   az staticwebapp appsettings set -n <swa name> -g printagram-rg --setting-names PAYMENT_PROVIDER=stripe STRIPE_SECRET_KEY=<sk_test_…> STRIPE_PUBLISHABLE_KEY=<pk_test_…> STRIPE_WEBHOOK_SECRET=<whsec_…>
    ```
-   Or use `az staticwebapp appsettings set … --setting-names PAYMENT_PROVIDER=stripe STRIPE_SECRET_KEY=… STRIPE_PUBLISHABLE_KEY=… STRIPE_WEBHOOK_SECRET=…`.
 5. Check that it worked:
    - The "Test mode" pill and the test-card banner are gone, and Checkout shows Stripe's card form (plus Apple Pay / Google Pay on supported devices).
    - Pay with Stripe's test card `4242 4242 4242 4242`: the order becomes paid, the PDF builds, and Stripe → Webhooks shows `200` deliveries.
@@ -161,9 +157,9 @@ Until this is approved, the "Connect Instagram" card shows "coming soon" and eve
    - Testers need a Creator or Business account.
    - Enable the feature, ideally on a PR preview environment first:
      ```powershell
-     ./infra/deploy.ps1 -ResourceGroup printagram-rg ... -ConnectEnabled -IgAppId <id> -IgAppSecret <secret>
+     az staticwebapp appsettings set -n <swa name> -g printagram-rg --setting-names FEATURE_CONNECT_ENABLED=true IG_APP_ID=<id> IG_APP_SECRET=<secret> IG_REDIRECT_URI=https://inbunden.com/api/instagram/callback
      ```
-     `IG_REDIRECT_URI` is derived from `-AppBaseUrl`, so it must exactly match what you entered in step 2.
+     `IG_REDIRECT_URI` must exactly match what you entered in step 2.
    - Check: Choose source → Connect Instagram → log in on Instagram → back in the app, the import runs and the photos show likes.
 5. Submit **App Review** for `instagram_business_basic` (Advanced Access). You'll need:
    - Business verification completed.

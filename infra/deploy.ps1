@@ -14,7 +14,7 @@
 [CmdletBinding()]
 param(
   [Parameter(Mandatory)] [string] $ResourceGroup,
-  [string] $Location = 'westeurope',
+  [ValidatePattern('^[a-z0-9]+$')] [string] $Location = 'westeurope',
   [string] $SwaLocation = 'westeurope',
   [string] $Env = 'prod',
   [string] $BaseName = 'printagram',
