@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router';
-import { Banner, Button, FieldInput, Fieldset } from '@/components/ui';
+import { Banner, Button, Card, FieldInput, Fieldset } from '@/components/ui';
 import { api, ApiClientError } from '@/services';
 import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
@@ -20,7 +20,7 @@ export function SignIn() {
   const [password, setPassword] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-  const [forgot, setForgot] = useState<'idle' | 'sent'>('idle');
+  const [forgot, setForgot] = useState<'idle' | 'sending' | 'sent' | 'resent'>('idle');
 
   const submit = async (e: FormEvent) => {
     e.preventDefault();
@@ -44,15 +44,67 @@ export function SignIn() {
     }
   };
 
-  const forgotPassword = async (e: React.MouseEvent) => {
+  const sendReset = async (again = false) => {
+    setErr(null);
+    setForgot('sending');
+    try {
+      await api.forgotPassword(email);
+      setForgot(again ? 'resent' : 'sent');
+    } catch (e2) {
+      setForgot('idle');
+      setErr(e2 instanceof ApiClientError ? errorText(e2, t) : ta.failed);
+    }
+  };
+
+  const forgotPassword = (e: React.MouseEvent) => {
     e.preventDefault();
     if (!email.includes('@')) {
       setErr(ta.emailFirst);
       return;
     }
-    await api.forgotPassword(email);
-    setForgot('sent');
+    void sendReset();
   };
+
+  if (forgot === 'sent' || forgot === 'resent') {
+    return (
+      <div
+        className="screen"
+        role="status"
+        style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+      >
+        <Card
+          bordered
+          radius="2xl"
+          pad="hero"
+          center
+          gap={16}
+          style={{ width: '100%', maxWidth: 440 }}
+        >
+          <div className="check check--done" style={{ width: 56, height: 56, fontSize: 28 }}>
+            ✓
+          </div>
+          <h2 className="h2" style={{ fontSize: 28 }}>
+            {ta.sentTitle}
+          </h2>
+          <p className="pretty" style={{ fontSize: 17 }}>
+            {ta.sentTo(email)}
+          </p>
+          <p className="small muted pretty">{ta.sentHelp}</p>
+          <Button block size="lg" onClick={() => setForgot('idle')}>
+            {ta.backToSignIn}
+          </Button>
+          <Button
+            block
+            variant="secondary"
+            disabled={forgot === 'resent'}
+            onClick={() => void sendReset(true)}
+          >
+            {forgot === 'resent' ? ta.sentAgainDone : ta.sentAgain}
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div
@@ -101,17 +153,12 @@ export function SignIn() {
             {err}
           </Banner>
         )}
-        {forgot === 'sent' && (
-          <Banner tone="info" tight>
-            {ta.resetSent}
-          </Banner>
-        )}
         <Button type="submit" block size="xl" disabled={busy}>
           {busy ? ta.busy : ta.submit}
         </Button>
         <div className="row between row-wrap gap-8 small">
-          <a href="#" onClick={forgotPassword}>
-            {ta.forgot}
+          <a href="#" onClick={forgotPassword} aria-disabled={forgot === 'sending'}>
+            {forgot === 'sending' ? ta.sending : ta.forgot}
           </a>
           <span className="muted">
             {ta.newHere} <Link to="/start">{ta.start}</Link>

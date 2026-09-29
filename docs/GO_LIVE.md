@@ -2,13 +2,15 @@
 
 These steps need your accounts, your money or your decisions, so they aren't automated. Do them in this order. Each section says what you need first, the exact steps, and how to check it worked.
 
-| # | Step | Needs | Rough time |
-| --- | --- | --- | --- |
-| 1 | [Provision Azure and deploy](#1-provision-azure-and-deploy) | Azure subscription, GitHub repo admin | 30 min |
-| 2 | [Custom domain and `SITE_URL`](#2-custom-domain-and-site_url) | A domain you own | 30 min + DNS wait |
-| 3 | [Email with Resend](#3-email-with-resend) | Resend account, DNS access | 30 min + DNS wait |
-| 4 | [Real payments with Stripe](#4-real-payments-with-stripe) | Stripe account (company details, bank account) | 1 h + Stripe verification |
-| 5 | [Instagram connect (Meta App Review)](#5-instagram-connect-meta-app-review) | Meta developer account, business verification, privacy policy | days to weeks |
+| # | Step | Needs | Rough time | Status (checked 29 Sep 2026) |
+| --- | --- | --- | --- | --- |
+| 1 | [Provision Azure and deploy](#1-provision-azure-and-deploy) | Azure subscription, GitHub repo admin | 30 min | ✅ Done |
+| 2 | [Custom domain: inbunden.com](#2-custom-domain-inbundencom) | A domain you own | 30 min + DNS wait | 🟡 Domain live; redirects and app settings left |
+| 3 | [Email with Resend, and receiving mail](#3-email-with-resend-and-receiving-mail) | Resend account, DNS access | 30 min + DNS wait | ✅ Done (send a test mail to confirm) |
+| 4 | [Real payments with Stripe](#4-real-payments-with-stripe) | Stripe account (company details, bank account) | 1 h + Stripe verification | ⬜ |
+| 5 | [Instagram connect (Meta App Review)](#5-instagram-connect-meta-app-review) | Meta developer account, business verification, privacy policy | days to weeks | ⬜ |
+| 6 | [Google Photos import](#6-google-photos-import-google-oauth-verification) | Google Cloud project | 15 min, verification days | 🟡 Works in Testing mode; verification left |
+| 7 | [Meta transfer destination](#7-meta-transfer-destination-future-the-real-fix-for-private-accounts) | Company registration, Meta business verification | weeks | ⬜ Future |
 
 Until step 4 is done, the site takes **test payments only**. The "Test mode" pill in the header and the "Test payment — no money is taken" banner on Checkout make that visible.
 
@@ -17,6 +19,8 @@ Until step 4 is done, the site takes **test payments only**. The "Test mode" pil
 ---
 
 ## 1. Provision Azure and deploy
+
+**Status: ✅ done.** Static Web App `green-glacier-0dadae803.5.azurestaticapps.net`, GitHub secrets set, every push to `main` deploys.
 
 **You need:** an Azure subscription, the Azure CLI (`az`), and admin rights on `github.com/hanssonfredrik/printagram`.
 
@@ -54,6 +58,16 @@ Until step 4 is done, the site takes **test payments only**. The "Test mode" pil
 
 ## 2. Custom domain: inbunden.com
 
+**Status: 🟡 partly done.**
+
+| Step | Status |
+| --- | --- |
+| 1. `inbunden.com` on the Static Web App | ✅ Serves the app with its own certificate |
+| 2. Redirects at Loopia | ⬜ `www.inbunden.com` returns Azure's 404 and `inbunden.se` shows Loopia's parked page |
+| 4. App settings and CORS | ⬜ The API still sends Google sign-ins back to the azurestaticapps.net address, so `APP_BASE_URL` and `GOOGLE_REDIRECT_URI` are unchanged. Blob CORS for `https://inbunden.com` couldn't be checked from outside |
+| 5. `SITE_URL` | ✅ Canonical link and `sitemap.xml` (`/`, `/about`, `/privacy`, `/terms`) are live |
+| 6. Google redirect URI | ⬜ Unconfirmed; do it together with step 4 |
+
 **Domains:** `inbunden.com` is the only custom domain on the Static Web App. `www.inbunden.com` and `inbunden.se` are plain redirects set up at the registrar (Loopia), so they never serve the app and need no CORS entry.
 
 **You need:** DNS access at Loopia and the Static Web App's default hostname (portal → Static Web App → Overview → URL, currently `green-glacier-0dadae803.5.azurestaticapps.net`).
@@ -61,14 +75,13 @@ Until step 4 is done, the site takes **test payments only**. The "Test mode" pil
 1. **Add `inbunden.com`.** Portal → Static Web App → **Custom domains → Add → Custom domain on other DNS**, enter `inbunden.com`, choose **TXT** validation. At Loopia add the TXT record the portal shows, then point the bare domain at the app with an ALIAS/ANAME record to the default hostname, or the A record the portal suggests if Loopia offers no ALIAS. Wait until the portal shows **Ready**: the domain is only live when `https://inbunden.com` serves the app with a certificate for `inbunden.com` (before that Azure answers with a generic `*.azurewebsites.net` certificate and a 404).
 2. **Redirects at Loopia.** Set a permanent (301) web forward to `https://inbunden.com` for `www.inbunden.com`, `inbunden.se` and `www.inbunden.se`. Replace Loopia's "parked" page.
 3. **Nothing else in Azure DNS.** The TXT record must stay.
-4. **Point the app at the new origin.** E-mail links, the Google/Instagram redirect URIs and the blob-upload CORS rules all use it. Redeploy with *all* the parameters you already use, plus:
+4. **Point the app at the new origin.** E-mail links, the Google/Instagram redirect URIs and the blob-upload CORS rules all use it. Change only these settings, plus the storage CORS rule:
    ```powershell
-   ./infra/deploy.ps1 -ResourceGroup printagram-rg -Location westeurope `
-     -AppBaseUrl https://inbunden.com `
-     -ExtraCorsOrigins https://inbunden.com `
-     -GoogleClientId <id> -GoogleClientSecret <secret>
+   az staticwebapp appsettings set -n <swa name> -g printagram-rg --setting-names APP_BASE_URL=https://inbunden.com GOOGLE_REDIRECT_URI=https://inbunden.com/api/google/callback
+   $acct = az storage account list -g printagram-rg --query "[0].name" -o tsv
+   az storage cors add --services b --account-name $acct --origins https://inbunden.com --methods GET HEAD PUT OPTIONS --allowed-headers "*" --exposed-headers ETag x-ms-request-id Content-Length --max-age 3600
    ```
-   Every origin users open the site from must be in `-ExtraCorsOrigins`, otherwise photo uploads fail with a CORS error. `GOOGLE_REDIRECT_URI` follows `-AppBaseUrl` automatically.
+   Every origin users open the site from must be allowed, otherwise photo uploads fail with a CORS error. `www` and `.se` only redirect, so `https://inbunden.com` is enough. The next time you run `deploy.ps1` for other reasons, pass `-AppBaseUrl https://inbunden.com -ExtraCorsOrigins https://inbunden.com` so it keeps these values.
 5. **GitHub.** The repository **variable** `SITE_URL` = `https://inbunden.com` is set (Settings → Secrets and variables → Actions → Variables). `CRON_URL` can stay on the azurestaticapps.net host; it keeps working either way. Re-run the latest deploy workflow (or push `main`) so the build picks up `SITE_URL`: canonical link, `og:url`, absolute `og:image`, `sitemap.xml`.
 6. **Google console** (see `docs/GOOGLE_OAUTH_SETUP.md`): add `https://inbunden.com/api/google/callback` to the client's redirect URIs; keep the azurestaticapps.net one until the domain works.
 7. Check that it worked:
@@ -80,6 +93,8 @@ Until step 4 is done, the site takes **test payments only**. The "Test mode" pil
 ---
 
 ## 3. Email with Resend, and receiving mail
+
+**Status: ✅ done.** Resend has verified `inbunden.com` (DKIM on `resend._domainkey`, bounce records on `send`), DMARC is `p=none`, and the app sends from `Inbunden <hello@inbunden.com>`. Incoming mail: a Loopia e-mail alias forwards `hello@inbunden.com` to your Gmail through Loopia's own MX (`mailcluster.loopia.se`, `mail2.loopia.se`). Confirm with the checks in step 6.
 
 Without Resend, emails are only written to the Functions log. That covers return links, "your book is ready", password reset and the deletion reminders.
 
@@ -93,7 +108,7 @@ Without Resend, emails are only written to the Functions log. That covers return
    az staticwebapp appsettings set -n <swa name> -g printagram-rg --setting-names EMAIL_PROVIDER=resend RESEND_API_KEY=<key> "EMAIL_FROM=Inbunden <hello@inbunden.com>"
    ```
    `az staticwebapp list -o table` shows the Static Web App name. Avoid re-running `deploy.ps1` just for this: it rewrites *every* app setting from its parameters, so any setting you don't pass again (Google keys, `APP_BASE_URL`, …) is reset.
-5. **Receiving mail.** The About page and the email replies go to `hello@inbunden.com`, and Resend only sends. Give that address somewhere to land: your registrar's free e-mail forwarding (to your own inbox) or a mailbox provider. Either one adds MX records on `inbunden.com`; follow its instructions.
+5. **Receiving mail.** The About page and the email replies go to `hello@inbunden.com`, and Resend only sends. At Loopia: Kundzon → *Skapa en e-postadress* → *Skapa ett e-postalias för att vidarebefordra e-post till en annan e-postadress*, `hello@inbunden.com` → your own address. Loopia adds its MX records on `@` itself. In Gmail, add a filter for `to:hello@inbunden.com` with *Never send it to Spam*. Optional: Gmail → Settings → Accounts → *Send mail as* `hello@inbunden.com` via `smtp.resend.com`, port 465, user `resend`, a Resend API key as password.
 6. Check that it worked:
    - On the waiting screen, enter your address under "Send me a link"; the return-link email arrives.
    - Place a test order; "Your book is ready" arrives.

@@ -197,6 +197,22 @@ describe('screens (against the in-memory test API)', () => {
     expect(screen.getByRole('link', { name: 'Villkor' })).toBeTruthy();
   });
 
+  it('sign in: forgot password shows a clear "check your email" screen', async () => {
+    renderAt('/signin');
+    fireEvent.click(await screen.findByText('Forgot password?'));
+    expect(
+      await screen.findByText('Enter your email above first, then tap Forgot password.'),
+    ).toBeTruthy();
+    fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'mara@example.com' } });
+    fireEvent.click(screen.getByText('Forgot password?'));
+    expect(await screen.findByRole('heading', { name: 'Check your email' })).toBeTruthy();
+    expect(screen.getByText(/sent a link to mara@example.com/)).toBeTruthy();
+    fireEvent.click(screen.getByText('Send the link again'));
+    expect(await screen.findByText('Sent again ✓')).toBeTruthy();
+    fireEvent.click(screen.getByText('Back to sign in'));
+    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeTruthy();
+  });
+
   it('upload: shows the drop zone', async () => {
     renderAt('/export/upload');
     expect(await screen.findByText('Drop the ZIP here')).toBeTruthy();

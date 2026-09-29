@@ -12,6 +12,15 @@ export const auth: Messages['auth'] = {
     failed: 'Det gick inte att logga in.',
     emailFirst: 'Fyll i din e-postadress ovan först och tryck sedan på Glömt lösenordet.',
     resetSent: 'Om det finns ett konto för den adressen är en återställningslänk på väg.',
+    sentTitle: 'Kolla din e-post',
+    sentTo: (email: string) =>
+      `Vi har skickat en länk till ${email} där du väljer ett nytt lösenord.`,
+    sentHelp:
+      'Mejlet kommer från hello@inbunden.com inom en minut och länken gäller i en timme. Syns inget? Titta i skräpposten, eller kontrollera att det är adressen du registrerade dig med.',
+    sentAgain: 'Skicka länken igen',
+    sentAgainDone: 'Skickat igen ✓',
+    backToSignIn: 'Tillbaka till inloggningen',
+    sending: 'Skickar…',
     forgot: 'Glömt lösenordet?',
     newHere: 'Ny här?',
     start: 'Skapa din bok',
