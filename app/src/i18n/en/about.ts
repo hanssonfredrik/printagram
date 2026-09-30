@@ -26,7 +26,7 @@ export const about = {
     {
       title: 'Who is behind it',
       paragraphs: [
-        'Inbunden is made in Sweden by Venueve AB. Behind it is Fredrik Hansson, building the book they wanted for their own photos. It is small on purpose: one price, no subscriptions, no ads, and no selling of anything you upload.',
+        'Inbunden is made in Sweden by Venueve AB. It is small on purpose: one price, no subscriptions, no ads, and no selling of anything you upload.',
       ],
     },
   ],

@@ -27,7 +27,7 @@ export const about: Messages['about'] = {
     {
       title: 'Vem som står bakom',
       paragraphs: [
-        'Inbunden görs i Sverige av Venueve AB. Bakom står Fredrik Hansson, som bygger den bok hen själv ville ha för sina bilder. Den är liten med flit: ett pris, inga prenumerationer, ingen reklam och ingen försäljning av något du laddar upp.',
+        'Inbunden görs i Sverige av Venueve AB. Tjänsten är liten med flit: ett pris, inga prenumerationer, ingen reklam och ingen försäljning av något du laddar upp.',
       ],
     },
   ],

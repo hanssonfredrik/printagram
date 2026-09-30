@@ -164,7 +164,7 @@ describe('screens (against the in-memory test API)', () => {
     expect(screen.getByText('Use the export instead')).toBeTruthy();
   });
 
-  it('about: the footer links to the About page with the name and founder', async () => {
+  it('about: the footer links to the About page with the name and the company', async () => {
     const { router } = renderAt('/');
     expect(await screen.findByText('Your Instagram, as a real book.')).toBeTruthy();
     const footer = screen.getByRole('contentinfo');
