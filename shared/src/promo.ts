@@ -72,3 +72,29 @@ export const TEST_CARDS: TestCard[] = [
   { number: '4000 0000 0000 0002', label: 'Card is declined', outcome: 'card_declined' },
   { number: '4000 0000 0000 9995', label: 'Insufficient funds', outcome: 'insufficient_funds' },
 ];
+
+export type StripeTestOutcome = TestCard['outcome'] | 'authentication_required';
+
+/**
+ * Stripe's own test cards, shown at checkout when Stripe runs with test keys
+ * (https://docs.stripe.com/testing). Any future expiry date, any CVC and any postcode work.
+ */
+export const STRIPE_TEST_CARDS: { number: string; outcome: StripeTestOutcome }[] = [
+  { number: '4242 4242 4242 4242', outcome: 'succeeded' },
+  { number: '4000 0025 0000 3155', outcome: 'authentication_required' },
+  { number: '4000 0000 0000 0002', outcome: 'card_declined' },
+  { number: '4000 0000 0000 9995', outcome: 'insufficient_funds' },
+];
+
+/** True for Stripe test/sandbox keys (pk_test_…), which never move real money. */
+export function isStripeTestKey(publishableKey: string | null | undefined): boolean {
+  return !!publishableKey?.startsWith('pk_test_');
+}
+
+/** Whether checkout takes no real money: the fake provider, or Stripe with test keys. */
+export function paymentsAreTest(payment: {
+  provider: string;
+  stripePublishableKey: string | null;
+}): boolean {
+  return payment.provider !== 'stripe' || isStripeTestKey(payment.stripePublishableKey);
+}

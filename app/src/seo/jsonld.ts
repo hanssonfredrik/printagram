@@ -1,4 +1,4 @@
-import type { AppConfig, Lang } from '@printagram/shared';
+import { paymentsAreTest, type AppConfig, type Lang } from '@printagram/shared';
 import type { Messages } from '@/i18n';
 import { absoluteUrl, GUIDE_KEYS, PAGES, pathFor, type PageKey } from './routes';
 
@@ -84,7 +84,7 @@ export function structuredData(opts: {
 
   if (key === 'landing') {
     graph.push(page, faq(t.landing.faq));
-    if (opts.configLoaded && cfg.payment.provider !== 'fake') {
+    if (opts.configLoaded && !paymentsAreTest(cfg.payment)) {
       graph.push({
         '@type': 'Product',
         '@id': `${home}#pdf-book`,

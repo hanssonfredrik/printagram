@@ -54,6 +54,20 @@ export const checkout: Messages['checkout'] = {
     orCard: 'eller betala med kort',
     pay: (amount: string) => `Betala ${amount}`,
   },
+  stripeTest: {
+    title: 'Stripe i testläge – inga pengar dras',
+    body: 'Skriv in ett av de här kortnumren i kortformuläret nedan, med valfritt framtida utgångsdatum, valfri CVC och valfritt postnummer.',
+    listLabel: 'Stripes testkort',
+    copy: 'Kopiera',
+    copied: 'Kopierat',
+    copyLabel: (number: string) => `Kopiera kortnummer ${number}`,
+    cards: {
+      succeeded: 'Betalningen går igenom',
+      authentication_required: 'Frågar efter 3-D Secure, går sedan igenom',
+      card_declined: 'Kortet nekas',
+      insufficient_funds: 'Otillräckligt saldo',
+    },
+  },
   fake: {
     bannerTitle: 'Testbetalning – inga pengar dras',
     bannerBody:

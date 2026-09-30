@@ -5,7 +5,7 @@ export const landing: Messages['landing'] = {
   signIn: 'Logga in',
   start: 'Skapa din bok',
   testMode: 'Testläge',
-  testModeTitle: 'Betalningarna är simulerade. Inga pengar dras.',
+  testModeTitle: 'Betalningarna är i testläge. Inga pengar dras.',
   hero: {
     title: 'Ditt Instagram som en riktig bok.',
     lead: 'Inbunden gör dina Instagram-inlägg till en tryckfärdig fotobok. Välj bilderna, vi gör layouten: ett år, en resa, ett första år, som en PDF du har för alltid. Tryckta böcker kommer snart.',

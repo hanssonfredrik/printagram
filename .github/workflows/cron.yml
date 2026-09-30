@@ -30,10 +30,15 @@ jobs:
           for task in "${tasks[@]}"; do
             total=0
             for i in $(seq 1 40); do
-              res=$(curl -sS -X POST "$CRON_URL/api/cron/run" \
+              # A redirect (CRON_URL on a host that now 301s to the custom domain) returns no JSON,
+              # so jq -e fails the job instead of silently processing nothing.
+              res=$(curl -sS --fail-with-body -X POST "$CRON_URL/api/cron/run" \
                 -H "Content-Type: application/json" -H "x-cron-key: $CRON_SECRET" \
                 -d "{\"task\":\"$task\"}")
-              processed=$(echo "$res" | jq -r '.processed // 0')
+              processed=$(echo "$res" | jq -er '.processed // 0') || {
+                echo "::error::$task: no JSON from $CRON_URL/api/cron/run (redirect or wrong CRON_URL?)"
+                exit 1
+              }
               more=$(echo "$res" | jq -r '.more // false')
               total=$((total + processed))
               [ "$more" = "true" ] || break

@@ -52,6 +52,20 @@ export const checkout = {
     orCard: 'or pay by card',
     pay: (amount: string) => `Pay ${amount}`,
   },
+  stripeTest: {
+    title: 'Stripe test mode — no money is taken',
+    body: 'Type one of these card numbers into the card form below, with any future expiry date, any CVC and any postcode.',
+    listLabel: 'Stripe test cards',
+    copy: 'Copy',
+    copied: 'Copied',
+    copyLabel: (number: string) => `Copy card number ${number}`,
+    cards: {
+      succeeded: 'Payment succeeds',
+      authentication_required: 'Asks for 3-D Secure, then succeeds',
+      card_declined: 'Card is declined',
+      insufficient_funds: 'Insufficient funds',
+    },
+  },
   fake: {
     bannerTitle: 'Test payment — no money is taken',
     bannerBody:

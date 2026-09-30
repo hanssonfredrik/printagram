@@ -4,7 +4,7 @@ export const landing = {
   signIn: 'Sign in',
   start: 'Start your book',
   testMode: 'Test mode',
-  testModeTitle: 'Payments are simulated. No money is taken.',
+  testModeTitle: 'Payments are in test mode. No money is taken.',
   hero: {
     title: 'Your Instagram, as a real book.',
     lead: 'Inbunden turns your Instagram posts into a print‑ready photo book. Pick the photos, we lay out the pages: a year, a trip, a first year, as a PDF you keep forever. Printed books are coming soon.',

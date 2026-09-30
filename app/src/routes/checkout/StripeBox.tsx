@@ -7,9 +7,10 @@ import {
   useElements,
   useStripe,
 } from '@stripe/react-stripe-js';
-import { fmtEuro } from '@printagram/shared';
+import { fmtEuro, isStripeTestKey } from '@printagram/shared';
 import { Button } from '@/components/ui';
 import { useLang, useT } from '@/i18n';
+import { StripeTestCards } from './StripeTestCards';
 
 const stripeCache = new Map<string, Promise<Stripe | null>>();
 
@@ -66,7 +67,10 @@ export default function StripeBox(props: StripeBoxProps) {
         ],
       }}
     >
-      <Inner {...props} />
+      <div className="stack stack-10">
+        {isStripeTestKey(props.publishableKey) && <StripeTestCards />}
+        <Inner {...props} />
+      </div>
     </Elements>
   );
 }

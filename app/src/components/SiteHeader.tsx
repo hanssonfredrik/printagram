@@ -1,5 +1,6 @@
 import { useEffect, useId, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router';
+import { paymentsAreTest } from '@printagram/shared';
 import { Button, cx, LanguageSelect } from '@/components/ui';
 import { PageLink } from '@/components/PageLink';
 import { useT } from '@/i18n';
@@ -20,7 +21,7 @@ export function SiteHeader({ page }: { page: PageKey | null }) {
   const location = useLocation();
   const user = useSession((x) => x.user);
   const ready = useSession((x) => x.ready);
-  const testMode = useSession((x) => x.config.payment.provider === 'fake');
+  const testMode = useSession((x) => paymentsAreTest(x.config.payment));
   const setAdding = useDraft((d) => d.setAdding);
   // The menu belongs to the page it was opened on, so navigating closes it.
   const [openAt, setOpenAt] = useState<string | null>(null);

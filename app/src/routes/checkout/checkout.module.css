@@ -69,3 +69,22 @@
   padding: 10px 12px;
   font-size: 14px;
 }
+
+.stripeTestList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.stripeTestCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 12px;
+}

@@ -117,6 +117,22 @@ describe('structured data', () => {
     });
   });
 
+  it('leaves the offer out while Stripe runs with test keys', () => {
+    const data = structuredData({
+      key: 'landing',
+      lang: 'en',
+      t: messagesFor('en'),
+      cfg: {
+        ...cfg('stripe'),
+        payment: { provider: 'stripe', stripePublishableKey: 'pk_test_x', testCards: [] },
+      },
+      configLoaded: true,
+      site: SITE,
+      price: '€9',
+    });
+    expect(graph(data).some((n) => n['@type'] === 'Product')).toBe(false);
+  });
+
   it('marks guides up as articles with breadcrumbs', () => {
     const data = structuredData({
       key: 'guidePrint',

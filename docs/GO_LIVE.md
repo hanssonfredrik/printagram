@@ -2,17 +2,17 @@
 
 These steps need your accounts, your money or your decisions, so they aren't automated. Do them in this order. Each section says what you need first, the exact steps, and how to check it worked.
 
-| # | Step | Needs | Rough time | Status (checked 29 Sep 2026) |
+| # | Step | Needs | Rough time | Status (checked 30 Sep 2026) |
 | --- | --- | --- | --- | --- |
 | 1 | [Provision Azure and deploy](#1-provision-azure-and-deploy) | Azure subscription, GitHub repo admin | 30 min | ✅ Done |
-| 2 | [Custom domain: inbunden.com](#2-custom-domain-inbundencom) | A domain you own | 30 min + DNS wait | 🟡 Domain live; redirects and app settings left |
+| 2 | [Custom domain: inbunden.com](#2-custom-domain-inbundencom) | A domain you own | 30 min + DNS wait | ✅ Done. Update the `CRON_URL` secret (step 2, *Still open*) |
 | 3 | [Email with Resend, and receiving mail](#3-email-with-resend-and-receiving-mail) | Resend account, DNS access | 30 min + DNS wait | ✅ Done (send a test mail to confirm) |
-| 4 | [Real payments with Stripe](#4-real-payments-with-stripe) | Stripe account (company details, bank account) | 1 h + Stripe verification | ⬜ |
+| 4 | [Real payments with Stripe](#4-real-payments-with-stripe) | Stripe account (company details, bank account) | 1 h + Stripe verification | 🟡 Stripe live on the site in **test mode**; live keys left |
 | 5 | [Instagram connect (Meta App Review)](#5-instagram-connect-meta-app-review) | Meta developer account, business verification, privacy policy | days to weeks | ⬜ |
 | 6 | [Google Photos import](#6-google-photos-import-google-oauth-verification) | Google Cloud project | 15 min, verification days | 🟡 Works in Testing mode; verification left |
 | 7 | [Meta transfer destination](#7-meta-transfer-destination-future-the-real-fix-for-private-accounts) | Company registration, Meta business verification | weeks | ⬜ Future |
 
-Until step 4 is done, the site takes **test payments only**. The "Test mode" pill in the header and the "Test payment — no money is taken" banner on Checkout make that visible.
+Until step 4 is finished with live keys, the site takes **test payments only**. It runs Stripe with test keys (`pk_test_…`): the "Test mode" pill in the header and the "Stripe test mode" box with test cards on Checkout make that visible.
 
 > **Redeploying overwrites every app setting.** `infra/deploy.ps1` passes *all* settings to Bicep. If you rerun it without, say, `-StripeSecretKey`, the Stripe key is set back to empty. Either always pass every parameter you use (keep the full command in a password manager), or change single settings with `az staticwebapp appsettings set` (shown in each step).
 
@@ -39,7 +39,7 @@ Until step 4 is done, the site takes **test payments only**. The "Test mode" pil
    | Secret | Value |
    | --- | --- |
    | `AZURE_STATIC_WEB_APPS_API_TOKEN` | printed token |
-   | `CRON_URL` | `https://<name>.azurestaticapps.net` |
+   | `CRON_URL` | `https://<name>.azurestaticapps.net` (switch to `https://inbunden.com` once the custom domain is the default; see step 2) |
    | `CRON_SECRET` | printed cron secret |
 4. Deploy by pushing `main`. `.github/workflows/deploy.yml` runs lint, typecheck, all tests (including API tests on Azurite and the PDF check), then builds and publishes the app and API. **Every push to `main` deploys to production.** Pull requests get their own preview URL.
 5. Check that it worked:
@@ -58,22 +58,27 @@ Until step 4 is done, the site takes **test payments only**. The "Test mode" pil
 
 ## 2. Custom domain: inbunden.com
 
-**Status: 🟡 partly done.**
+**Status: ✅ done** (checked 30 Sep 2026), apart from the settings under *Still open*.
 
 | Step | Status |
 | --- | --- |
-| 1. `inbunden.com` on the Static Web App | ✅ Serves the app with its own certificate |
-| 2. Redirects at Loopia | ⬜ `www.inbunden.com` returns Azure's 404 and `inbunden.se` shows Loopia's parked page |
-| 4. App settings and CORS | ⬜ The API still sends Google sign-ins back to the azurestaticapps.net address, so `APP_BASE_URL` and `GOOGLE_REDIRECT_URI` are unchanged. Blob CORS for `https://inbunden.com` couldn't be checked from outside |
-| 5. `SITE_URL` | ✅ Set. From the SEO work on: prerendered public pages in English and Swedish, per-page canonical and hreflang, `sitemap.xml` (16 URLs), `llms.txt` |
-| 6. Google redirect URI | ⬜ Unconfirmed; do it together with step 4 |
+| 1. `inbunden.com` on the Static Web App | ✅ Serves the app with its own certificate; `http://` redirects to `https://` |
+| 2. Redirects | ✅ `www.inbunden.com` and the generated `green-glacier-0dadae803.5.azurestaticapps.net` host 301 to `https://inbunden.com/` (`inbunden.com` is the default domain). `inbunden.se` and `www.inbunden.se` 301 there via Loopia. Path and query are kept everywhere |
+| 4. App settings and CORS | ✅ `APP_BASE_URL=https://inbunden.com`, `GOOGLE_REDIRECT_URI=https://inbunden.com/api/google/callback`; blob CORS allows `https://inbunden.com` (and the azurestaticapps.net host) |
+| 5. `SITE_URL` | ✅ Set. Prerendered public pages in English and Swedish, per-page canonical and hreflang, `sitemap.xml` (16 URLs), `llms.txt` |
+| 6. Google redirect URI | ✅ Assumed done together with step 4. Confirm with the Google Photos check in step 7 |
 
-**Domains:** `inbunden.com` is the only custom domain on the Static Web App. `www.inbunden.com` and `inbunden.se` are plain redirects set up at the registrar (Loopia), so they never serve the app and need no CORS entry.
+**Domains:** `inbunden.com` and `www.inbunden.com` are custom domains on the Static Web App. `inbunden.se` and `www.inbunden.se` are 301 forwards at Loopia, so they never serve the app and need no CORS entry. With `inbunden.com` set as the default domain, Azure also redirects the generated `green-glacier-0dadae803.5.azurestaticapps.net` host. Anything that calls that host directly now gets a `301`.
+
+**Still open:**
+- **`CRON_URL` secret** (GitHub → Settings → Secrets and variables → Actions): change it from the azurestaticapps.net address to `https://inbunden.com`. The generated host now redirects, and the daily cron job does not follow redirects. Since this change the job fails with an error instead of silently doing nothing. Afterwards run **Actions → Scheduled maintenance → Run workflow** once and check it's green.
+- **Stripe webhook:** if the endpoint in Stripe (Inbunden account → Developers → Webhooks) uses the azurestaticapps.net address, change it to `https://inbunden.com/api/stripe/webhook`. Stripe doesn't follow redirects, so deliveries would fail and orders would only get marked paid through the page's own sync.
+- **`IG_REDIRECT_URI`** still points at the azurestaticapps.net host. Change it to `https://inbunden.com/api/instagram/callback` when you do step 5 (it must match the Meta app).
 
 **You need:** DNS access at Loopia and the Static Web App's default hostname (portal → Static Web App → Overview → URL, currently `green-glacier-0dadae803.5.azurestaticapps.net`).
 
 1. **Add `inbunden.com`.** Portal → Static Web App → **Custom domains → Add → Custom domain on other DNS**, enter `inbunden.com`, choose **TXT** validation. At Loopia add the TXT record the portal shows, then point the bare domain at the app with an ALIAS/ANAME record to the default hostname, or the A record the portal suggests if Loopia offers no ALIAS. Wait until the portal shows **Ready**: the domain is only live when `https://inbunden.com` serves the app with a certificate for `inbunden.com` (before that Azure answers with a generic `*.azurewebsites.net` certificate and a 404).
-2. **Redirects at Loopia.** Set a permanent (301) web forward to `https://inbunden.com` for `www.inbunden.com`, `inbunden.se` and `www.inbunden.se`. Replace Loopia's "parked" page.
+2. **Redirects.** `inbunden.se` and `www.inbunden.se`: a permanent (301) web forward at Loopia to `https://inbunden.com`, instead of Loopia's "parked" page. `www.inbunden.com`: added as a custom domain on the Static Web App (CNAME at Loopia to the default hostname), with `inbunden.com` set as the **default domain** so Azure redirects `www` to it.
 3. **Nothing else in Azure DNS.** The TXT record must stay.
 4. **Point the app at the new origin.** E-mail links, the Google/Instagram redirect URIs and the blob-upload CORS rules all use it. Change only these settings, plus the storage CORS rule:
    ```powershell
@@ -82,10 +87,10 @@ Until step 4 is done, the site takes **test payments only**. The "Test mode" pil
    az storage cors add --services b --account-name $acct --origins https://inbunden.com --methods GET HEAD PUT OPTIONS --allowed-headers "*" --exposed-headers ETag x-ms-request-id Content-Length --max-age 3600
    ```
    Every origin users open the site from must be allowed, otherwise photo uploads fail with a CORS error. `www` and `.se` only redirect, so `https://inbunden.com` is enough. The next time you run `deploy.ps1` for other reasons, pass `-AppBaseUrl https://inbunden.com -ExtraCorsOrigins https://inbunden.com` so it keeps these values.
-5. **GitHub.** The repository **variable** `SITE_URL` = `https://inbunden.com` is set (Settings → Secrets and variables → Actions → Variables). `CRON_URL` can stay on the azurestaticapps.net host; it keeps working either way. Re-run the latest deploy workflow (or push `main`) so the build picks up `SITE_URL`: canonical link, `og:url`, absolute `og:image`, `sitemap.xml`.
+5. **GitHub.** The repository **variable** `SITE_URL` = `https://inbunden.com` is set (Settings → Secrets and variables → Actions → Variables). `CRON_URL` must be `https://inbunden.com`: with a default domain set, the azurestaticapps.net host answers `301`, and the cron job does not follow redirects. Re-run the latest deploy workflow (or push `main`) so the build picks up `SITE_URL`: canonical link, `og:url`, absolute `og:image`, `sitemap.xml`.
 6. **Google console** (see `docs/GOOGLE_OAUTH_SETUP.md`): add `https://inbunden.com/api/google/callback` to the client's redirect URIs; keep the azurestaticapps.net one until the domain works.
 7. Check that it worked:
-   - `https://inbunden.com/api/health` returns `{"ok":true,…}`, and `https://www.inbunden.com` and `https://inbunden.se` redirect to it.
+   - `https://inbunden.com/api/health` returns `{"ok":true,…}`, and `curl -I` on `https://www.inbunden.com/`, `https://inbunden.se/` and `https://www.inbunden.se/` each returns `301` to `https://inbunden.com/`.
    - `https://inbunden.com/sitemap.xml` lists every public page in both languages; the page source of `/about` (View source, not DevTools) has the page text and `<link rel="canonical" href="https://inbunden.com/about">`.
    - Via Google Photos → sign in → you come back to `https://inbunden.com/google`.
    - Uploading an export ZIP on `https://inbunden.com` works (proves CORS).
@@ -99,7 +104,7 @@ After the first deploy with these changes:
 1. **Google Search Console:** Sitemaps → submit `https://inbunden.com/sitemap.xml`. URL inspection on `/` and `/sv` → **Request indexing**, and use **View crawled page** to confirm Google sees the text. Later, check **Performance** and the generative AI report now and then.
 2. **Bing Webmaster Tools** (feeds ChatGPT search and Copilot): sign in at bing.com/webmasters → **Import from Google Search Console** → submit the sitemap there too.
 3. **Rich results:** run `https://inbunden.com/` and one guide through search.google.com/test/rich-results and validator.schema.org. Expect Organization, WebSite, FAQPage, Article and BreadcrumbList. The Product offer only appears once `PAYMENT_PROVIDER` is `stripe`.
-4. **One host only** (Azure change, portal): add `www.inbunden.com` under Custom domains (CNAME at Loopia to the default hostname), then select `inbunden.com` → **Set default**. Other custom domains then redirect to it. Check with `curl -I https://green-glacier-0dadae803.5.azurestaticapps.net/` whether the generated hostname redirects too; if it doesn't, the canonical tags still point search engines at inbunden.com. The Free plan allows 2 custom domains, so `inbunden.se` and any other domains stay as 301 forwards at Loopia (path kept, and check that `https://` works on them).
+4. **One host only:** `www.inbunden.com` is on the Static Web App and `inbunden.se` forwards at Loopia. Both redirect to inbunden.com. The Free plan's 2 custom domains are now both used, so any further domains go through Loopia forwards.
 5. **Profiles:** once Inbunden has an Instagram or other public profile, add the URLs as `sameAs` on the Organization in `app/src/seo/jsonld.ts`.
 
 **Prices in the static HTML** come from the live `/api/config` at build time. If you change prices with app settings, redeploy (or re-run the workflow) so the prerendered pages match.
@@ -133,13 +138,27 @@ Without Resend, emails are only written to the Functions log. That covers return
 
 ## 4. Real payments with Stripe
 
-The code for Stripe is in place but switched off. It runs only when `PAYMENT_PROVIDER=stripe` **and** all three keys are set. It never switches on by itself because keys exist.
+**Status: 🟡 test mode done** (checked 30 Sep 2026). The Inbunden Stripe account is set up and production runs `PAYMENT_PROVIDER=stripe` with test keys. `/api/config` returns a `pk_test_…` key, and all three Stripe settings are present. Steps 0–5 are done; **steps 6–7 (live keys) are left**. Before switching, run through the checks in step 5 on inbunden.com once the Stripe test-card box is deployed.
+
+Stripe runs only when `PAYMENT_PROVIDER=stripe` **and** all three keys are set. It never switches on by itself because keys exist.
 
 **You need:** a Stripe account with business details and a payout bank account. Stripe may ask for verification before live payouts.
 
+**Already have Stripe for another product? Create a new account, not a new organisation.** Stripe requires a separate account for each website or product that runs on its own. Each account has its own statement descriptor, public business details, payouts, reports and API keys. That way customers see "INBUNDEN" on their card statement, not the other product's name, and the other product's keys, webhooks and payment settings stay untouched. An *organisation* is only an optional layer on top of several accounts, for combined reporting and team management. You don't need one, and you can create it later and add both accounts ([Stripe: multiple accounts](https://docs.stripe.com/get-started/account/multiple-accounts), [Organizations](https://docs.stripe.com/get-started/account/orgs)).
+
+0. **Create the Inbunden account:**
+   1. In the Dashboard, click the current account name (top left) → **New account**, and name it `Inbunden`. It lives under your existing login, and you switch between accounts from the same menu.
+   2. Activate it with **Venueve AB** as the legal entity: organisation number, address, representative and bank account. If the other product is also Venueve AB, use the same company details and, if you like, the same bank account. If it belongs to a different company, that's fine: this account is still Venueve AB.
+   3. **Settings → Business → Public details:**
+      - Business name `Inbunden`, website `https://inbunden.com`, support email `hello@inbunden.com`.
+      - Statement descriptor `INBUNDEN`. The shortened descriptor can also be `INBUNDEN`.
+      - Link to the privacy policy (`https://inbunden.com/privacy`) and terms (`https://inbunden.com/terms`).
+   4. **Settings → Branding:** icon `brand/inbunden-logo-square-512.png` and brand colour `#4A5FA8`, so Stripe's receipts and 3-D Secure pages match the site.
+   5. A new account starts on Stripe's standard pricing and doesn't inherit anything special from your other account. Every step below happens in the **Inbunden** account. Check the account name at top left before copying keys or adding webhooks.
+
 **First with Stripe test keys (recommended), on a preview or the production site:**
 
-1. **Stripe Dashboard → Developers → API keys** (test mode): copy `pk_test_…` and `sk_test_…`.
+1. **Stripe Dashboard (Inbunden account) → Developers → API keys** in test mode or a sandbox: copy `pk_test_…` and `sk_test_…`.
 2. **Developers → Webhooks → Add endpoint**:
    - URL: `https://inbunden.com/api/stripe/webhook` (or the `*.azurestaticapps.net` host before the domain works).
    - Events: `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, `charge.refunded`.
@@ -150,14 +169,15 @@ The code for Stripe is in place but switched off. It runs only when `PAYMENT_PRO
    az staticwebapp appsettings set -n <swa name> -g printagram-rg --setting-names PAYMENT_PROVIDER=stripe STRIPE_SECRET_KEY=<sk_test_…> STRIPE_PUBLISHABLE_KEY=<pk_test_…> STRIPE_WEBHOOK_SECRET=<whsec_…>
    ```
 5. Check that it worked:
-   - The "Test mode" pill and the test-card banner are gone, and Checkout shows Stripe's card form (plus Apple Pay / Google Pay on supported devices).
-   - Pay with Stripe's test card `4242 4242 4242 4242`: the order becomes paid, the PDF builds, and Stripe → Webhooks shows `200` deliveries.
-   - Pay with `4000 0000 0000 0002`: you see the decline reason and can retry.
+   - Checkout shows Stripe's card form (plus Apple Pay / Google Pay on supported devices). With test keys (`pk_test_…`), the "Test mode" pill stays in the header, and a "Stripe test mode" box above the card form lists Stripe's test cards with Copy buttons. Use any future expiry date, any CVC and any postcode.
+   - Pay with `4242 4242 4242 4242`: the order becomes paid, the PDF builds, and Stripe → Webhooks shows `200` deliveries.
+   - Pay with `4000 0025 0000 3155`: Stripe shows its 3-D Secure test page. Approve it and the order is paid.
+   - Pay with `4000 0000 0000 0002` (declined) or `4000 0000 0000 9995` (insufficient funds): you see the reason and can retry.
    - A discount code still works. `WELCOME100` skips payment entirely.
 
 **Then go live:**
 
-6. Repeat steps 1–4 with **live** mode keys and a **live** webhook endpoint (live and test webhooks are separate).
+6. Repeat steps 1–4 with **live** mode keys and a **live** webhook endpoint (live and test webhooks are separate). With live keys (`pk_live_…`) the "Test mode" pill and the test-card box disappear, and the landing page's structured data starts to include the €9 offer.
 7. Before announcing:
    - Disable the test codes (`npx tsx scripts/promo.ts disable WELCOME100`, same for `TEST20`).
    - Make one real purchase with your own card, then refund it in Stripe. The order should show as refunded on its Done page.
