@@ -8,7 +8,7 @@ export const landing: Messages['landing'] = {
   testModeTitle: 'Betalningarna är simulerade. Inga pengar dras.',
   hero: {
     title: 'Ditt Instagram som en riktig bok.',
-    lead: 'Välj bilderna, vi gör layouten. Ett år, en resa, ett första år – som en tryckfärdig PDF som du har för alltid. Tryckta böcker kommer snart.',
+    lead: 'Inbunden gör dina Instagram-inlägg till en tryckfärdig fotobok. Välj bilderna, vi gör layouten: ett år, en resa, ett första år, som en PDF du har för alltid. Tryckta böcker kommer snart.',
     price: (price: string) => `PDF ${price}`,
     noPassword:
       'Vi ber aldrig om ditt lösenord. Anslut via Instagrams egen inloggning, eller ladda upp din export.',
@@ -72,7 +72,13 @@ export const landing: Messages['landing'] = {
     },
   },
   faqTitle: 'Frågor',
+  guidesTeaser: 'Mer om att exportera från Instagram och trycka PDF:en:',
+  guidesLink: 'läs guiderna',
   faq: [
+    {
+      q: 'Vad kostar det?',
+      a: '{price} per bok för den tryckfärdiga PDF:en, oavsett antal bilder eller sidor. Ingen prenumeration. Tryckta häftade och inbundna böcker kommer snart.',
+    },
     {
       q: 'Är det säkert?',
       a: 'Ja. Om du ansluter loggar du in på Instagrams egen webbplats, och Instagram låter oss läsa dina inlägg – inget mer. Vi kan inte publicera, skicka meddelanden eller se ditt lösenord. Om du laddar upp hämtar du själv dina bilder från Instagram och släpper filen här. Vi rör aldrig ditt konto.',
@@ -96,6 +102,18 @@ export const landing: Messages['landing'] = {
     {
       q: 'Vad får jag just nu?',
       a: 'En högupplöst PDF som du kan skriva ut på vilket tryckeri som helst. Tryckta böcker som skickas hem till dig kommer snart.',
+    },
+    {
+      q: 'Vad innehåller PDF:en?',
+      a: 'En sida per boksida, med omslaget först. Kvadratisk (21 × 21 cm) eller stående (21 × 28 cm), med 4 mm utfall och trimbox, dina originalbilder inbäddade utan omkomprimering och sRGB-färg. Upp till 999 bilder per bok, en till fyra per sida.',
+    },
+    {
+      q: 'Var kan jag trycka den?',
+      a: 'På valfritt tryckeri eller hos en fotobokstjänst på nätet som tar emot PDF-filer. Vår utskriftsguide går igenom vad du ska be om: format, utfall, papper och bindning.',
+    },
+    {
+      q: 'Kan jag använda Google Foto?',
+      a: 'Ja. Förutom Instagram kan du välja bilder i Google Fotos egen bildväljare. Vi ser bara de bilder du väljer.',
     },
     {
       q: 'Kan jag ändra layouten?',

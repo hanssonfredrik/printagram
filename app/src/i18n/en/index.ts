@@ -13,6 +13,8 @@ import { auth } from './auth';
 import { share } from './share';
 import { about } from './about';
 import { legal } from './legal';
+import { guides } from './guides';
+import { seo } from './seo';
 
 /** English is the source of truth: Swedish must have exactly the same shape (checked by tsc). */
 export const en = {
@@ -32,6 +34,8 @@ export const en = {
   share,
   about,
   legal,
+  guides,
+  seo,
 };
 
 export type Messages = typeof en;

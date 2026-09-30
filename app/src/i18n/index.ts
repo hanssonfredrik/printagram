@@ -9,7 +9,10 @@ export type { Messages };
 
 const MESSAGES: Record<Lang, Messages> = { en, sv };
 
-function browserLang(): Lang {
+/** localStorage key of the saved language choice. */
+export const LANG_STORAGE_KEY = 'printagram.lang';
+
+export function browserLang(): Lang {
   if (typeof navigator === 'undefined') return 'en';
   return pickLang(navigator.languages?.length ? navigator.languages : [navigator.language]);
 }
@@ -21,7 +24,8 @@ interface LangState {
 
 /**
  * UI language: the visitor's own choice once made, otherwise the browser language, otherwise
- * English. Kept apart from the draft so signing out does not reset it.
+ * English. Kept apart from the draft so signing out does not reset it. Public pages take the
+ * language from their URL instead (/sv/...) and save it as the choice (PublicLayout, boot.ts).
  */
 export const useLang = create<LangState>()(
   persist(
@@ -29,7 +33,7 @@ export const useLang = create<LangState>()(
       lang: browserLang(),
       setLang: (lang) => set({ lang: normalizeLang(lang) }),
     }),
-    { name: 'printagram.lang', version: 1 },
+    { name: LANG_STORAGE_KEY, version: 1 },
   ),
 );
 
@@ -38,6 +42,15 @@ function applyDocumentLang(lang: Lang) {
 }
 applyDocumentLang(useLang.getState().lang);
 useLang.subscribe((s) => applyDocumentLang(s.lang));
+
+/** Whether the visitor has ever chosen a language (or visited a language-specific page). */
+export function hasSavedLang(): boolean {
+  try {
+    return localStorage.getItem(LANG_STORAGE_KEY) !== null;
+  } catch {
+    return false;
+  }
+}
 
 export function getLang(): Lang {
   return useLang.getState().lang;

@@ -51,6 +51,15 @@ jobs:
           VITE_SITE_URL: ${{ vars.SITE_URL }}
         run: npm run build -w app
 
+      # Static HTML for the public pages, so crawlers that don't run JavaScript (GPTBot,
+      # ClaudeBot, PerplexityBot, ...) see the content. Also writes llms.txt and app-shell.html.
+      - name: Prerender public pages
+        env:
+          VITE_SITE_URL: ${{ vars.SITE_URL }}
+        run: |
+          npx playwright install --with-deps chromium
+          npm run prerender -w app
+
       - name: Build API (esbuild bundle + production node_modules)
         run: |
           npm run build -w api

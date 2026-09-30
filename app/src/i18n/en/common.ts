@@ -6,7 +6,18 @@ export const common = {
   backArrow: '← Back',
   close: 'Close',
   language: 'Language',
+  nav: {
+    label: 'Main',
+    how: 'How it works',
+    pricing: 'Pricing',
+    guides: 'Guides',
+    about: 'About',
+    menu: 'Menu',
+    closeMenu: 'Close menu',
+    skip: 'Skip to content',
+  },
   footer: {
+    guides: 'Guides',
     about: 'About',
     privacy: 'Privacy',
     terms: 'Terms',

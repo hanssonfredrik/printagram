@@ -65,7 +65,7 @@ Until step 4 is done, the site takes **test payments only**. The "Test mode" pil
 | 1. `inbunden.com` on the Static Web App | ✅ Serves the app with its own certificate |
 | 2. Redirects at Loopia | ⬜ `www.inbunden.com` returns Azure's 404 and `inbunden.se` shows Loopia's parked page |
 | 4. App settings and CORS | ⬜ The API still sends Google sign-ins back to the azurestaticapps.net address, so `APP_BASE_URL` and `GOOGLE_REDIRECT_URI` are unchanged. Blob CORS for `https://inbunden.com` couldn't be checked from outside |
-| 5. `SITE_URL` | ✅ Canonical link and `sitemap.xml` (`/`, `/about`, `/privacy`, `/terms`) are live |
+| 5. `SITE_URL` | ✅ Set. From the SEO work on: prerendered public pages in English and Swedish, per-page canonical and hreflang, `sitemap.xml` (16 URLs), `llms.txt` |
 | 6. Google redirect URI | ⬜ Unconfirmed; do it together with step 4 |
 
 **Domains:** `inbunden.com` is the only custom domain on the Static Web App. `www.inbunden.com` and `inbunden.se` are plain redirects set up at the registrar (Loopia), so they never serve the app and need no CORS entry.
@@ -86,9 +86,23 @@ Until step 4 is done, the site takes **test payments only**. The "Test mode" pil
 6. **Google console** (see `docs/GOOGLE_OAUTH_SETUP.md`): add `https://inbunden.com/api/google/callback` to the client's redirect URIs; keep the azurestaticapps.net one until the domain works.
 7. Check that it worked:
    - `https://inbunden.com/api/health` returns `{"ok":true,…}`, and `https://www.inbunden.com` and `https://inbunden.se` redirect to it.
-   - `https://inbunden.com/sitemap.xml` lists `/` and `/about`; the page source has `<link rel="canonical" href="https://inbunden.com/">`.
+   - `https://inbunden.com/sitemap.xml` lists every public page in both languages; the page source of `/about` (View source, not DevTools) has the page text and `<link rel="canonical" href="https://inbunden.com/about">`.
    - Via Google Photos → sign in → you come back to `https://inbunden.com/google`.
    - Uploading an export ZIP on `https://inbunden.com` works (proves CORS).
+
+### 2a. Search engines and AI search
+
+The public pages (landing, about, guides, privacy, terms; English at `/`, Swedish at `/sv/...`) are listed in `app/src/seo/routes.ts`. The deploy workflow prerenders them to static HTML (`scripts/prerender.ts`), so crawlers that don't run JavaScript, such as GPTBot, ClaudeBot and PerplexityBot, see the full text, and the build writes `robots.txt`, `sitemap.xml` and `llms.txt`. App screens (`/books`, `/start`, …) and unknown URLs get the SPA shell with `noindex`.
+
+After the first deploy with these changes:
+
+1. **Google Search Console:** Sitemaps → submit `https://inbunden.com/sitemap.xml`. URL inspection on `/` and `/sv` → **Request indexing**, and use **View crawled page** to confirm Google sees the text. Later, check **Performance** and the generative AI report now and then.
+2. **Bing Webmaster Tools** (feeds ChatGPT search and Copilot): sign in at bing.com/webmasters → **Import from Google Search Console** → submit the sitemap there too.
+3. **Rich results:** run `https://inbunden.com/` and one guide through search.google.com/test/rich-results and validator.schema.org. Expect Organization, WebSite, FAQPage, Article and BreadcrumbList. The Product offer only appears once `PAYMENT_PROVIDER` is `stripe`.
+4. **One host only** (Azure change, portal): add `www.inbunden.com` under Custom domains (CNAME at Loopia to the default hostname), then select `inbunden.com` → **Set default**. Other custom domains then redirect to it. Check with `curl -I https://green-glacier-0dadae803.5.azurestaticapps.net/` whether the generated hostname redirects too; if it doesn't, the canonical tags still point search engines at inbunden.com. The Free plan allows 2 custom domains, so `inbunden.se` and any other domains stay as 301 forwards at Loopia (path kept, and check that `https://` works on them).
+5. **Profiles:** once Inbunden has an Instagram or other public profile, add the URLs as `sameAs` on the Organization in `app/src/seo/jsonld.ts`.
+
+**Prices in the static HTML** come from the live `/api/config` at build time. If you change prices with app settings, redeploy (or re-run the workflow) so the prerendered pages match.
 
 ---
 

@@ -14,6 +14,8 @@ import { auth } from './auth';
 import { share } from './share';
 import { about } from './about';
 import { legal } from './legal';
+import { guides } from './guides';
+import { seo } from './seo';
 
 export const sv: Messages = {
   common,
@@ -32,4 +34,6 @@ export const sv: Messages = {
   share,
   about,
   legal,
+  guides,
+  seo,
 };

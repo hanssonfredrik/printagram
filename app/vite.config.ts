@@ -3,46 +3,24 @@ import { defineConfig } from 'vitest/config';
 import { loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
+import { DEFAULT_SITE_URL, robotsTxt, sitemapXml } from './src/seo/routes';
 
 /**
- * Search/social metadata that needs the public origin (VITE_SITE_URL, e.g. https://inbunden.com):
- * canonical + og:url + absolute og:image in index.html, and robots.txt / sitemap.xml in the build.
- * Without it the build still works: relative og:image, robots.txt without a sitemap.
+ * Search/social metadata that needs the public origin (VITE_SITE_URL, default https://inbunden.com):
+ * absolute og:image in index.html, and robots.txt / sitemap.xml from the page table in
+ * src/seo/routes.ts. Per-page titles, canonicals, hreflang and JSON-LD are set by useSeo() and
+ * baked into static HTML by scripts/prerender.ts.
  */
 function seo(siteUrl: string): Plugin {
-  const site = siteUrl.replace(/\/$/, '');
-  const pages = ['/', '/about', '/privacy', '/terms'];
+  const site = (siteUrl || DEFAULT_SITE_URL).replace(/\/$/, '');
   return {
     name: 'printagram-seo',
     transformIndexHtml(html) {
-      const image = `${site}/og-image.jpg`;
-      const tags = site
-        ? [
-            `<link rel="canonical" href="${site}/" />`,
-            `<meta property="og:url" content="${site}/" />`,
-          ].join('\n    ')
-        : '';
-      return html
-        .replace('<!-- seo -->', tags)
-        .replaceAll('%OG_IMAGE%', site ? image : '/og-image.jpg');
+      return html.replaceAll('%OG_IMAGE%', `${site}/og-image.jpg`);
     },
     generateBundle() {
-      const robots = ['User-agent: *', 'Allow: /', 'Disallow: /api/', 'Disallow: /s/'];
-      if (site) robots.push('', `Sitemap: ${site}/sitemap.xml`);
-      this.emitFile({ type: 'asset', fileName: 'robots.txt', source: robots.join('\n') + '\n' });
-      if (site) {
-        const sitemap = [
-          '<?xml version="1.0" encoding="UTF-8"?>',
-          '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-          ...pages.map((p) => `  <url><loc>${site}${p}</loc></url>`),
-          '</urlset>',
-        ];
-        this.emitFile({
-          type: 'asset',
-          fileName: 'sitemap.xml',
-          source: sitemap.join('\n') + '\n',
-        });
-      }
+      this.emitFile({ type: 'asset', fileName: 'robots.txt', source: robotsTxt(site) });
+      this.emitFile({ type: 'asset', fileName: 'sitemap.xml', source: sitemapXml(site) });
     },
   };
 }

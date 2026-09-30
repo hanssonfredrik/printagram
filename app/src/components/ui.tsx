@@ -1,7 +1,8 @@
 import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode } from 'react';
-import { Link } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { LANG_NAMES, LANGS, type Lang } from '@printagram/shared';
 import { useLang, useT } from '@/i18n';
+import { pageAt, pathFor } from '@/seo/routes';
 import s from './ui.module.css';
 
 export function cx(...parts: Array<string | false | null | undefined>): string {
@@ -280,15 +281,25 @@ export function Select({
 
 /* ---------- Language picker ---------- */
 
-/** English / Svenska. Each name is written in its own language so it is findable either way. */
+/**
+ * English / Svenska. Each name is written in its own language so it is findable either way.
+ * On a public page it goes to the same page in the other language (/about ↔ /sv/om).
+ */
 export function LanguageSelect() {
   const t = useT();
   const lang = useLang((l) => l.lang);
   const setLang = useLang((l) => l.setLang);
+  const { pathname, hash } = useLocation();
+  const nav = useNavigate();
+  const change = (next: Lang) => {
+    const page = pageAt(pathname);
+    setLang(next);
+    if (page) nav(pathFor(page.key, next) + hash);
+  };
   return (
     <Select
       value={lang}
-      onChange={(v) => setLang(v as Lang)}
+      onChange={(v) => change(v as Lang)}
       options={LANGS.map((l) => ({ value: l, label: LANG_NAMES[l] }))}
       ariaLabel={t.common.language}
     />

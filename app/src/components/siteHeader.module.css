@@ -1,0 +1,231 @@
+/* Top navigation on the public pages. Same paper background and spacing as the old landing
+   header; a hairline appears under it once the page scrolls. */
+.bar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--bg);
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s ease;
+}
+
+.bar[data-scrolled] {
+  border-bottom-color: var(--border);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  max-width: var(--max-wide);
+  margin: 0 auto;
+  padding: 14px var(--gutter);
+}
+
+.skip {
+  position: absolute;
+  left: var(--gutter);
+  top: -48px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-card);
+  z-index: 30;
+}
+
+.skip:not(:focus) {
+  clip-path: inset(50%);
+}
+
+.skip:focus {
+  top: 8px;
+}
+
+.brandRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.brand:hover {
+  color: var(--text);
+}
+
+.mark {
+  display: block;
+  width: 28px;
+  height: 28px;
+}
+
+.testPill {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #fbe9c6;
+  color: #7a5412;
+  white-space: nowrap;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.link {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--muted);
+  text-decoration: none;
+  white-space: nowrap;
+  padding: 6px 0;
+}
+
+.link:hover {
+  color: var(--text);
+}
+
+.link[aria-current='page'] {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--primary);
+  text-decoration-thickness: 2px;
+  text-underline-offset: 6px;
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.wide {
+  display: contents;
+}
+
+.menuButton {
+  display: none;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+}
+
+.menuButton:hover {
+  background: var(--surface-hover);
+}
+
+/* Two lines that turn into a cross. */
+.burger,
+.burger::before {
+  display: block;
+  width: 18px;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transition: transform 0.2s ease;
+}
+
+.burger {
+  position: relative;
+  transform: translateY(-3px);
+}
+
+.burger::before {
+  content: '';
+  position: absolute;
+  top: 6px;
+}
+
+.burger--open {
+  transform: translateY(0) rotate(45deg);
+}
+
+.burger--open::before {
+  top: 0;
+  transform: rotate(-90deg);
+}
+
+.panel {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 100%;
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  padding: 4px var(--gutter) 16px;
+  animation: rise 0.2s ease;
+}
+
+.panelNav {
+  display: flex;
+  flex-direction: column;
+}
+
+.panelLink {
+  font-size: 17px;
+  color: var(--text);
+  text-decoration: none;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.panelLink[aria-current='page'] {
+  color: var(--primary);
+}
+
+.panelFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 14px;
+}
+
+@media (max-width: 1100px) {
+  .nav {
+    gap: 18px;
+  }
+}
+
+/* Swedish labels and the test-mode pill need the room: collapse into the menu early. */
+@media (max-width: 960px) {
+  .nav,
+  .wide {
+    display: none;
+  }
+
+  .menuButton {
+    display: inline-flex;
+  }
+}
+
+/* On the landing page the hero's button sits right below on phones. The checkout page says
+   when payments are simulated, so the pill can go where there's no room for it. */
+@media (max-width: 480px) {
+  .cta--landing,
+  .testPill {
+    display: none;
+  }
+
+  .cta {
+    padding: 8px 14px;
+    font-size: 14px;
+  }
+}

@@ -167,15 +167,15 @@ describe('screens (against the in-memory test API)', () => {
   it('about: the footer links to the About page with the name and founder', async () => {
     const { router } = renderAt('/');
     expect(await screen.findByText('Your Instagram, as a real book.')).toBeTruthy();
-    fireEvent.click(screen.getByRole('link', { name: 'About' }));
+    const footer = screen.getByRole('contentinfo');
+    fireEvent.click(within(footer).getByRole('link', { name: 'About' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/about'));
     expect(await screen.findByRole('heading', { name: 'About Inbunden' })).toBeTruthy();
     expect(screen.getByText(/Swedish word for a hardcover book/)).toBeTruthy();
     expect(screen.getByText(/made in Sweden by Venueve AB/)).toBeTruthy();
     expect(screen.getByRole('link', { name: 'hello@inbunden.com' })).toBeTruthy();
     cleanup();
-    useLang.getState().setLang('sv');
-    renderAt('/about');
+    renderAt('/sv/om');
     expect(await screen.findByRole('heading', { name: 'Om Inbunden' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Om Inbunden' })).toBeTruthy();
   });
@@ -183,16 +183,15 @@ describe('screens (against the in-memory test API)', () => {
   it('legal: footer links open the privacy policy and terms in both languages', async () => {
     const { router } = renderAt('/');
     expect(await screen.findByText('Your Instagram, as a real book.')).toBeTruthy();
-    fireEvent.click(screen.getByRole('link', { name: 'Privacy' }));
+    fireEvent.click(within(screen.getByRole('contentinfo')).getByRole('link', { name: 'Privacy' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/privacy'));
     expect(await screen.findByRole('heading', { name: 'Privacy policy' })).toBeTruthy();
     expect(screen.getByText(/one cookie, pg_session/)).toBeTruthy();
-    fireEvent.click(screen.getByRole('link', { name: 'Terms' }));
+    fireEvent.click(within(screen.getByRole('contentinfo')).getByRole('link', { name: 'Terms' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/terms'));
     expect(await screen.findByRole('heading', { name: 'Terms of use' })).toBeTruthy();
     cleanup();
-    useLang.getState().setLang('sv');
-    renderAt('/privacy');
+    renderAt('/sv/integritet');
     expect(await screen.findByRole('heading', { name: 'Integritetspolicy' })).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Villkor' })).toBeTruthy();
   });
@@ -338,7 +337,9 @@ describe('screens (against the in-memory test API)', () => {
     });
     renderAt('/books');
     expect(await screen.findByText('No photos stored')).toBeTruthy();
-    expect(screen.getByText('No books yet. Start one from your library above.')).toBeTruthy();
+    expect(
+      await screen.findByText('No books yet. Start one from your library above.'),
+    ).toBeTruthy();
     cleanup();
     renderAt('/r/sometoken');
     expect(await screen.findByRole('button', { name: 'Continue' })).toBeTruthy();
@@ -398,14 +399,14 @@ describe('languages', () => {
     expect(pickLang(['de-DE', 'fr'])).toBe('en');
   });
 
-  it('shows Swedish, switches with the picker and remembers the choice', async () => {
-    useLang.getState().setLang('sv');
-    renderAt('/');
+  it('public pages take the language from the URL; the picker goes to the twin page', async () => {
+    const { router } = renderAt('/sv');
     expect(await screen.findByText('Ditt Instagram som en riktig bok.')).toBeTruthy();
     expect(document.documentElement.lang).toBe('sv');
 
     const picker = screen.getAllByRole('combobox', { name: 'Språk' })[0]!;
     fireEvent.change(picker, { target: { value: 'en' } });
+    await waitFor(() => expect(router.state.location.pathname).toBe('/'));
     expect(await screen.findByText('Your Instagram, as a real book.')).toBeTruthy();
     expect(document.documentElement.lang).toBe('en');
     expect(localStorage.getItem('printagram.lang')).toContain('"lang":"en"');
@@ -424,5 +425,82 @@ describe('languages', () => {
     useDraft.getState().setBook({ title: 'Sommar' });
     useDraft.getState().setBookLang('sv');
     expect(useDraft.getState().title).toBe('Sommar');
+  });
+});
+
+describe('public pages: navigation and search metadata', () => {
+  it('shows the top navigation on public pages but not in the book flow', async () => {
+    renderAt('/');
+    const nav = await screen.findByRole('navigation', { name: 'Main' });
+    expect(within(nav).getByRole('link', { name: 'Guides' }).getAttribute('href')).toBe('/guides');
+    expect(within(nav).getByRole('link', { name: 'Pricing' }).getAttribute('href')).toBe(
+      '/#pricing',
+    );
+    cleanup();
+    await seedLibraryAndDraft();
+    renderAt('/select');
+    await screen.findAllByText(/photos/i);
+    expect(screen.queryByRole('navigation', { name: 'Main' })).toBeNull();
+  });
+
+  it('links in the current language and marks the current page', async () => {
+    renderAt('/sv/guider');
+    const nav = await screen.findByRole('navigation', { name: 'Huvudmeny' });
+    const guides = within(nav).getByRole('link', { name: 'Guider' });
+    expect(guides.getAttribute('href')).toBe('/sv/guider');
+    expect(guides.getAttribute('aria-current')).toBe('page');
+    expect(within(nav).getByRole('link', { name: 'Om oss' }).getAttribute('href')).toBe('/sv/om');
+  });
+
+  it('opens and closes the phone menu', async () => {
+    renderAt('/about');
+    const button = await screen.findByRole('button', { name: 'Menu' });
+    fireEvent.click(button);
+    expect(button.getAttribute('aria-expanded')).toBe('true');
+    expect(screen.getAllByRole('navigation', { name: 'Main' })).toHaveLength(2);
+    fireEvent.keyDown(window, { key: 'Escape' });
+    await waitFor(() => expect(button.getAttribute('aria-expanded')).toBe('false'));
+  });
+
+  it('renders a guide with its steps, FAQ and head tags', async () => {
+    renderAt('/guides/download-instagram-data');
+    expect(
+      await screen.findByRole('heading', {
+        level: 1,
+        name: 'How to download your Instagram data (photos and posts)',
+      }),
+    ).toBeTruthy();
+    // The export steps come from the same text as the in-app export guide.
+    expect(screen.getAllByText('Choose Posts only').length).toBe(2);
+    expect(screen.getByRole('heading', { name: 'How big is the ZIP?' })).toBeTruthy();
+    await waitFor(() =>
+      expect(document.title).toBe(
+        'How to download your Instagram data (photos and posts) · Inbunden',
+      ),
+    );
+    expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
+      'https://inbunden.com/guides/download-instagram-data',
+    );
+    const langs = [...document.querySelectorAll('link[rel="alternate"]')].map((l) =>
+      l.getAttribute('hreflang'),
+    );
+    expect(langs).toEqual(['en', 'sv', 'x-default']);
+    const ld = JSON.parse(
+      document.querySelector('script[type="application/ld+json"]')!.textContent!,
+    );
+    expect(JSON.stringify(ld)).toContain('"Article"');
+    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toContain(
+      'index',
+    );
+  });
+
+  it('marks unknown URLs noindex', async () => {
+    renderAt('/no-such-page');
+    expect(await screen.findByText('Nothing here')).toBeTruthy();
+    await waitFor(() =>
+      expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe(
+        'noindex',
+      ),
+    );
   });
 });

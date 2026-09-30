@@ -6,7 +6,18 @@ export const common: Messages['common'] = {
   backArrow: '← Tillbaka',
   close: 'Stäng',
   language: 'Språk',
+  nav: {
+    label: 'Huvudmeny',
+    how: 'Så funkar det',
+    pricing: 'Priser',
+    guides: 'Guider',
+    about: 'Om oss',
+    menu: 'Meny',
+    closeMenu: 'Stäng menyn',
+    skip: 'Hoppa till innehållet',
+  },
   footer: {
+    guides: 'Guider',
     about: 'Om Inbunden',
     privacy: 'Integritet',
     terms: 'Villkor',

@@ -7,7 +7,7 @@ export const landing = {
   testModeTitle: 'Payments are simulated. No money is taken.',
   hero: {
     title: 'Your Instagram, as a real book.',
-    lead: 'Pick the photos, we lay out the pages. A year, a trip, a first year — as a print‑ready PDF you keep forever. Printed books are coming soon.',
+    lead: 'Inbunden turns your Instagram posts into a print‑ready photo book. Pick the photos, we lay out the pages: a year, a trip, a first year, as a PDF you keep forever. Printed books are coming soon.',
     price: (price: string) => `PDF ${price}`,
     noPassword:
       "We never ask for your password. Connect through Instagram's own login, or upload your export.",
@@ -68,7 +68,14 @@ export const landing = {
     },
   },
   faqTitle: 'Questions',
+  guidesTeaser: 'More on exporting from Instagram and printing the PDF:',
+  guidesLink: 'read the guides',
+  /** `{price}` is replaced with the PDF price from the config. */
   faq: [
+    {
+      q: 'What does it cost?',
+      a: '{price} per book for the print‑ready PDF, whatever the number of photos or pages. No subscription. Printed softcover and hardcover books are coming soon.',
+    },
     {
       q: 'Is it safe?',
       a: "Yes. If you connect, you log in on Instagram's own site and Instagram lets us read your posts — nothing more. We can't post, message or see your password. If you upload, you download your own photos from Instagram and drop the file here. We never touch your account.",
@@ -92,6 +99,18 @@ export const landing = {
     {
       q: 'What do I get right now?',
       a: 'A high‑resolution PDF you can print at any print shop. Printed books shipped to you are coming soon.',
+    },
+    {
+      q: 'What exactly is in the PDF?',
+      a: 'One page per book page, the cover first. Square (21 × 21 cm) or portrait (21 × 28 cm), with 4 mm of bleed and a trim box, your original photos embedded without re‑compressing, and sRGB colour. Up to 999 photos per book, one to four per page.',
+    },
+    {
+      q: 'Where can I print it?',
+      a: 'At any print shop or online photo book printer that accepts PDF files. Our printing guide lists what to ask for: size, bleed, paper and binding.',
+    },
+    {
+      q: 'Can I use Google Photos?',
+      a: "Yes. Besides Instagram, you can pick photos in Google Photos' own picker. We only see the photos you choose.",
     },
     {
       q: 'Can I edit the layout?',

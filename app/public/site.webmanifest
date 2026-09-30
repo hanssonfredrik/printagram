@@ -1,0 +1,13 @@
+{
+  "name": "Inbunden",
+  "short_name": "Inbunden",
+  "description": "Photo books from your Instagram.",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#FAF7F2",
+  "theme_color": "#FAF7F2",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}

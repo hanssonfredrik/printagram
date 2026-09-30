@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import { fmtEuro, photoSpan } from '@printagram/shared';
-import { Button, Card, LanguageSelect } from '@/components/ui';
+import { Button, Card } from '@/components/ui';
+import { PageLink } from '@/components/PageLink';
 import { PageRenderer } from '@/components/PageRenderer';
-import { useConfig, useSession } from '@/state/session';
+import { useConfig } from '@/state/session';
 import { useDraft } from '@/state/draft';
 import { useLang, useT } from '@/i18n';
+import { fillPrice } from '@/seo/jsonld';
 import { samplePhotos, sampleSpreads } from './samples';
 import s from './landing.module.css';
 
@@ -15,14 +17,12 @@ export function Landing() {
   const tl = t.landing;
   const lang = useLang((x) => x.lang);
   const cfg = useConfig();
-  const user = useSession((x) => x.user);
   const setAdding = useDraft((d) => d.setAdding);
   const start = () => {
     setAdding(false);
     nav('/start');
   };
-  const signedIn = user?.authLevel === 'password' || user?.authLevel === 'email';
-  const testMode = cfg.payment.provider === 'fake';
+  const price = fmtEuro(cfg.pricing.baseCents, lang);
   const samples = useMemo(() => {
     const photos = samplePhotos(tl.samples);
     return {
@@ -46,32 +46,6 @@ export function Landing() {
 
   return (
     <div className="screen">
-      <header className={s.header}>
-        <div className="row gap-8">
-          <span className="brand">{t.common.brand}</span>
-          {testMode && (
-            <span className={s.testPill} title={tl.testModeTitle}>
-              {tl.testMode}
-            </span>
-          )}
-        </div>
-        <div className="row gap-8">
-          <LanguageSelect />
-          {signedIn ? (
-            <Button variant="ghost" size="md" onClick={() => nav('/books')}>
-              {tl.myBooks}
-            </Button>
-          ) : (
-            <Button variant="ghost" size="md" onClick={() => nav('/signin')}>
-              {tl.signIn}
-            </Button>
-          )}
-          <Button size="md" onClick={start} className={s.headerCta}>
-            {tl.start}
-          </Button>
-        </div>
-      </header>
-
       <section className={`${s.hero} grid-auto grid-auto--340`}>
         <div className="stack stack-20">
           <h1 className="h1">{tl.hero.title}</h1>
@@ -80,9 +54,7 @@ export function Landing() {
             <Button size="xl" onClick={start}>
               {tl.start}
             </Button>
-            <span className="muted small">
-              {tl.hero.price(fmtEuro(cfg.pricing.baseCents, lang))}
-            </span>
+            <span className="muted small">{tl.hero.price(price)}</span>
           </div>
           <div className="row gap-10 muted small">
             <span className="check check--big">✓</span>
@@ -107,7 +79,7 @@ export function Landing() {
         </div>
       </section>
 
-      <section className={`${s.section} ${s['section--first']}`}>
+      <section id="how" className={`${s.section} ${s['section--first']}`}>
         <h2 className="h2" style={{ marginBottom: 28 }}>
           {tl.how.title}
         </h2>
@@ -150,7 +122,7 @@ export function Landing() {
         </div>
       </section>
 
-      <section className={s.section}>
+      <section id="pricing" className={s.section}>
         <h2 className="h2" style={{ marginBottom: 8 }}>
           {tl.pricing.title}
         </h2>
@@ -160,7 +132,7 @@ export function Landing() {
         <div className="grid-auto grid-auto--260">
           <Card primary gap={6} className={s.priceCard}>
             <div className="semibold">{tl.pricing.pdf.title}</div>
-            <div className={s.price}>{fmtEuro(cfg.pricing.baseCents, lang)}</div>
+            <div className={s.price}>{price}</div>
             <div className="muted">{tl.pricing.pdf.text}</div>
             <div className={s.priceNote} style={{ color: 'var(--primary)', fontWeight: 500 }}>
               {tl.pricing.pdf.note}
@@ -193,10 +165,13 @@ export function Landing() {
           {tl.faq.map((f) => (
             <div key={f.q} className={s.faq}>
               <div className={s.faqQ}>{f.q}</div>
-              <p className="muted">{f.a}</p>
+              <p className="muted">{fillPrice(f.a, price)}</p>
             </div>
           ))}
         </div>
+        <p className="muted" style={{ paddingTop: 20 }}>
+          {tl.guidesTeaser} <PageLink page="guides">{tl.guidesLink}</PageLink>
+        </p>
         <div className="center" style={{ paddingTop: 48 }}>
           <Button size="xl" onClick={start}>
             {tl.start}

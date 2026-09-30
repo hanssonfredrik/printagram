@@ -14,31 +14,24 @@ export function About() {
         className="container container--narrow stack stack-24"
         style={{ paddingTop: 24, paddingBottom: 48 }}
       >
-        <div className="row gap-12">
-          <button
-            type="button"
-            className="back"
-            onClick={() => (window.history.length > 1 ? nav(-1) : nav('/'))}
-            aria-label={t.common.back}
-          >
-            ←
-          </button>
-          <button
-            type="button"
-            className="brand"
-            style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer' }}
-            onClick={() => nav('/')}
-          >
-            {t.common.brand}
-          </button>
-        </div>
-
         <div>
           <h1 className="h1" style={{ fontSize: 40, marginBottom: 8 }}>
             {ta.title}
           </h1>
           <p className="muted pretty">{ta.lead}</p>
         </div>
+
+        <section className="stack stack-8">
+          <h2 className="h3">{ta.factsTitle}</h2>
+          <dl className="facts">
+            {ta.facts.map((f) => (
+              <div key={f.label} className="facts__row">
+                <dt className="muted">{f.label}</dt>
+                <dd>{f.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
 
         {ta.sections.map((sec) => (
           <section key={sec.title} className="stack stack-8">
