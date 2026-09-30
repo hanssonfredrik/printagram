@@ -70,7 +70,7 @@ Authorised JavaScript origins can stay empty; the browser never talks to Google 
 
 then restart `start-local.ps1`. The redirect URI must be the one you entered in step 5.
 
-**In Azure:** pass the keys to the deploy script. It creates the Storage account and the Static Web App on the first run (see `docs/GO_LIVE.md` §1) and only updates settings afterwards. The flag is on by default, and `GOOGLE_REDIRECT_URI` is derived from the app's base URL:
+**In Azure:** pass the keys to the deploy script. It creates the Storage account and the Static Web App on the first run (see `docs/go-live.md` §1) and only updates settings afterwards. The flag is on by default, and `GOOGLE_REDIRECT_URI` is derived from the app's base URL:
 
 ```powershell
 ./infra/deploy.ps1 -ResourceGroup printagram-rg -Location westeurope -GoogleClientId <id> -GoogleClientSecret <secret>

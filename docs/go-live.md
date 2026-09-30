@@ -88,7 +88,7 @@ Until step 4 is finished with live keys, the site takes **test payments only**. 
    ```
    Every origin users open the site from must be allowed, otherwise photo uploads fail with a CORS error. `www` and `.se` only redirect, so `https://inbunden.com` is enough. The next time you run `deploy.ps1` for other reasons, pass `-AppBaseUrl https://inbunden.com -ExtraCorsOrigins https://inbunden.com` so it keeps these values.
 5. **GitHub.** The repository **variable** `SITE_URL` = `https://inbunden.com` is set (Settings → Secrets and variables → Actions → Variables). `CRON_URL` must be `https://inbunden.com`: with a default domain set, the azurestaticapps.net host answers `301`, and the cron job does not follow redirects. Re-run the latest deploy workflow (or push `main`) so the build picks up `SITE_URL`: canonical link, `og:url`, absolute `og:image`, `sitemap.xml`.
-6. **Google console** (see `docs/GOOGLE_OAUTH_SETUP.md`): add `https://inbunden.com/api/google/callback` to the client's redirect URIs; keep the azurestaticapps.net one until the domain works.
+6. **Google console** (see `docs/google-oauth-setup.md`): add `https://inbunden.com/api/google/callback` to the client's redirect URIs; keep the azurestaticapps.net one until the domain works.
 7. Check that it worked:
    - `https://inbunden.com/api/health` returns `{"ok":true,…}`, and `curl -I` on `https://www.inbunden.com/`, `https://inbunden.se/` and `https://www.inbunden.se/` each returns `301` to `https://inbunden.com/`.
    - `https://inbunden.com/sitemap.xml` lists every public page in both languages; the page source of `/about` (View source, not DevTools) has the page text and `<link rel="canonical" href="https://inbunden.com/about">`.
@@ -221,7 +221,7 @@ Until this is approved, the "Connect Instagram" card shows "coming soon" and eve
 
 ## 6. Google Photos import (Google OAuth verification)
 
-The third source card. It works for every Instagram account, private ones included: the user has Instagram transfer their posts to Google Photos (Accounts Center → Transfer a copy of your information), then picks them in Google's Picker and Inbunden copies the selection. Captions and likes do not come along; dates are what Google Photos knows. The flag is on by default; the card stays hidden until the client ID and secret are set. Step-by-step console instructions: `docs/GOOGLE_OAUTH_SETUP.md`.
+The third source card. It works for every Instagram account, private ones included: the user has Instagram transfer their posts to Google Photos (Accounts Center → Transfer a copy of your information), then picks them in Google's Picker and Inbunden copies the selection. Captions and likes do not come along; dates are what Google Photos knows. The flag is on by default; the card stays hidden until the client ID and secret are set. Step-by-step console instructions: `docs/google-oauth-setup.md`.
 
 **You need:**
 - A Google Cloud project with the **Google Photos Picker API** enabled.
@@ -246,7 +246,7 @@ The third source card. It works for every Instagram account, private ones includ
 
 ## 7. Meta transfer destination (future, the real fix for private accounts)
 
-Becoming a destination in Meta's "Transfer a copy of your information" tool would let any Instagram account, private ones included, push posts (with captions) straight to Inbunden. Nothing is built for it yet; the prerequisites are yours and take weeks, so start them early if you want this path (details and sources in `docs/RESEARCH.md`):
+Becoming a destination in Meta's "Transfer a copy of your information" tool would let any Instagram account, private ones included, push posts (with captions) straight to Inbunden. Nothing is built for it yet; the prerequisites are yours and take weeks, so start them early if you want this path (details and sources in `docs/research.md`):
 
 1. **DTI Data Trust Registry, Level 1** at https://dt-reg.org/: company registration number (LEI/DUNS), homepage, a privacy policy that covers collection, use, sharing, protection, retention and data-subject rights, a security contact, a service description.
 2. **Meta Business Manager verification** (shared with section 5).

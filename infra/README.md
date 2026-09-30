@@ -37,12 +37,12 @@ They are set by the Bicep deployment; change them in the portal or redeploy with
 | `PRICE_SOFTCOVER_FROM_CENTS`, `PRICE_HARDCOVER_FROM_CENTS` | "From" prices shown for printed books (coming soon) |
 | `EMAIL_PROVIDER` (`console`/`resend`), `RESEND_API_KEY`, `EMAIL_FROM` | Transactional email |
 | `FEATURE_CONNECT_ENABLED`, `IG_APP_ID`, `IG_APP_SECRET`, `IG_REDIRECT_URI` | Instagram connect (needs Meta App Review) |
-| `FEATURE_GOOGLE_PHOTOS_ENABLED`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` | Google Photos import via the Picker API. Flag defaults to true; the card shows once the client keys are set (`docs/GOOGLE_OAUTH_SETUP.md`) |
+| `FEATURE_GOOGLE_PHOTOS_ENABLED`, `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` | Google Photos import via the Picker API. Flag defaults to true; the card shows once the client keys are set (`docs/google-oauth-setup.md`) |
 | `PRICE_BASE_CENTS`, `LIBRARY_RETENTION_DAYS`, `REMINDER_DAYS_BEFORE`, `MAX_PHOTOS_PER_LIBRARY` | Product rules (the PDF price is flat; the per-book photo limit is fixed in code at 999) |
 
 ## Custom domain
 
-`inbunden.com` is the one custom domain (Static Web App → Custom domains); `www.inbunden.com` and `inbunden.se` are forwarded at the registrar. Step by step: `docs/GO_LIVE.md` §2. Then:
+`inbunden.com` is the one custom domain (Static Web App → Custom domains); `www.inbunden.com` and `inbunden.se` are forwarded at the registrar. Step by step: `docs/go-live.md` §2. Then:
 
 1. Redeploy with `-AppBaseUrl https://inbunden.com -ExtraCorsOrigins https://inbunden.com`
    (Blob CORS must list every origin that uploads/downloads).

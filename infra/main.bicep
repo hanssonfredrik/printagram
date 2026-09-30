@@ -32,7 +32,7 @@ param extraCorsOrigins array = []
 @description('Enable the Instagram connect path (requires Meta App Review).')
 param connectEnabled bool = false
 
-@description('Enable the Google Photos import path. The card only shows once a Google OAuth client is set (docs/GOOGLE_OAUTH_SETUP.md).')
+@description('Enable the Google Photos import path. The card only shows once a Google OAuth client is set (docs/google-oauth-setup.md).')
 param googlePhotosEnabled bool = true
 
 // ---------- Secrets (passed at deploy time; never committed) ----------

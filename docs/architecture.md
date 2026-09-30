@@ -133,7 +133,7 @@ GitHub Actions `cron.yml` (daily) calls `POST /api/cron/run` with `x-cron-key` f
 ## Known limitations
 
 - Meta App Review is required before the Instagram connect path works for the public (`FEATURE_CONNECT_ENABLED`); a verified Google OAuth client before the Google Photos card shows (`FEATURE_GOOGLE_PHOTOS_ENABLED`).
-- Google Photos brings pictures only: no captions or likes, and dates may be the transfer date. Captions for private accounts need Meta's transfer-destination programme (see `docs/GO_LIVE.md` §7).
+- Google Photos brings pictures only: no captions or likes, and dates may be the transfer date. Captions for private accounts need Meta's transfer-destination programme (see `docs/go-live.md` §7).
 - Managed Functions cold start 2–5 s; the daily cron warms the app.
 - Table Storage has no secondary indexes; cron does small full scans (fine for MVP; index later via Lookups).
 - A determined user could build a similar PDF from their own photos without paying; no DRM by design.

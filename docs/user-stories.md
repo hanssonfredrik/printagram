@@ -72,7 +72,7 @@ Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas
 
 ## Epic 4b — Import via Google Photos (Instagram → Google Photos → Picker)
 
-Why: no Instagram API can read a private account and professional accounts cannot be private (`docs/RESEARCH.md`). Instagram's own transfer tool sends any account's posts to Google Photos; Google's Picker API is the only third-party read path there.
+Why: no Instagram API can read a private account and professional accounts cannot be private (`docs/research.md`). Instagram's own transfer tool sends any account's posts to Google Photos; Google's Picker API is the only third-party read path there.
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
@@ -82,7 +82,7 @@ Why: no Instagram API can read a private account and professional accounts canno
 | 4b.4 | As Mara I want the copy to run with progress and survive a slow connection. | Same job loop as connect: `POST /api/libraries/{id}/imports` → `POST /api/imports/{job}/run` (22 s batches, lease, resumable, idempotent on `gp_<mediaId>`); bytes fetched with the bearer token and `=d`, jimp thumbnails; HEIC skipped, videos recorded never printed; the session is deleted afterwards. Route-tested with a stubbed Google client. | ✅ UI ✅ API |
 | 4b.5 | As Mara I want the best possible dates. | EXIF `DateTimeOriginal` read from the JPEG when present (`api/src/lib/exif.ts`, unit-tested), else Google's `createTime`; the UI warns that dates may be the transfer date. | ✅ API |
 | 4b.6 | As Mara I want to end Google's access whenever I like. | "End it now" → `POST /api/google/disconnect` revokes the token; copied photos stay. Access also lapses by itself after an hour. | ✅ UI ✅ API |
-| 4b.7 | As Mara (private account) I want my captions too, without a ZIP. | Become a destination of Meta's "Transfer a copy of your information" (DTI registry Level 1, Meta business verification, Data Transfer app, OAuth-provider + importer endpoints). See `docs/GO_LIVE.md` §7. | ⬜ Future |
+| 4b.7 | As Mara (private account) I want my captions too, without a ZIP. | Become a destination of Meta's "Transfer a copy of your information" (DTI registry Level 1, Meta business verification, Data Transfer app, OAuth-provider + importer endpoints). See `docs/go-live.md` §7. | ⬜ Future |
 
 ## Epic 5 — Photo library & retention
 
@@ -184,9 +184,11 @@ Why: no Instagram API can read a private account and professional accounts canno
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
-| 14.1 | As a user I want to order a softcover or hardcover book shipped to me. | Print provider integration (Gelato API: PDF/X-4, 4 mm bleed, 150–300 dpi; or Peecho photobook API which adds bleed); shipping address; provider order webhook → status emails. | ⬜ Future |
+| 14.1 | As a user I want to order a softcover or hardcover book shipped to me. | Print provider behind `PRINT_PROVIDER` (Crimson CAPI for Sweden/Norway: RGB PDF, 2 mm bleed, 20×20 cm; or Gelato/Prodigi for the EU); provider order webhook → status emails. Analysis and phased plan: `docs/crimson-print-on-demand.md`. | ⬜ Future |
 | 14.2 | As a user I want a cover designer (spine text, back-cover photo). | — | ⬜ Future |
 | 14.3 | As Ops I want print pricing per format/page count and country. | — | ⬜ Future |
+| 14.4 | As a user I want to enter a shipping address at checkout. | Address form shown for printed bindings; countries limited to what the active provider ships to (Crimson: SE, NO). | ⬜ Future |
+| 14.5 | As a user I want to follow my printed order. | Statuses submitted → printing → shipped → delivered on My books; tracking link from the provider webhook; `order-shipped` email. | ⬜ Future |
 
 ## Epic 15 — Legal, privacy & compliance
 

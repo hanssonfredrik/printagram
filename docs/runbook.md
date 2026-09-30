@@ -101,7 +101,7 @@ Stripe stays dormant until `PAYMENT_PROVIDER=stripe` is set together with the ke
 4. Submit App Review for `instagram_business_basic` (Advanced Access): business verification, privacy policy URL, screencast. Only then enable the flag in production.
 
 ### Custom domain
-`inbunden.com` on the Static Web App; `www.inbunden.com` and `inbunden.se` forwarded at the registrar; full steps in `docs/GO_LIVE.md` §2. Then redeploy with `-AppBaseUrl https://inbunden.com -ExtraCorsOrigins https://inbunden.com` so emails, OAuth and Blob CORS use the new origin.
+`inbunden.com` on the Static Web App; `www.inbunden.com` and `inbunden.se` forwarded at the registrar; full steps in `docs/go-live.md` §2. Then redeploy with `-AppBaseUrl https://inbunden.com -ExtraCorsOrigins https://inbunden.com` so emails, OAuth and Blob CORS use the new origin.
 
 ## Operations
 

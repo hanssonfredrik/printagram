@@ -116,6 +116,10 @@ Sources: [timestamp quirks gist](https://gist.github.com/JoeGermuska/5e0f91b6bee
 | Gelato | API + 130 production sites; PDF/X-4, 4 mm bleed, 150–300 dpi, GRACoL 2006 output intent |
 | Peecho | Photobook-focused print API; adds bleed/crop marks itself |
 | Cloudprinter | Print API with a network of local printers |
+| Crimson (Stockholm) | Partner-only REST API with webhooks, white label, PostNord; 20×20 hardcover 450 kr list incl. VAT; ships SE/NO only. Full analysis: `docs/crimson-print-on-demand.md` |
+| Prodigi | Public API with sandbox; 21×21 hardcover, PDF/X-4 FOGRA39, returns spine size; EU fulfilment |
+| Lulu | Public API with sandbox; separate cover + interior PDFs by URL |
+| Markbladet digitaltryck (Skene) | Swedish photo-book producer for other brands; API on request; strongest Swedish alternative to Crimson |
 
 ## Design-project research PDF
 
