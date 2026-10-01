@@ -1,7 +1,7 @@
 import type { Messages } from '../en';
 
 export const legal: Messages['legal'] = {
-  updated: 'Senast uppdaterad 29 september 2026',
+  updated: 'Senast uppdaterad 1 oktober 2026',
   contact: 'hello@inbunden.com',
   privacy: {
     title: 'Integritetspolicy',
@@ -51,6 +51,25 @@ export const legal: Messages['legal'] = {
           'Google får din inloggning när du använder import från Google Foto och delar bara bilderna du väljer. Instagram (Meta) är inblandat bara om du ansluter det eller använder dess export.',
           'Webbplatsen hämtar sina typsnitt från Google Fonts, vilket innebär att din webbläsare kontaktar Googles servrar och att Google ser din IP-adress.',
           'Några av leverantörerna finns i USA. Överföringarna omfattas av EU–US Data Privacy Framework eller EU:s standardavtalsklausuler.',
+        ],
+      },
+      {
+        title: 'Så skyddar vi dina uppgifter',
+        paragraphs: [
+          'Under överföring: all trafik till och från Inbunden, och mellan Inbunden och tjänsterna vi använder, krypteras med HTTPS (TLS 1.2 eller nyare).',
+          'I lagring: dina bilder, böcker och vår databas lagras krypterade hos Microsoft Azure inom EU. Lagringen är aldrig öppen för allmänheten. Dina bilder ligger i egna privata lagringsbehållare, och dina bilder kan bara öppnas via kortlivade signerade länkar som ges till din egen session.',
+          'Åtkomstnycklar: nycklarna vi får från Google och Instagram krypteras med AES-256-GCM innan de sparas, med en nyckel som förvaras skild från uppgifterna. Google-nyckeln ger bara läsrätt, gäller bara bilderna du väljer, förnyas aldrig och upphör inom en timme. Kopplar du från återkallas den hos Google direkt.',
+          'Lösenord och sessioner: lösenord sparas bara som en saltad scrypt-hash. Din session är en signerad kaka som skript på sidan inte kan läsa (HttpOnly) och som bara skickas över HTTPS.',
+          'Behörighet: bara Inbundens egen tjänst kan läsa dina bilder och nycklar. Ingen på Venueve AB tittar på dina bilder om du inte ber oss hjälpa till med en viss bok. Upprepade inloggningsförsök begränsas.',
+          'Om en personuppgiftsincident ändå skulle inträffa anmäler vi den till Integritetsskyddsmyndigheten (IMY) inom 72 timmar och informerar de som berörs, som GDPR kräver.',
+        ],
+      },
+      {
+        title: 'Uppgifter från Google',
+        paragraphs: [
+          'När du importerar från Google Foto får Inbunden bara bilderna du väljer i Googles egen bildväljare, och bara för att kopiera dem till din bok. Vi kan inte se resten av ditt bibliotek, dina album eller din Google-profil.',
+          'Vi delar inte uppgifter från Google med någon annan än de biträden som listas ovan och som driver tjänsten, och vi använder dem aldrig för reklam, profilering eller för att träna AI- eller maskininlärningsmodeller.',
+          'Inbundens användning och överföring till andra appar av information som tas emot från Googles API:er följer Google API Services User Data Policy (developers.google.com/terms/api-services-user-data-policy), inklusive kraven på begränsad användning (Limited Use).',
         ],
       },
       {

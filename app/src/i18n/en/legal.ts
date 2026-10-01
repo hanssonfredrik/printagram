@@ -1,6 +1,6 @@
 /** Privacy policy and terms of use. Keep in step with what the app actually does. */
 export const legal = {
-  updated: 'Last updated 29 September 2026',
+  updated: 'Last updated 1 October 2026',
   contact: 'hello@inbunden.com',
   privacy: {
     title: 'Privacy policy',
@@ -50,6 +50,25 @@ export const legal = {
           'Google receives your sign-in when you use Google Photos import, and shares only the photos you pick. Instagram (Meta) is involved only if you connect it or use its export.',
           'The site loads its fonts from Google Fonts, which means your browser contacts Google’s servers and Google sees your IP address.',
           'Some of these providers are based in the United States. Transfers are covered by the EU–US Data Privacy Framework or the EU standard contractual clauses.',
+        ],
+      },
+      {
+        title: 'How we protect your data',
+        paragraphs: [
+          'In transit: all traffic to and from Inbunden, and between Inbunden and the services it uses, is encrypted with HTTPS (TLS 1.2 or newer).',
+          'At rest: your photos, books and our database are stored encrypted by Microsoft Azure in the EU. The storage is never publicly readable. Your photos are kept in private storage containers of their own, and your photos can only be opened through short-lived signed links issued to your own session.',
+          'Access tokens: the tokens Google and Instagram give us are encrypted with AES-256-GCM before they are stored, with a key kept separately from the data. The Google token is read-only, covers only the photos you pick, is never refreshed and expires within an hour. Disconnecting revokes it at Google right away.',
+          'Passwords and sessions: passwords are stored only as a salted scrypt hash. Your session is a signed cookie that scripts on the page cannot read (HttpOnly) and that is only sent over HTTPS.',
+          'Access control: only Inbunden’s own service can read your photos and tokens. Nobody at Venueve AB looks at your photos unless you ask us to help with a specific book. Repeated sign-in attempts are rate-limited.',
+          'If a personal data breach happens anyway, we report it to the Swedish Authority for Privacy Protection within 72 hours and tell the people affected, as the GDPR requires.',
+        ],
+      },
+      {
+        title: 'Data from Google',
+        paragraphs: [
+          'When you import from Google Photos, Inbunden receives only the photos you select in Google’s own picker, and only to copy them into your book. We cannot see the rest of your library, your albums or your Google profile.',
+          'We do not share data received from Google with anyone except the processors listed above that run the service, and we never use it for advertising, profiling or training AI or machine learning models.',
+          'Inbunden’s use and transfer to any other app of information received from Google APIs will adhere to the Google API Services User Data Policy (developers.google.com/terms/api-services-user-data-policy), including the Limited Use requirements.',
         ],
       },
       {
