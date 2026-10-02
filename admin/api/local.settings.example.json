@@ -1,0 +1,15 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+
+    "STORAGE_CONNECTION_STRING": "UseDevelopmentStorage=true",
+    "ADMIN_JWT_SECRET": "change-me-at-least-32-random-characters",
+    "ADMIN_TOTP_ENC_KEY": "change-me-at-least-32-random-characters",
+    "COOKIE_SECURE": "false"
+  },
+  "Host": {
+    "LocalHttpPort": 7072
+  }
+}

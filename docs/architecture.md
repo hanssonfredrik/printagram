@@ -19,7 +19,7 @@ GitHub Actions: deploy on push · daily cron → POST /api/cron/run
 
 ## Principles
 
-1. **Two Azure resources only** (Storage account + SWA Free). No queues, timers, identities or Key Vault.
+1. **Few Azure resources** (Storage account + SWA Free for the site, a second SWA Free for the admin). No queues, timers, identities or Key Vault.
 2. **Heavy bytes never touch Functions.** ZIP parsing, thumbnails, PDF rendering happen in the browser; photos and PDFs move browser ↔ Blob with short-lived SAS URLs. Functions do JSON, SAS minting, Stripe and bounded Instagram copy batches.
 3. **Every multi-step server process is client-driven, resumable and idempotent** (no background workers): Instagram import jobs with leases and per-batch persistence; cron tasks with a 25 s budget and `more` flag.
 4. **One API client, one test double.** The app always talks to the real API (locally: Functions on Azurite). An in-memory implementation of the same interface exists only for component tests (`app/src/test/fakeApi.ts`).
@@ -32,6 +32,7 @@ GitHub Actions: deploy on push · daily cron → POST /api/cron/run
 | `shared/` | Types, pricing, page layout (used by preview **and** PDF), export-ZIP schema + mojibake fix |
 | `app/` | SPA. `routes/` one folder per screen, `components/ui.tsx` design system, `state/` zustand stores, `services/` API clients + import/PDF pipelines, `workers/` |
 | `api/` | Functions v4. `functions/` route groups, `lib/` tables/blobs/auth/email/stripe/instagram, bundled by esbuild to `dist/index.js` |
+| `admin/` | Admin app on its own Static Web App: `admin/app` SPA, `admin/api` Functions reusing `api/src/lib` (see `docs/admin.md`) |
 | `scripts/` | `storage-setup.ts`, `smoke.ts` (API), `e2e.ts` (browser), `make-fixtures.ts`, `cron.ts` |
 | `infra/` | Bicep + deploy script |
 | `fixtures/` | Generated Instagram export ZIPs for tests |
@@ -42,7 +43,7 @@ GitHub Actions: deploy on push · daily cron → POST /api/cron/run
 
 | RowKey | Row | Notes |
 | --- | --- | --- |
-| `user` | email, authLevel (anonymous/email/password), passwordHash (scrypt), sessionVersion, status | one partition per user ⇒ delete account = delete partition |
+| `user` | email, authLevel (anonymous/email/password), passwordHash (scrypt), sessionVersion, status; admin-only fields isAdmin, adminSessionVersion, adminTotpSecret (AES-GCM), adminTotpLastStep | one partition per user ⇒ delete account = delete partition; the main API never touches the admin fields |
 | `library_<id>` | source, status, photoCount, newestMediaAt, expiresAt, reminderSentAt, Instagram token (AES-GCM) | one Instagram + one export library per user at MVP |
 | `import_<id>` | cursor, since, counters, leaseUntil, pendingJson | resumable Instagram import |
 | `book_<id>` | title, format, showMeta, coverPhotoId, layout `{density, fullBleed}`, pages (chunked JSON `PageSpec[]`), manualLayout, photoIds (derived), pageCount, version, status | drafts and ordered books; `version` only changes when the content hash does |
@@ -50,7 +51,11 @@ GitHub Actions: deploy on push · daily cron → POST /api/cron/run
 
 **Photos** — `PK = libraryId`, `RK = <reverseMs(takenAt)>_<photoId>` (newest first; month ranges are RK ranges). Deterministic ids (`ex_<64-bit fnv1a(uri)>`, `ig_<mediaId>`) make re-imports idempotent. Rows keep width, height and the sniffed mime type.
 
-**Lookups** — `PK = kind`: `email` (uniqueness via insert-if-absent), `token` (sha256 of magic/reset tokens), `share`, `stripe_evt` (webhook idempotency), `ig_user`, `rl` (rate-limit buckets), `promo` (discount codes, redemptions counted with ETag concurrency), `promo_use` (`CODE:userId`, once-per-user codes).
+**Lookups** — `PK = kind`: `email` (uniqueness via insert-if-absent), `token` (sha256 of magic/reset tokens), `share`, `stripe_evt` (webhook idempotency), `ig_user`, `rl` (rate-limit buckets), `promo` (discount codes, redemptions counted with ETag concurrency), `promo_use` (`CODE:userId`, once-per-user codes), `visit_salt` (daily salt for visitor hashes, deleted after the day), `admin_setting` (e.g. VAT rate).
+
+**Visits** — `PK = yyyy-mm-dd`, `RK = ulid`: one cookieless page view (path, referrer host, device, language, daily-salted visitor hash; no IP). Kept 90 days.
+
+**AdminAudit** — `PK = yyyy-mm`, `RK = reverseMs_ulid`: admin sign-ins and changes (`docs/admin.md`).
 
 ## Blob layout & SAS policy
 
@@ -120,7 +125,7 @@ Private Instagram accounts have no API, so the user lets Instagram transfer thei
 
 ## Scheduled work
 
-GitHub Actions `cron.yml` (daily) calls `POST /api/cron/run` with `x-cron-key` for each task until `more=false`: `expireLibraries`, `sendReminders`, `refreshIgTokens`, `cleanupOrphans`, `cleanupAnonymous`, `cleanupTokens`.
+GitHub Actions `cron.yml` (daily) calls `POST /api/cron/run` with `x-cron-key` for each task until `more=false`: `expireLibraries`, `sendReminders`, `refreshIgTokens`, `cleanupOrphans`, `cleanupAnonymous`, `cleanupTokens`, `cleanupVisits`.
 
 ## Cost (see plan for assumptions)
 

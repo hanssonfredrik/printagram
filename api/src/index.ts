@@ -12,3 +12,4 @@ import './functions/instagram.js';
 import './functions/googlePhotos.js';
 import './functions/cron.js';
 import './functions/account.js';
+import './functions/visits.js';

@@ -135,7 +135,7 @@ resource tableService 'Microsoft.Storage/storageAccounts/tableServices@2023-05-0
 }
 
 resource tables 'Microsoft.Storage/storageAccounts/tableServices/tables@2023-05-01' = [
-  for t in ['Accounts', 'Photos', 'Lookups']: {
+  for t in ['Accounts', 'Photos', 'Lookups', 'Visits', 'AdminAudit']: {
     parent: tableService
     name: t
   }

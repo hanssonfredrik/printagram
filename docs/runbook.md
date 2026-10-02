@@ -108,7 +108,8 @@ Stripe stays dormant until `PAYMENT_PROVIDER=stripe` is set together with the ke
 - **Cron**: runs daily from GitHub Actions; trigger manually via *Actions → Scheduled maintenance → Run workflow*. Public repos disable scheduled workflows after 60 days without commits — keep the repo private or push occasionally.
 - **Logs**: attach Application Insights to the Static Web App (Monitoring) when needed; not provisioned by default to stay at €0.
 - **Rotate a secret**: Storage → regenerate key 2, update `STORAGE_CONNECTION_STRING`, then regenerate key 1. JWT secret rotation signs everyone out.
-- **Delete a user (GDPR request)**: the user can call `DELETE /api/account` from a signed-in session (UI button is a future story); Ops can delete the `Accounts` partition and `lib-<id>` containers manually.
+- **Admin app**: users, orders, VAT report, visitors, promo codes, audit log. Setup, recovery (lost authenticator) and the security model are in `docs/admin.md`.
+- **Delete a user (GDPR request)**: *Admin → Users → Delete user* (the same code as `DELETE /api/account`, which a signed-in user can also call).
 - **Bandwidth**: SWA Free serves the SPA/JSON only (100 GB/month). Photos and PDFs are served from Blob (100 GB/month free egress, then ≈ $0.087/GB).
 
 ## Cost watch

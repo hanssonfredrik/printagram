@@ -38,6 +38,17 @@ export interface UserRow {
   status: 'active' | 'deleting';
   /** UI language last sent by the app (X-Lang); missing on rows from before languages. */
   lang?: Lang;
+  /**
+   * Admin fields. Only the admin app (admin/api) and scripts/admin.ts write them; the main API
+   * never reads or sets them. Missing means "not an admin".
+   */
+  isAdmin?: boolean;
+  /** Bumped to sign out every admin session of this user. */
+  adminSessionVersion?: number;
+  /** TOTP secret (base32), AES-256-GCM encrypted with ADMIN_TOTP_ENC_KEY; '' or missing = not enrolled. */
+  adminTotpSecret?: string | null;
+  /** Last accepted TOTP time step, so a code cannot be replayed. */
+  adminTotpLastStep?: number;
 }
 
 export interface LibraryRow {
@@ -167,7 +178,18 @@ export interface PhotoRow {
 }
 
 export type LookupKind =
-  'email' | 'token' | 'share' | 'stripe_evt' | 'ig_user' | 'rl' | 'promo' | 'promo_use';
+  | 'email'
+  | 'token'
+  | 'share'
+  | 'stripe_evt'
+  | 'ig_user'
+  | 'rl'
+  | 'promo'
+  | 'promo_use'
+  /** Daily random salt for anonymous visitor hashes (RK = yyyy-mm-dd); deleted after the day. */
+  | 'visit_salt'
+  /** Admin-editable settings (RK = setting name, value = JSON). */
+  | 'admin_setting';
 
 export interface LookupRow {
   kind: LookupKind;
@@ -180,6 +202,33 @@ export interface LookupRow {
   count: number;
 }
 
+/** One page view from the cookieless beacon. No IP is stored; `visitor` is a daily-salted hash. */
+export interface VisitRow {
+  day: string;
+  visitId: string;
+  at: string;
+  path: string;
+  /** Referrer host, '' when direct or same-site. */
+  ref: string;
+  device: 'mobile' | 'tablet' | 'desktop';
+  lang: string;
+  visitor: string;
+}
+
+/** One admin action (or login attempt), written by admin/api. */
+export interface AuditRow {
+  month: string;
+  auditId: string;
+  at: string;
+  actorId: string | null;
+  actorEmail: string | null;
+  action: string;
+  target: string | null;
+  detail: string | null;
+  ip: string | null;
+  ok: boolean;
+}
+
 /* ------------------------------------------------------------------ */
 /* Clients                                                              */
 /* ------------------------------------------------------------------ */
@@ -187,6 +236,15 @@ export interface LookupRow {
 export const TABLE_ACCOUNTS = 'Accounts';
 export const TABLE_PHOTOS = 'Photos';
 export const TABLE_LOOKUPS = 'Lookups';
+export const TABLE_VISITS = 'Visits';
+export const TABLE_AUDIT = 'AdminAudit';
+export const ALL_TABLES = [
+  TABLE_ACCOUNTS,
+  TABLE_PHOTOS,
+  TABLE_LOOKUPS,
+  TABLE_VISITS,
+  TABLE_AUDIT,
+] as const;
 
 const isAzurite = () =>
   /UseDevelopmentStorage=true|127\.0\.0\.1|localhost/.test(config.storageConnectionString);
@@ -207,8 +265,7 @@ export async function ensureTables(): Promise<void> {
   const svc = TableServiceClient.fromConnectionString(config.storageConnectionString, {
     allowInsecureConnection: isAzurite(),
   });
-  for (const t of [TABLE_ACCOUNTS, TABLE_PHOTOS, TABLE_LOOKUPS])
-    await svc.createTable(t).catch(() => undefined);
+  for (const t of ALL_TABLES) await svc.createTable(t).catch(() => undefined);
 }
 
 /* ------------------------------------------------------------------ */
@@ -379,6 +436,13 @@ export const users = {
         if (!is404(e)) throw e;
       });
   },
+  /** Full scan of user rows (admin lists, stats). Fine at the current scale. */
+  async *scanAll(): AsyncGenerator<UserRow> {
+    const iter = client(TABLE_ACCOUNTS).listEntities<Record<string, unknown>>({
+      queryOptions: { filter: odata`RowKey eq ${rk.user}` },
+    });
+    for await (const e of iter) yield fromEntity<UserRow>(e, USER_NULLABLE);
+  },
 };
 
 export const libraries = {
@@ -484,6 +548,20 @@ export const orders = {
       toEntity(userId, rk.order(id), patch as Plain, patch.photoIds ? ORDER_ARRAYS : []),
       'Merge',
     );
+  },
+  /**
+   * Full scan of order rows without the book snapshot (layout/pages/photoIds are skipped,
+   * so admin lists and reports stay light).
+   */
+  async *scanAll(): AsyncGenerator<Omit<OrderRow, 'layout' | 'pages' | 'photoIds'>> {
+    const iter = client(TABLE_ACCOUNTS).listEntities<Record<string, unknown>>({
+      queryOptions: { filter: odata`RowKey ge ${'order_'} and RowKey lt ${'order`'}` },
+    });
+    for await (const e of iter) {
+      for (const k of Object.keys(e))
+        if (/^(layout|pages|photoIds)(\d+|Chunks)$/.test(k)) delete e[k];
+      yield fromEntity<OrderRow>(e, ORDER_NULLABLE);
+    }
   },
 };
 
@@ -740,5 +818,102 @@ export const promos = {
       }
     }
     return false;
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* Visits (PK = yyyy-mm-dd, RK = ulid) — cookieless page-view beacon     */
+/* ------------------------------------------------------------------ */
+
+/**
+ * Inserts into a table that may not exist yet (Visits and AdminAudit are newer than the first
+ * deployment): on TableNotFound the table is created once and the insert retried.
+ */
+async function createInNewTable(table: string, entity: TableEntity<Record<string, unknown>>) {
+  try {
+    await client(table).createEntity(entity);
+  } catch (e) {
+    if (!(e instanceof RestError && e.statusCode === 404)) throw e;
+    await client(table)
+      .createTable()
+      .catch(() => undefined);
+    await client(table).createEntity(entity);
+  }
+}
+
+export const visits = {
+  async add(row: VisitRow) {
+    await createInNewTable(TABLE_VISITS, toEntity(row.day, row.visitId, row));
+  },
+  /** Every visit with day in [fromDay, toDay] (inclusive, yyyy-mm-dd). */
+  async *scanRange(fromDay: string, toDay: string): AsyncGenerator<VisitRow> {
+    const iter = client(TABLE_VISITS).listEntities<Record<string, unknown>>({
+      queryOptions: { filter: odata`PartitionKey ge ${fromDay} and PartitionKey le ${toDay}` },
+    });
+    try {
+      for await (const e of iter) yield fromEntity<VisitRow>(e, []);
+    } catch (e) {
+      if (!is404(e)) throw e; // no table yet = no visits
+    }
+  },
+  /** Deletes every visit before `day` (exclusive). Stops early when `budget()` runs out. */
+  async deleteBefore(day: string, budget: () => boolean): Promise<{ n: number; more: boolean }> {
+    const c = client(TABLE_VISITS);
+    const keys: [string, string][] = [];
+    try {
+      for await (const e of c.listEntities<Record<string, unknown>>({
+        queryOptions: { filter: odata`PartitionKey lt ${day}`, select: ['partitionKey', 'rowKey'] },
+      })) {
+        keys.push([String(e.partitionKey), String(e.rowKey)]);
+        if (keys.length >= 5000) break;
+      }
+    } catch (e) {
+      if (!is404(e)) throw e;
+    }
+    let n = 0;
+    // Transactions must stay inside one partition (one day).
+    const byDay = new Map<string, string[]>();
+    for (const [pk, rowKey] of keys) byDay.set(pk, [...(byDay.get(pk) ?? []), rowKey]);
+    for (const [pk, rows] of byDay) {
+      for (let i = 0; i < rows.length; i += 100) {
+        if (!budget()) return { n, more: true };
+        const tx = new TableTransaction();
+        for (const r of rows.slice(i, i + 100)) tx.deleteEntity(pk, r);
+        await c.submitTransaction(tx.actions);
+        n += Math.min(100, rows.length - i);
+      }
+    }
+    return { n, more: keys.length >= 5000 };
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/* Admin audit log (PK = yyyy-mm, RK = reverseMs_ulid: newest first)     */
+/* ------------------------------------------------------------------ */
+
+const AUDIT_NULLABLE: (keyof AuditRow)[] = ['actorId', 'actorEmail', 'target', 'detail', 'ip'];
+
+export const audit = {
+  async add(row: Omit<AuditRow, 'month' | 'auditId'> & { auditId: string }) {
+    const month = row.at.slice(0, 7);
+    await createInNewTable(
+      TABLE_AUDIT,
+      toEntity(month, `${reverseMs(row.at)}_${row.auditId}`, { ...row, month }),
+    );
+  },
+  async listMonth(month: string, limit = 500): Promise<AuditRow[]> {
+    const out: AuditRow[] = [];
+    const iter = client(TABLE_AUDIT).listEntities<Record<string, unknown>>({
+      queryOptions: { filter: odata`PartitionKey eq ${month}` },
+    });
+    try {
+      for await (const e of iter) {
+        out.push(fromEntity<AuditRow>(e, AUDIT_NULLABLE));
+        if (out.length >= limit) break;
+      }
+    } catch (e) {
+      if (!is404(e)) throw e;
+    }
+    return out;
   },
 };

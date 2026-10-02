@@ -11,6 +11,7 @@ import { config } from '../lib/config.js';
 import { mailer, templates } from '../lib/email.js';
 import {
   badRequest,
+  clientIp,
   conflict,
   email as parseEmail,
   forbidden,
@@ -28,12 +29,6 @@ import { lookups, reparentRows, users, type UserRow } from '../lib/tables.js';
 const RETURN_LINK_DAYS = 30;
 const RESET_LINK_HOURS = 1;
 const TOKEN_REUSE_MINUTES = 15;
-
-function clientIp(headers: { get(name: string): string | null }): string {
-  return (headers.get('x-forwarded-for') ?? headers.get('x-client-ip') ?? 'unknown')
-    .split(',')[0]!
-    .trim();
-}
 
 async function ensureRate(scope: string, id: string, limit: number) {
   if (!(await lookups.rateLimit(scope, id, limit)))

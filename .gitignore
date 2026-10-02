@@ -9,6 +9,7 @@ __queuestorage__/
 .env.*
 !.env.example
 api/local.settings.json
+admin/api/local.settings.json
 .swa/
 coverage/
 .DS_Store

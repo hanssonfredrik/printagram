@@ -8,7 +8,7 @@ const base = (process.env.CRON_URL ?? 'http://localhost:7071').replace(/\/$/, ''
 const key = process.env.CRON_SECRET ?? 'dev-cron-secret';
 const tasks = (
   process.env.CRON_TASKS ??
-  'expireLibraries,sendReminders,refreshIgTokens,cleanupOrphans,cleanupAnonymous,cleanupTokens'
+  'expireLibraries,sendReminders,refreshIgTokens,cleanupOrphans,cleanupAnonymous,cleanupTokens,cleanupVisits'
 ).split(',');
 
 async function run(task: string) {

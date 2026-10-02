@@ -6,7 +6,7 @@
  *   STORAGE_CONNECTION_STRING="DefaultEndpointsProtocol=…" APP_ORIGINS="https://inbunden.com" npx tsx scripts/storage-setup.ts
  */
 import { ensureContainer, PDF_CONTAINER, setBlobCors } from '../api/src/lib/blobs.js';
-import { ensureTables } from '../api/src/lib/tables.js';
+import { ALL_TABLES, ensureTables } from '../api/src/lib/tables.js';
 
 async function main() {
   const cs = process.env.STORAGE_CONNECTION_STRING ?? 'UseDevelopmentStorage=true';
@@ -19,7 +19,7 @@ async function main() {
     `storage-setup: ${cs === 'UseDevelopmentStorage=true' ? 'Azurite' : 'account ' + (cs.match(/AccountName=([^;]+)/)?.[1] ?? '?')}`,
   );
   await ensureTables();
-  console.log('tables: Accounts, Photos, Lookups');
+  console.log(`tables: ${ALL_TABLES.join(', ')}`);
   await ensureContainer(PDF_CONTAINER);
   console.log(`container: ${PDF_CONTAINER}`);
   await setBlobCors(origins);

@@ -171,6 +171,13 @@ export function route(
 
 export { readJson };
 
+/** Caller IP as forwarded by Static Web Apps (first X-Forwarded-For hop). Only for rate limits. */
+export function clientIp(headers: { get(name: string): string | null }): string {
+  return (headers.get('x-forwarded-for') ?? headers.get('x-client-ip') ?? 'unknown')
+    .split(',')[0]!
+    .trim();
+}
+
 /** Type helpers for body validation. */
 export function str(
   v: unknown,

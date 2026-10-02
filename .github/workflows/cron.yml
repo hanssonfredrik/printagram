@@ -2,7 +2,7 @@ name: Scheduled maintenance
 
 # Free replacement for timer triggers (not available on Static Web Apps managed Functions):
 # expire libraries after 3 months, send reminders 7 days before, refresh Instagram tokens,
-# clean up orphans, anonymous sessions and expired tokens.
+# clean up orphans, anonymous sessions, expired tokens and visit rows older than 90 days.
 on:
   schedule:
     - cron: '17 3 * * *' # daily, 03:17 UTC
@@ -10,7 +10,7 @@ on:
     inputs:
       tasks:
         description: Comma-separated task list
-        default: expireLibraries,sendReminders,refreshIgTokens,cleanupOrphans,cleanupAnonymous,cleanupTokens
+        default: expireLibraries,sendReminders,refreshIgTokens,cleanupOrphans,cleanupAnonymous,cleanupTokens,cleanupVisits
         required: false
 
 permissions: {}
@@ -23,7 +23,7 @@ jobs:
         env:
           CRON_URL: ${{ secrets.CRON_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          TASKS: ${{ github.event.inputs.tasks || 'expireLibraries,sendReminders,refreshIgTokens,cleanupOrphans,cleanupAnonymous,cleanupTokens' }}
+          TASKS: ${{ github.event.inputs.tasks || 'expireLibraries,sendReminders,refreshIgTokens,cleanupOrphans,cleanupAnonymous,cleanupTokens,cleanupVisits' }}
         run: |
           set -euo pipefail
           IFS=',' read -ra tasks <<< "$TASKS"

@@ -1,6 +1,6 @@
 /** Privacy policy and terms of use. Keep in step with what the app actually does. */
 export const legal = {
-  updated: 'Last updated 1 October 2026',
+  updated: 'Last updated 2 October 2026',
   contact: 'hello@inbunden.com',
   privacy: {
     title: 'Privacy policy',
@@ -20,6 +20,7 @@ export const legal = {
           'Your account: your email address and a hashed password (never the password itself), if you create an account. Before that you use Inbunden with an anonymous session.',
           'Access tokens: if you connect Instagram or Google Photos, the access token they give us, stored encrypted. We never see or store your Instagram or Google password.',
           'Technical data: your IP address is used briefly to limit repeated sign-in attempts and is not kept.',
+          'Visit statistics: when a page opens we count the page address, the website you came from, the type of device (phone, tablet or computer) and the language. To count unique visitors without a cookie, your IP address and browser are combined with a random value that changes every day and turned into a one-way code; the IP address itself is never stored, and the code cannot be traced back to you or linked across days. Nothing is counted if your browser sends Do Not Track or Global Privacy Control.',
         ],
       },
       {
@@ -27,6 +28,7 @@ export const legal = {
         paragraphs: [
           'To provide the service you ask for — importing photos, building the book, delivering the PDF, sending the emails that belong to it (return link, book ready, password reset, deletion reminder). The legal basis is the contract between you and us (GDPR article 6.1.b).',
           'To keep the service secure and prevent abuse, such as rate limits on sign-in. The legal basis is our legitimate interest (article 6.1.f).',
+          'To understand how many people visit the site and which pages they use, through the anonymous visit statistics above. The legal basis is our legitimate interest (article 6.1.f).',
           'To keep accounting records of paid orders, as Swedish bookkeeping law requires (article 6.1.c).',
           'We do not use your photos or data for advertising, profiling or training anything, and we do not sell them.',
         ],
@@ -39,6 +41,7 @@ export const legal = {
           'An anonymous session that is not used for 30 days, and never led to an order, is deleted with everything in it.',
           'Instagram access ends after 60 days at the latest, or when you disconnect. Google Photos access ends within an hour.',
           'Accounting records of paid orders are kept for the 7 years Swedish law requires.',
+          'Visit statistics are deleted after 90 days.',
         ],
       },
       {
@@ -59,7 +62,7 @@ export const legal = {
           'At rest: your photos, books and our database are stored encrypted by Microsoft Azure in the EU. The storage is never publicly readable. Your photos are kept in private storage containers of their own, and your photos can only be opened through short-lived signed links issued to your own session.',
           'Access tokens: the tokens Google and Instagram give us are encrypted with AES-256-GCM before they are stored, with a key kept separately from the data. The Google token is read-only, covers only the photos you pick, is never refreshed and expires within an hour. Disconnecting revokes it at Google right away.',
           'Passwords and sessions: passwords are stored only as a salted scrypt hash. Your session is a signed cookie that scripts on the page cannot read (HttpOnly) and that is only sent over HTTPS.',
-          'Access control: only Inbunden’s own service can read your photos and tokens. Nobody at Venueve AB looks at your photos unless you ask us to help with a specific book. Repeated sign-in attempts are rate-limited.',
+          'Access control: only Inbunden’s own service can read your photos and tokens. Nobody at Venueve AB looks at your photos unless you ask us to help with a specific book. Our own administration tool is a separate site that requires two-factor sign-in, and every action in it is logged. Repeated sign-in attempts are rate-limited.',
           'If a personal data breach happens anyway, we report it to the Swedish Authority for Privacy Protection within 72 hours and tell the people affected, as the GDPR requires.',
         ],
       },
@@ -74,7 +77,7 @@ export const legal = {
       {
         title: 'Cookies and browser storage',
         paragraphs: [
-          'Inbunden sets one cookie, pg_session, which keeps you signed in for up to 30 days. It is strictly necessary for the service, so we do not ask for consent. There are no analytics or advertising cookies.',
+          'Inbunden sets one cookie, pg_session, which keeps you signed in for up to 30 days. It is strictly necessary for the service, so we do not ask for consent. There are no analytics or advertising cookies: the visit statistics described above work without any cookie or browser storage.',
           'Your browser also stores your language choice and the book you are working on (local storage), so they survive a page reload. They never leave your device unless you save the book.',
         ],
       },

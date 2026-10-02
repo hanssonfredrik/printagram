@@ -1,7 +1,7 @@
 import type { Messages } from '../en';
 
 export const legal: Messages['legal'] = {
-  updated: 'Senast uppdaterad 1 oktober 2026',
+  updated: 'Senast uppdaterad 2 oktober 2026',
   contact: 'hello@inbunden.com',
   privacy: {
     title: 'Integritetspolicy',
@@ -21,6 +21,7 @@ export const legal: Messages['legal'] = {
           'Ditt konto: din e-postadress och ett hashat lösenord (aldrig själva lösenordet), om du skapar ett konto. Innan dess använder du Inbunden med en anonym session.',
           'Åtkomstnycklar: om du ansluter Instagram eller Google Foto sparar vi nyckeln de ger oss, krypterad. Vi ser eller sparar aldrig ditt lösenord till Instagram eller Google.',
           'Teknisk information: din IP-adress används kort för att begränsa upprepade inloggningsförsök och sparas inte.',
+          'Besöksstatistik: när en sida öppnas räknar vi sidans adress, webbplatsen du kom från, typen av enhet (mobil, surfplatta eller dator) och språket. För att räkna unika besökare utan kaka kombineras din IP-adress och webbläsare med ett slumpvärde som byts varje dygn och görs om till en envägskod. Själva IP-adressen sparas aldrig, och koden kan inte spåras tillbaka till dig eller kopplas ihop mellan dagar. Inget räknas om din webbläsare skickar Do Not Track eller Global Privacy Control.',
         ],
       },
       {
@@ -28,6 +29,7 @@ export const legal: Messages['legal'] = {
         paragraphs: [
           'För att leverera tjänsten du ber om – importera bilder, bygga boken, leverera PDF:en och skicka mejlen som hör till (returlänk, boken är klar, nytt lösenord, påminnelse före radering). Den rättsliga grunden är avtalet mellan dig och oss (GDPR artikel 6.1 b).',
           'För att hålla tjänsten säker och förhindra missbruk, till exempel gränser för inloggningsförsök. Den rättsliga grunden är vårt berättigade intresse (artikel 6.1 f).',
+          'För att förstå hur många som besöker webbplatsen och vilka sidor de använder, genom den anonyma besöksstatistiken ovan. Den rättsliga grunden är vårt berättigade intresse (artikel 6.1 f).',
           'För att bevara bokföring över betalda beställningar enligt bokföringslagen (artikel 6.1 c).',
           'Vi använder inte dina bilder eller uppgifter för reklam, profilering eller för att träna något, och vi säljer dem inte.',
         ],
@@ -40,6 +42,7 @@ export const legal: Messages['legal'] = {
           'En anonym session som inte används på 30 dagar, och aldrig ledde till en beställning, raderas med allt innehåll.',
           'Åtkomsten till Instagram upphör senast efter 60 dagar, eller när du kopplar från. Åtkomsten till Google Foto upphör inom en timme.',
           'Bokföring av betalda beställningar sparas i de 7 år som lagen kräver.',
+          'Besöksstatistik raderas efter 90 dagar.',
         ],
       },
       {
@@ -60,7 +63,7 @@ export const legal: Messages['legal'] = {
           'I lagring: dina bilder, böcker och vår databas lagras krypterade hos Microsoft Azure inom EU. Lagringen är aldrig öppen för allmänheten. Dina bilder ligger i egna privata lagringsbehållare, och dina bilder kan bara öppnas via kortlivade signerade länkar som ges till din egen session.',
           'Åtkomstnycklar: nycklarna vi får från Google och Instagram krypteras med AES-256-GCM innan de sparas, med en nyckel som förvaras skild från uppgifterna. Google-nyckeln ger bara läsrätt, gäller bara bilderna du väljer, förnyas aldrig och upphör inom en timme. Kopplar du från återkallas den hos Google direkt.',
           'Lösenord och sessioner: lösenord sparas bara som en saltad scrypt-hash. Din session är en signerad kaka som skript på sidan inte kan läsa (HttpOnly) och som bara skickas över HTTPS.',
-          'Behörighet: bara Inbundens egen tjänst kan läsa dina bilder och nycklar. Ingen på Venueve AB tittar på dina bilder om du inte ber oss hjälpa till med en viss bok. Upprepade inloggningsförsök begränsas.',
+          'Behörighet: bara Inbundens egen tjänst kan läsa dina bilder och nycklar. Ingen på Venueve AB tittar på dina bilder om du inte ber oss hjälpa till med en viss bok. Vårt eget administrationsverktyg är en separat webbplats som kräver inloggning i två steg, och allt som görs där loggas. Upprepade inloggningsförsök begränsas.',
           'Om en personuppgiftsincident ändå skulle inträffa anmäler vi den till Integritetsskyddsmyndigheten (IMY) inom 72 timmar och informerar de som berörs, som GDPR kräver.',
         ],
       },
@@ -75,7 +78,7 @@ export const legal: Messages['legal'] = {
       {
         title: 'Kakor och lagring i webbläsaren',
         paragraphs: [
-          'Inbunden sätter en kaka, pg_session, som håller dig inloggad i upp till 30 dagar. Den är nödvändig för tjänsten, så vi ber inte om samtycke. Det finns inga kakor för statistik eller reklam.',
+          'Inbunden sätter en kaka, pg_session, som håller dig inloggad i upp till 30 dagar. Den är nödvändig för tjänsten, så vi ber inte om samtycke. Det finns inga kakor för statistik eller reklam: besöksstatistiken ovan fungerar helt utan kakor och utan lagring i webbläsaren.',
           'Din webbläsare sparar också ditt språkval och boken du arbetar med (lokal lagring), så att de finns kvar om sidan laddas om. De lämnar aldrig din enhet om du inte sparar boken.',
         ],
       },

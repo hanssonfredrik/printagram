@@ -733,4 +733,67 @@ describe.skipIf(!up)('API routes against Azurite', () => {
     const after = await call<{ connected: boolean }>('googleStatus', 'GET', 'google/status');
     expect(after.body.connected).toBe(false);
   }, 30000);
+
+  it('admin fields: never exposed, never settable, and kept through password changes', async () => {
+    const { users } = await import('../src/lib/tables.js');
+    const call = client();
+    await call('sessionAnonymous', 'POST', 'session/anonymous');
+    const me0 = await call<{ user: { id: string } }>('me', 'GET', 'me');
+    expect((await users.get(me0.body.user.id))?.isAdmin).toBe(false);
+    const reg = await call('authRegister', 'POST', 'auth/register', {
+      email: `admin+${randomUUID()}@example.com`,
+      password: 'correct horse battery',
+      isAdmin: true,
+    });
+    expect(reg.status).toBe(200);
+    const id = me0.body.user.id;
+    expect((await users.get(id))?.isAdmin).toBe(false);
+
+    // Granted out of band (admin app / scripts/admin.ts), then the customer changes password.
+    await users.merge(id, { isAdmin: true, adminTotpSecret: 'enc', adminSessionVersion: 3 });
+    const pw = await call('authPassword', 'POST', 'auth/password', {
+      currentPassword: 'correct horse battery',
+      newPassword: 'another long password',
+    });
+    expect(pw.status).toBe(200);
+    const row = await users.get(id);
+    expect(row).toMatchObject({ isAdmin: true, adminTotpSecret: 'enc', adminSessionVersion: 3 });
+
+    const me = await call<Record<string, unknown>>('me', 'GET', 'me');
+    expect(JSON.stringify(me.body)).not.toMatch(/isAdmin|adminTotp|adminSession/);
+    expect(JSON.stringify(reg.body)).not.toMatch(/isAdmin|adminTotp|adminSession/);
+  });
+
+  it('visit beacon: stores no IP or token, skips bots', async () => {
+    const { visits } = await import('../src/lib/tables.js');
+    const ua = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile/15E148';
+    const call = client({ 'user-agent': ua });
+    const secretToken = `tok${randomUUID().replace(/-/g, '')}`;
+    const res = await call('visitTrack', 'POST', 'v', {
+      p: `/s/${secretToken}?utm=x`,
+      r: 'https://www.google.com/search?q=inbunden',
+      l: 'sv',
+    });
+    expect(res.status).toBe(204);
+    const marker = `/guides/bot-${randomUUID()}`;
+    const bot = client({ 'user-agent': 'Mozilla/5.0 (compatible; Googlebot/2.1)' });
+    expect((await bot('visitTrack', 'POST', 'v', { p: marker })).status).toBe(204);
+
+    const today = new Date().toISOString().slice(0, 10);
+    const rows = [];
+    for await (const r of visits.scanRange(today, today)) rows.push(r);
+    const dump = JSON.stringify(rows);
+    expect(dump).not.toContain(secretToken);
+    expect(dump).not.toContain(marker);
+    expect(
+      rows.some(
+        (r) =>
+          r.path === '/s/:token' &&
+          r.ref === 'google.com' &&
+          r.device === 'mobile' &&
+          r.lang === 'sv',
+      ),
+    ).toBe(true);
+    for (const r of rows) expect(r.visitor).toMatch(/^[\w-]{16}$/);
+  });
 });

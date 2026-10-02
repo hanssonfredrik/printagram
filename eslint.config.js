@@ -27,7 +27,7 @@ export default tseslint.config(
     languageOptions: { ecmaVersion: 2022, sourceType: 'module', globals: { ...globals.node } },
   },
   {
-    files: ['app/src/**/*.{ts,tsx}'],
+    files: ['app/src/**/*.{ts,tsx}', 'admin/app/src/**/*.{ts,tsx}'],
     plugins: { 'react-hooks': reactHooks, 'react-refresh': reactRefresh },
     rules: {
       ...reactHooks.configs.recommended.rules,

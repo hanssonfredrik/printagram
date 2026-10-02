@@ -1,9 +1,9 @@
 <#
 .SYNOPSIS
   Stops anything listening on the ports used by start-local.ps1
-  (Azurite 10000-10002, Functions 7071, Vite 5173, SWA emulator 4280).
+  (Azurite 10000-10002, Functions 7071, Vite 5173, SWA emulator 4280, admin 7072/5180).
 #>
-$ports = @(10000, 10001, 10002, 7071, 5173, 4280)
+$ports = @(10000, 10001, 10002, 7071, 5173, 4280, 7072, 5180)
 $stopped = 0
 foreach ($p in $ports) {
   Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue | ForEach-Object {

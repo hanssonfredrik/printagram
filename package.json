@@ -6,7 +6,9 @@
   "workspaces": [
     "shared",
     "app",
-    "api"
+    "api",
+    "admin/api",
+    "admin/app"
   ],
   "engines": {
     "node": ">=20.19.0"
@@ -29,7 +31,11 @@
     "test": "npm run test -ws --if-present",
     "cron": "tsx scripts/cron.ts",
     "local:seed-promo": "node scripts/wait-for.mjs tcp:127.0.0.1:10002 && tsx scripts/promo.ts seed",
-    "promo": "tsx scripts/promo.ts"
+    "local:admin-build": "npm run watch -w admin/api",
+    "local:admin-func": "node scripts/wait-for.mjs tcp:127.0.0.1:10002 && node scripts/wait-for.mjs file:admin/api/dist/index.js && cd admin/api && func start --port 7072",
+    "local:admin-vite": "npm run dev -w admin/app",
+    "promo": "tsx scripts/promo.ts",
+    "admin": "tsx scripts/admin.ts"
   },
   "devDependencies": {
     "@azure/static-web-apps-cli": "^2.0.10",

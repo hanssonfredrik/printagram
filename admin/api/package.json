@@ -1,0 +1,26 @@
+{
+  "name": "@printagram/admin-api",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Inbunden admin: managed Azure Functions for the separate admin Static Web App (Node 20, v4 model)",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --noEmit && node esbuild.config.mjs",
+    "typecheck": "tsc --noEmit",
+    "watch": "node esbuild.config.mjs --watch",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@azure/data-tables": "^13.3.2",
+    "@azure/functions": "^4.16.5",
+    "@azure/storage-blob": "^12.33.0",
+    "jose": "^6.2.12",
+    "ulid": "^3.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.0",
+    "esbuild": "^0.28.2",
+    "typescript": "~5.9.3",
+    "vitest": "^3.2.7"
+  }
+}

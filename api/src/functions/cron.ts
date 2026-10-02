@@ -14,7 +14,15 @@ import { forbidden, json, readJson, route } from '../lib/http.js';
 import { addDays, nowIso } from '../lib/ids.js';
 import * as ig from '../lib/instagramApi.js';
 import { destroyLibrary } from '../lib/libraryService.js';
-import { deletePartition, libraries, lookups, orders, photos, users } from '../lib/tables.js';
+import {
+  deletePartition,
+  libraries,
+  lookups,
+  orders,
+  photos,
+  users,
+  visits,
+} from '../lib/tables.js';
 
 const BUDGET_MS = 25_000;
 
@@ -24,7 +32,11 @@ type Task =
   | 'refreshIgTokens'
   | 'cleanupOrphans'
   | 'cleanupAnonymous'
-  | 'cleanupTokens';
+  | 'cleanupTokens'
+  | 'cleanupVisits';
+
+/** Days of raw page-view rows kept for the admin's visitor stats. */
+const VISIT_RETENTION_DAYS = 90;
 
 /**
  * Scheduled maintenance, driven by GitHub Actions (.github/workflows/cron.yml).
@@ -206,7 +218,7 @@ route(
         break;
       }
       case 'cleanupTokens': {
-        for (const kind of ['token', 'rl', 'stripe_evt'] as const) {
+        for (const kind of ['token', 'rl', 'stripe_evt', 'visit_salt'] as const) {
           for await (const row of lookups.scan(kind)) {
             if (!budget()) {
               more = true;
@@ -218,6 +230,13 @@ route(
             }
           }
         }
+        break;
+      }
+      case 'cleanupVisits': {
+        const cutoff = addDays(now, -VISIT_RETENTION_DAYS).toISOString().slice(0, 10);
+        const r = await visits.deleteBefore(cutoff, budget);
+        processed += r.n;
+        more = r.more;
         break;
       }
       default:

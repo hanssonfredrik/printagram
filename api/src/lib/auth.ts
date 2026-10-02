@@ -138,6 +138,7 @@ export async function createAnonymousUser(): Promise<UserRow> {
     createdAt: nowIso(),
     lastSeenAt: nowIso(),
     status: 'active',
+    isAdmin: false,
   };
   await users.upsert(row);
   return row;

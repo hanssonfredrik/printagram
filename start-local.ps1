@@ -16,23 +16,27 @@
 .PARAMETER NoBrowser  Does not open the browser.
 .PARAMETER Force      Stops processes on the needed ports without asking.
 .PARAMETER SeedPromo  Creates the test discount codes WELCOME100 and TEST20.
+.PARAMETER Admin      Also runs the admin app (admin/) on http://localhost:5180, API on :7072.
 
 .EXAMPLE
   .\start-local.ps1
   .\start-local.ps1 -Reset -SeedPromo
+  .\start-local.ps1 -Admin     # then: npx tsx scripts/admin.ts grant you@example.com
 #>
 [CmdletBinding()]
 param(
   [switch] $Reset,
   [switch] $NoBrowser,
   [switch] $Force,
-  [switch] $SeedPromo
+  [switch] $SeedPromo,
+  [switch] $Admin
 )
 
 $ErrorActionPreference = 'Stop'
 $Root = $PSScriptRoot
 Set-Location $Root
 $Ports = @(10000, 10001, 10002, 7071, 5173, 4280)
+if ($Admin) { $Ports += 7072, 5180 }
 
 function Write-Step([string] $msg) { Write-Host "==> $msg" -ForegroundColor Cyan }
 function Fail([string] $msg) { Write-Host "ERROR: $msg" -ForegroundColor Red; exit 1 }
@@ -134,6 +138,20 @@ if (-not $settings.Values.PSObject.Properties['PAYMENT_PROVIDER']) {
 # UTF-8 without BOM (Windows PowerShell 5.1's -Encoding UTF8 adds one, which breaks JSON readers).
 [System.IO.File]::WriteAllText($settingsPath, ($settings | ConvertTo-Json -Depth 5), (New-Object System.Text.UTF8Encoding($false)))
 
+if ($Admin) {
+  $adminSettingsPath = Join-Path $Root 'admin/api/local.settings.json'
+  if (-not (Test-Path $adminSettingsPath)) {
+    Write-Step 'Creating admin/api/local.settings.json with fresh local secrets'
+    $adminSettings = Get-Content (Join-Path $Root 'admin/api/local.settings.example.json') -Raw | ConvertFrom-Json
+    $adminSettings.Values.ADMIN_JWT_SECRET = New-Secret
+    $adminSettings.Values.ADMIN_TOTP_ENC_KEY = New-Secret
+  } else {
+    $adminSettings = Get-Content $adminSettingsPath -Raw | ConvertFrom-Json
+  }
+  $adminSettings.Values | Add-Member -NotePropertyName 'languageWorkers__node__defaultExecutablePath' -NotePropertyValue ($workerNode -replace '\\', '/') -Force
+  [System.IO.File]::WriteAllText($adminSettingsPath, ($adminSettings | ConvertTo-Json -Depth 5), (New-Object System.Text.UTF8Encoding($false)))
+}
+
 # ---------------------------------------------------------------- ports & storage
 $owners = Get-PortOwners
 if ($owners.Count -gt 0) {
@@ -154,6 +172,8 @@ New-Item -ItemType Directory -Force (Join-Path $Root '.azurite') | Out-Null
 # A stale bundle would make func start before esbuild finishes: remove it so the wait is real.
 $bundle = Join-Path $Root 'api/dist/index.js'
 if (Test-Path $bundle) { Remove-Item $bundle -Force }
+$adminBundle = Join-Path $Root 'admin/api/dist/index.js'
+if ($Admin -and (Test-Path $adminBundle)) { Remove-Item $adminBundle -Force }
 
 # ---------------------------------------------------------------- run
 # Vite runs as its own process (not via `swa --run`) so a Vite failure stops the whole stack.
@@ -161,16 +181,21 @@ $names = 'azurite,build,func,vite,web'
 $cmds = @('npm:local:azurite', 'npm:local:build', 'npm:local:func', 'npm:local:vite', 'npm:local:web')
 if (-not $NoBrowser) { $names += ',open'; $cmds += 'npm:local:open' }
 if ($SeedPromo) { $names += ',promo'; $cmds += 'npm:local:seed-promo' }
+if ($Admin) {
+  $names += ',admin-build,admin-func,admin-vite'
+  $cmds += 'npm:local:admin-build', 'npm:local:admin-func', 'npm:local:admin-vite'
+}
 
 Write-Step 'Starting Azurite, API and web app (Ctrl+C stops everything)'
 Write-Host '    App:     http://localhost:4280'
 Write-Host '    API:     http://localhost:4280/api (Functions host on :7071)'
 Write-Host '    Storage: Azurite on :10000 (blob) / :10002 (table), data in .azurite/'
+if ($Admin) { Write-Host '    Admin:   http://localhost:5180 (Functions host on :7072). Grant access: npx tsx scripts/admin.ts grant <email>' }
 Write-Host ''
 
 try {
   & npx --no-install concurrently --kill-others-on-fail --prefix '[{name}]' --names $names `
-    --prefix-colors 'blue,gray,magenta,green,cyan,yellow,white' @cmds
+    --prefix-colors 'blue,gray,magenta,green,cyan,yellow,white,gray,red,green' @cmds
 } finally {
   # Windows sometimes leaves Azurite or the func host orphaned after Ctrl+C.
   $left = Get-PortOwners
