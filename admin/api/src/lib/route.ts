@@ -64,18 +64,23 @@ interface Options {
 
 function sameOrigin(req: HttpRequest): boolean {
   if (req.headers.get(CSRF_HEADER) !== CSRF_VALUE) return false;
+  // Sec-Fetch-Site is set by the browser and cannot be forged by a page: when present it decides.
+  // (Behind Static Web Apps the function does not see the public Host, so Origin cannot be
+  // compared against it reliably.)
   const site = req.headers.get('sec-fetch-site');
-  if (site && site !== 'same-origin') return false;
+  if (site) return site === 'same-origin';
+  // Older browsers without Fetch Metadata: compare Origin with the forwarded host.
   const origin = req.headers.get('origin');
-  if (origin) {
-    const host = req.headers.get('x-forwarded-host') ?? req.headers.get('host') ?? '';
-    try {
-      if (new URL(origin).host !== host) return false;
-    } catch {
-      return false;
-    }
+  if (!origin) return true; // non-browser client; no ambient cookies are at risk
+  const hosts = [req.headers.get('x-forwarded-host'), req.headers.get('host')]
+    .flatMap((h) => (h ?? '').split(','))
+    .map((h) => h.trim())
+    .filter(Boolean);
+  try {
+    return hosts.includes(new URL(origin).host);
+  } catch {
+    return false;
   }
-  return true;
 }
 
 function withHeaders(res: HttpResponseInit): HttpResponseInit {

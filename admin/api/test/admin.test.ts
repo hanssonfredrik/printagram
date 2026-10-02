@@ -250,9 +250,21 @@ describe.skipIf(!up)('admin API against Azurite', () => {
       {},
       {
         origin: 'https://evil.example',
+        'sec-fetch-site': '', // a browser without Fetch Metadata: Origin decides
       },
     );
     expect(otherOrigin.status).toBe(403);
+    // Behind Static Web Apps the function sees an internal Host while the browser's Origin is
+    // the public hostname; Sec-Fetch-Site: same-origin must still let the sign-in through.
+    const behindProxy = await call(
+      'adminLogin',
+      'POST',
+      'auth/login',
+      { email, password: 'wrong password' },
+      {},
+      { origin: 'https://admin.public.example', host: 'internal-functions-host' },
+    );
+    expect(behindProxy.status).toBe(401);
   });
 
   it('wrong password, unknown email and non-admin all get the same 401', async () => {
