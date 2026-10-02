@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import type { Book, LibrarySummary, Order, Photo } from '@printagram/shared';
 import { fmtDate } from '@printagram/shared';
-import { Banner, Button, Card, Placeholder, Spinner } from '@/components/ui';
+import { Banner, Button, Card, ConfirmModal, Placeholder, Spinner } from '@/components/ui';
 import { CoverThumb } from '@/components/PageRenderer';
 import { api } from '@/services';
 import { useSession } from '@/state/session';
@@ -24,6 +24,7 @@ interface BookCard {
   onPrimary: () => void;
   canDuplicate: boolean;
   onDuplicate?: () => void;
+  onDelete?: () => void;
 }
 
 export function Books() {
@@ -46,6 +47,8 @@ export function Books() {
     params.get('delete') ? 'asking' : 'idle',
   );
   const [err, setErr] = useState<string | null>(null);
+  const [draftToDelete, setDraftToDelete] = useState<Book | null>(null);
+  const [deletingDraft, setDeletingDraft] = useState(false);
 
   const library: LibrarySummary | undefined =
     libraries.find((l) => l.id === d.libraryId) ?? libraries[0];
@@ -123,6 +126,24 @@ export function Books() {
     nav('/preview');
   };
 
+  const deleteDraft = async () => {
+    const b = draftToDelete;
+    if (!b) return;
+    setDeletingDraft(true);
+    setErr(null);
+    try {
+      await api.deleteBook(b.id);
+      setBooks((prev) => (prev ?? []).filter((x) => x.id !== b.id));
+      // Don't leave the wizard pointing at a book that no longer exists.
+      if (d.draftBookId === b.id) d.resetForNewBook();
+    } catch (e) {
+      setErr(errorText(e, t));
+    } finally {
+      setDeletingDraft(false);
+      setDraftToDelete(null);
+    }
+  };
+
   const duplicate = async (b: Book) => {
     const copy = await api.duplicateBook(b.id);
     await openDraft(copy);
@@ -169,6 +190,7 @@ export function Books() {
         primaryVariant: 'primary',
         onPrimary: () => openDraft(b),
         canDuplicate: false,
+        onDelete: () => setDraftToDelete(b),
       });
     }
   }
@@ -391,6 +413,17 @@ export function Books() {
                         {tb.duplicate}
                       </Button>
                     )}
+                    {c.onDelete && (
+                      <Button
+                        size="sm"
+                        variant="danger-ghost"
+                        style={{ marginLeft: 'auto' }}
+                        onClick={c.onDelete}
+                        aria-label={`${tb.deleteDraft} ${c.title}`}
+                      >
+                        {tb.deleteDraft}
+                      </Button>
+                    )}
                   </div>
                 </Card>
               ))}
@@ -398,6 +431,18 @@ export function Books() {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        open={!!draftToDelete}
+        title={tb.deleteDraftTitle}
+        confirmLabel={deletingDraft ? tb.deleting : tb.deleteDraftConfirm}
+        cancelLabel={tb.keepDraft}
+        onConfirm={deleteDraft}
+        onCancel={() => setDraftToDelete(null)}
+        busy={deletingDraft}
+      >
+        {draftToDelete && tb.deleteDraftBody(draftToDelete.title)}
+      </ConfirmModal>
     </div>
   );
 }

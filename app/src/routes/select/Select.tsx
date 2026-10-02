@@ -331,6 +331,7 @@ export function Select() {
 
       <WizardBar
         onBack={back}
+        backLabel={d.source === 'library' ? t.select.backToBooks : undefined}
         action={
           <Button disabled={chosen.length === 0 || overLimit} onClick={() => nav('/preview')}>
             {t.select.continue}

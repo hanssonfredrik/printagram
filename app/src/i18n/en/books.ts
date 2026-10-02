@@ -13,6 +13,12 @@ export const books = {
   draft: 'Draft',
   continue: 'Continue',
   duplicate: 'Duplicate',
+  deleteDraft: 'Delete',
+  deleteDraftTitle: 'Delete this draft?',
+  deleteDraftBody: (title: string) =>
+    `“${title}” will be deleted. This can't be undone. Your photos stay in your library.`,
+  deleteDraftConfirm: 'Delete draft',
+  keepDraft: 'Keep draft',
   libraryTitle: 'Your photo library',
   libraryMeta: (photos: number, source: string, date: string) =>
     `${photos} ${photos === 1 ? 'photo' : 'photos'} · ${source} · imported ${date}`,

@@ -14,6 +14,12 @@ export const books: Messages['books'] = {
   draft: 'Utkast',
   continue: 'Fortsätt',
   duplicate: 'Duplicera',
+  deleteDraft: 'Radera',
+  deleteDraftTitle: 'Radera utkastet?',
+  deleteDraftBody: (title: string) =>
+    `”${title}” raderas. Det går inte att ångra. Dina bilder finns kvar i biblioteket.`,
+  deleteDraftConfirm: 'Radera utkastet',
+  keepDraft: 'Behåll utkastet',
   libraryTitle: 'Ditt bildbibliotek',
   libraryMeta: (photos: number, source: string, date: string) =>
     `${photos} ${photos === 1 ? 'bild' : 'bilder'} · ${source} · importerat ${date}`,

@@ -45,6 +45,8 @@ export const preview = {
   lowResTip: 'Smaller layouts (two or more photos per page) print sharper.',
   saving: 'Saving…',
   checkout: 'Checkout',
+  backToSelect: '← Select photos',
+  deleteDraft: 'Delete draft',
   summary: (pages: number, format: string) =>
     `${pages} ${pages === 1 ? 'page' : 'pages'} · ${format}`,
   pdfPrice: (price: string) => `PDF ${price}`,

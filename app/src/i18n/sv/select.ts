@@ -26,6 +26,7 @@ export const select: Messages['select'] = {
   photo: 'Bild',
   noMatch: 'Inga bilder matchar filtren.',
   continue: 'Fortsätt',
+  backToBooks: '← Tillbaka till Mina böcker',
   selected: (n: number) => `${n} ${n === 1 ? 'bild vald' : 'bilder valda'}`,
   maxPhotos: (n: number) => `Högst ${n} bilder per bok`,
   pagesPrice: (pages: number, price: string) => `~${pages} sidor · ${price}`,

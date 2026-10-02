@@ -399,6 +399,66 @@
   color: var(--error-text);
 }
 
+/* ---------- Modal ---------- */
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: rgba(42, 38, 34, 0.5);
+  display: grid;
+  place-items: center;
+  padding: var(--gutter);
+}
+.modal {
+  background: var(--surface);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-book);
+  width: 100%;
+  max-width: 520px;
+  padding: 36px 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.modal__title {
+  font-family: var(--font-serif);
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+.modal__body {
+  font-size: 16px;
+  color: var(--muted);
+  text-wrap: pretty;
+}
+.modal__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 12px;
+}
+@media (max-width: 520px) {
+  .modalBackdrop {
+    place-items: end stretch;
+    padding: 0;
+  }
+  .modal {
+    max-width: none;
+    border-radius: var(--radius-2xl) var(--radius-2xl) 0 0;
+    padding: 28px var(--gutter) calc(20px + var(--safe-bottom));
+  }
+  .modal__title {
+    font-size: 24px;
+  }
+  .modal__actions {
+    flex-direction: column-reverse;
+  }
+  .modal__actions > * {
+    width: 100%;
+  }
+}
+
 /* ---------- Spinner ---------- */
 .spinner {
   width: 44px;

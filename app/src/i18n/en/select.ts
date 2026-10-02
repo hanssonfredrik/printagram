@@ -25,6 +25,7 @@ export const select = {
   photo: 'Photo',
   noMatch: 'No photos match these filters.',
   continue: 'Continue',
+  backToBooks: '← Back to My books',
   selected: (n: number) => `${n} ${n === 1 ? 'photo' : 'photos'} selected`,
   maxPhotos: (n: number) => `Maximum ${n} photos per book`,
   pagesPrice: (pages: number, price: string) => `~${pages} pages · ${price}`,

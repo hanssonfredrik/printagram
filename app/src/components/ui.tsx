@@ -1,4 +1,12 @@
-import type { ButtonHTMLAttributes, CSSProperties, InputHTMLAttributes, ReactNode } from 'react';
+import type {
+  ButtonHTMLAttributes,
+  CSSProperties,
+  InputHTMLAttributes,
+  ReactNode,
+  Ref,
+} from 'react';
+import { useEffect, useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { LANG_NAMES, LANGS, type Lang } from '@printagram/shared';
 import { useLang, useT } from '@/i18n';
@@ -28,6 +36,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   size?: Size;
   block?: boolean;
   to?: string;
+  ref?: Ref<HTMLButtonElement>;
 }
 
 export function Button({
@@ -332,6 +341,79 @@ export function Banner({
   );
 }
 
+/* ---------- Confirm modal ---------- */
+
+/** A large yes/no dialog over the page. Esc and a click outside cancel, unless busy. */
+export function ConfirmModal({
+  open,
+  title,
+  children,
+  confirmLabel,
+  cancelLabel,
+  onConfirm,
+  onCancel,
+  busy,
+}: {
+  open: boolean;
+  title: string;
+  children?: ReactNode;
+  confirmLabel: string;
+  cancelLabel: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  busy?: boolean;
+}) {
+  const titleId = useId();
+  const cancelRef = useRef<HTMLButtonElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const prevFocus = document.activeElement as HTMLElement | null;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    cancelRef.current?.focus();
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      prevFocus?.focus?.();
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && !busy) onCancel();
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open, busy, onCancel]);
+
+  if (!open) return null;
+  return createPortal(
+    <div
+      className={s.modalBackdrop}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !busy) onCancel();
+      }}
+    >
+      <div className={s.modal} role="dialog" aria-modal="true" aria-labelledby={titleId}>
+        <div id={titleId} className={s.modal__title}>
+          {title}
+        </div>
+        {children && <div className={s.modal__body}>{children}</div>}
+        <div className={s.modal__actions}>
+          <Button ref={cancelRef} variant="outline" onClick={onCancel} disabled={busy}>
+            {cancelLabel}
+          </Button>
+          <Button variant="danger" onClick={onConfirm} disabled={busy}>
+            {confirmLabel}
+          </Button>
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
 /* ---------- Spinner / bar ---------- */
 
 export function Spinner({ variant }: { variant?: 'slow' | 'inline' }) {
@@ -411,10 +493,13 @@ export function ScreenHeader({
 /** Bottom bar of every wizard step: Back on the left, an optional summary, the next step on the right. */
 export function WizardBar({
   onBack,
+  backLabel,
   children,
   action,
 }: {
   onBack: () => void;
+  /** Defaults to "← Back". */
+  backLabel?: string;
   children?: ReactNode;
   action?: ReactNode;
 }) {
@@ -423,7 +508,7 @@ export function WizardBar({
     <div className="footer-bar">
       <div className="footer-bar__inner">
         <Button variant="outline" className="footer-bar__back" onClick={onBack}>
-          {t.common.backArrow}
+          {backLabel ?? t.common.backArrow}
         </Button>
         <div className="footer-bar__summary">{children}</div>
         {action}

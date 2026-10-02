@@ -20,6 +20,7 @@ import {
 import {
   Banner,
   Button,
+  ConfirmModal,
   Input,
   Label,
   Segmented,
@@ -29,6 +30,7 @@ import {
 } from '@/components/ui';
 import { errorText, useLang, useT } from '@/i18n';
 import { PageRenderer } from '@/components/PageRenderer';
+import { api } from '@/services';
 import { useDraft } from '@/state/draft';
 import { saveCurrentDraft, useBook } from '@/state/useBook';
 import { Arrange } from './Arrange';
@@ -53,6 +55,7 @@ export function Preview() {
   const [saving, setSaving] = useState(false);
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const [view, setView] = useState<View>('pages');
+  const [deleteState, setDeleteState] = useState<'idle' | 'asking' | 'deleting'>('idle');
 
   const pageIdx = Math.min(d.pageIdx, Math.max(0, book.pages.length - 1));
   const page = book.pages[pageIdx] ?? book.pages[0]!;
@@ -98,6 +101,21 @@ export function Preview() {
       setSaveErr(errorText(e, t));
     } finally {
       setSaving(false);
+    }
+  };
+
+  /** Only a draft saved on the server (opened from My books or after checkout) can be deleted. */
+  const deleteDraft = async () => {
+    if (!d.draftBookId) return;
+    setDeleteState('deleting');
+    setSaveErr(null);
+    try {
+      await api.deleteBook(d.draftBookId);
+      d.resetForNewBook();
+      nav('/books');
+    } catch (e) {
+      setSaveErr(errorText(e, t));
+      setDeleteState('idle');
     }
   };
 
@@ -394,12 +412,37 @@ export function Preview() {
                 {saveErr}
               </Banner>
             )}
+            {d.draftBookId && (
+              <div>
+                <Button
+                  size="sm"
+                  variant="danger-ghost"
+                  style={{ paddingLeft: 0 }}
+                  onClick={() => setDeleteState('asking')}
+                >
+                  {t.preview.deleteDraft}
+                </Button>
+              </div>
+            )}
           </div>
         </div>
       )}
 
+      <ConfirmModal
+        open={deleteState !== 'idle'}
+        title={t.books.deleteDraftTitle}
+        confirmLabel={deleteState === 'deleting' ? t.books.deleting : t.books.deleteDraftConfirm}
+        cancelLabel={t.books.keepDraft}
+        onConfirm={deleteDraft}
+        onCancel={() => setDeleteState('idle')}
+        busy={deleteState === 'deleting'}
+      >
+        {t.books.deleteDraftBody(d.title)}
+      </ConfirmModal>
+
       <WizardBar
         onBack={() => nav('/select')}
+        backLabel={t.preview.backToSelect}
         action={
           <Button onClick={checkout} disabled={saving || book.chosen.length === 0}>
             {saving ? t.preview.saving : t.preview.checkout}

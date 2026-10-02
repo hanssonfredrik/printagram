@@ -47,6 +47,8 @@ export const preview: Messages['preview'] = {
   lowResTip: 'Mindre layouter (två eller fler bilder per sida) blir skarpare.',
   saving: 'Sparar…',
   checkout: 'Till kassan',
+  backToSelect: '← Välj bilder',
+  deleteDraft: 'Radera utkastet',
   summary: (pages: number, format: string) =>
     `${pages} ${pages === 1 ? 'sida' : 'sidor'} · ${format}`,
   pdfPrice: (price: string) => `PDF ${price}`,

@@ -177,7 +177,9 @@ describe('screens (against the in-memory test API)', () => {
     cleanup();
     renderAt('/sv/om');
     expect(await screen.findByRole('heading', { name: 'Om Inbunden' })).toBeTruthy();
-    expect(within(screen.getByRole('contentinfo')).getByRole('link', { name: 'Om Inbunden' })).toBeTruthy();
+    expect(
+      within(screen.getByRole('contentinfo')).getByRole('link', { name: 'Om Inbunden' }),
+    ).toBeTruthy();
   });
 
   it('legal: footer links open the privacy policy and terms in both languages', async () => {
@@ -264,6 +266,9 @@ describe('screens (against the in-memory test API)', () => {
     fireEvent.click(captions);
     expect(captions.getAttribute('aria-checked')).toBe('false');
     expect(screen.getByRole('button', { name: 'Checkout' })).toBeTruthy();
+    expect(screen.getByRole('button', { name: '← Select photos' })).toBeTruthy();
+    // A book that was never saved has no draft to delete.
+    expect(screen.queryByRole('button', { name: 'Delete draft' })).toBeNull();
   });
 
   it('checkout (test payment): account validation, test card → done', async () => {
@@ -375,6 +380,56 @@ describe('screens (against the in-memory test API)', () => {
     expect(within(dialog).getByText(/Delete \d+ photos and 1 draft\?/)).toBeTruthy();
     fireEvent.click(within(dialog).getByText('Keep my photos'));
     expect(await screen.findByText('New book from these photos')).toBeTruthy();
+
+    // Deleting a draft asks first; keeping it changes nothing.
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Draft one' }));
+    let modal = await screen.findByRole('dialog', { name: 'Delete this draft?' });
+    expect(within(modal).getByText(/“Draft one” will be deleted/)).toBeTruthy();
+    fireEvent.click(within(modal).getByRole('button', { name: 'Keep draft' }));
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(screen.getByText('Draft one')).toBeTruthy();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Delete Draft one' }));
+    modal = await screen.findByRole('dialog', { name: 'Delete this draft?' });
+    fireEvent.click(within(modal).getByRole('button', { name: 'Delete draft' }));
+    expect(
+      await screen.findByText('No books yet. Start one from your library above.'),
+    ).toBeTruthy();
+    expect(screen.queryByText('Draft one')).toBeNull();
+    expect(await api.listBooks()).toHaveLength(0);
+  });
+
+  it('preview: a draft opened from My books can be deleted', async () => {
+    const { lib } = await seedLibraryAndDraft();
+    await act(async () => {
+      await api.login('mara@example.com', 'hunter2hunter2');
+      await api.saveDraft({
+        libraryId: lib.id,
+        settings: {
+          title: 'Draft one',
+          format: 'square',
+          showMeta: true,
+          coverPhotoId: null,
+          layout: DEFAULT_LAYOUT,
+          lang: 'en',
+        },
+        pages: [{ template: '1-margin', photoIds: ['demo_0'] }],
+        manualLayout: false,
+      });
+      await useSession.getState().init();
+    });
+    const { router } = renderAt('/books');
+    await screen.findByText('Draft one');
+    fireEvent.click(await screen.findByRole('button', { name: 'Continue' }));
+    expect(await screen.findByText('Preview your book')).toBeTruthy();
+    fireEvent.click(await screen.findByRole('button', { name: 'Delete draft' }));
+    const modal = await screen.findByRole('dialog', { name: 'Delete this draft?' });
+    fireEvent.click(within(modal).getByRole('button', { name: 'Delete draft' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/books'));
+    expect(
+      await screen.findByText('No books yet. Start one from your library above.'),
+    ).toBeTruthy();
+    expect(useDraft.getState().draftBookId).toBeNull();
   });
 
   it('my books → new book: Back on Choose your photos returns to My books', async () => {
@@ -387,7 +442,7 @@ describe('screens (against the in-memory test API)', () => {
     const { router } = renderAt('/books');
     fireEvent.click(await screen.findByText('New book from these photos'));
     expect(await screen.findByText('Choose your photos')).toBeTruthy();
-    fireEvent.click(screen.getByRole('button', { name: '← Back' }));
+    fireEvent.click(screen.getByRole('button', { name: '← Back to My books' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/books'));
     expect(await screen.findByText('Your photo library')).toBeTruthy();
   });
@@ -449,7 +504,9 @@ describe('public pages: navigation and search metadata', () => {
     const guides = within(nav).getByRole('link', { name: 'Guider' });
     expect(guides.getAttribute('href')).toBe('/sv/guider');
     expect(guides.getAttribute('aria-current')).toBe('page');
-    expect(within(nav).getByRole('link', { name: 'Om Inbunden' }).getAttribute('href')).toBe('/sv/om');
+    expect(within(nav).getByRole('link', { name: 'Om Inbunden' }).getAttribute('href')).toBe(
+      '/sv/om',
+    );
   });
 
   it('opens and closes the phone menu', async () => {

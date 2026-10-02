@@ -391,6 +391,7 @@ p {
 .footer-bar .footer-bar__back {
   padding-top: 13px;
   padding-bottom: 13px;
+  white-space: nowrap;
 }
 
 .footer-bar__summary {
