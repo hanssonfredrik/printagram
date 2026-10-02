@@ -1,5 +1,6 @@
 import { useEffect, useLayoutEffect } from 'react';
 import { Outlet, useLocation } from 'react-router';
+import { ConsentBanner, CookieSettingsLink } from '@/components/ConsentBanner';
 import { LanguageSelect } from '@/components/ui';
 import { PageLink } from '@/components/PageLink';
 import { SiteHeader } from '@/components/SiteHeader';
@@ -29,8 +30,8 @@ function SiteFooter() {
           ·{' '}
           <PageLink page="terms" className="site-footer__link">
             {t.common.footer.terms}
-          </PageLink>{' '}
-          · Venueve AB
+          </PageLink>
+          <CookieSettingsLink className="site-footer__link site-footer__button" /> · Venueve AB
         </span>
         <LanguageSelect />
       </div>
@@ -53,7 +54,12 @@ export function AppShell() {
     else window.scrollTo(0, 0);
   }, [pathname, hash]);
 
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      <ConsentBanner />
+    </>
+  );
 }
 
 /**

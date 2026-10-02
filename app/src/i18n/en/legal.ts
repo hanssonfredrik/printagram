@@ -21,6 +21,7 @@ export const legal = {
           'Access tokens: if you connect Instagram or Google Photos, the access token they give us, stored encrypted. We never see or store your Instagram or Google password.',
           'Technical data: your IP address is used briefly to limit repeated sign-in attempts and is not kept.',
           'Visit statistics: when a page opens we count the page address, the website you came from, the type of device (phone, tablet or computer) and the language. To count unique visitors without a cookie, your IP address and browser are combined with a random value that changes every day and turned into a one-way code; the IP address itself is never stored, and the code cannot be traced back to you or linked across days. Nothing is counted if your browser sends Do Not Track or Global Privacy Control.',
+          'Google Analytics, only if you accept it in the cookie banner: which pages you view, how you arrived, your device, browser and approximate location (country or city, which Google derives from your IP address), and a random identifier stored in a cookie. We use it to understand how the site is used, never for advertising: ad features are switched off.',
         ],
       },
       {
@@ -29,6 +30,7 @@ export const legal = {
           'To provide the service you ask for — importing photos, building the book, delivering the PDF, sending the emails that belong to it (return link, book ready, password reset, deletion reminder). The legal basis is the contract between you and us (GDPR article 6.1.b).',
           'To keep the service secure and prevent abuse, such as rate limits on sign-in. The legal basis is our legitimate interest (article 6.1.f).',
           'To understand how many people visit the site and which pages they use, through the anonymous visit statistics above. The legal basis is our legitimate interest (article 6.1.f).',
+          'Google Analytics is used only with your consent (article 6.1.a). You can withdraw it at any time under Cookie settings at the bottom of every page; nothing is sent to Google before you accept.',
           'To keep accounting records of paid orders, as Swedish bookkeeping law requires (article 6.1.c).',
           'We do not use your photos or data for advertising, profiling or training anything, and we do not sell them.',
         ],
@@ -42,6 +44,7 @@ export const legal = {
           'Instagram access ends after 60 days at the latest, or when you disconnect. Google Photos access ends within an hour.',
           'Accounting records of paid orders are kept for the 7 years Swedish law requires.',
           'Visit statistics are deleted after 90 days.',
+          'Google Analytics data is kept by Google for 14 months. Its cookies expire after at most 2 years, or are removed as soon as you withdraw your consent.',
         ],
       },
       {
@@ -49,6 +52,7 @@ export const legal = {
         paragraphs: [
           'Microsoft Azure hosts the site, the database and the photo storage, in Microsoft’s West Europe region (the Netherlands).',
           'Resend delivers our emails; it receives your email address and the email content.',
+          'Google (Google Ireland Limited) runs Google Analytics for us as our processor, if you accept it.',
           'Stripe handles card payments when card payments are active. Card details go directly to Stripe and never reach us.',
           'Google receives your sign-in when you use Google Photos import, and shares only the photos you pick. Instagram (Meta) is involved only if you connect it or use its export.',
           'The site loads its fonts from Google Fonts, which means your browser contacts Google’s servers and Google sees your IP address.',
@@ -77,8 +81,9 @@ export const legal = {
       {
         title: 'Cookies and browser storage',
         paragraphs: [
-          'Inbunden sets one cookie, pg_session, which keeps you signed in for up to 30 days. It is strictly necessary for the service, so we do not ask for consent. There are no analytics or advertising cookies: the visit statistics described above work without any cookie or browser storage.',
-          'Your browser also stores your language choice and the book you are working on (local storage), so they survive a page reload. They never leave your device unless you save the book.',
+          'Inbunden sets one cookie, pg_session, which keeps you signed in for up to 30 days. It is strictly necessary for the service, so we do not ask for consent. The visit statistics described above work without any cookie or browser storage.',
+          'If you accept Google Analytics in the cookie banner, Google sets the cookies _ga and _ga_JJQ0ZS1MSP (up to 2 years). Nothing is set before you accept, declining is as easy as accepting, and you can change your choice under Cookie settings at the bottom of every page. There are no advertising cookies.',
+          'Your browser also stores your language choice, your cookie choice and the book you are working on (local storage), so they survive a page reload. They never leave your device unless you save the book.',
         ],
       },
       {

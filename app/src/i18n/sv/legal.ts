@@ -22,6 +22,7 @@ export const legal: Messages['legal'] = {
           'Åtkomstnycklar: om du ansluter Instagram eller Google Foto sparar vi nyckeln de ger oss, krypterad. Vi ser eller sparar aldrig ditt lösenord till Instagram eller Google.',
           'Teknisk information: din IP-adress används kort för att begränsa upprepade inloggningsförsök och sparas inte.',
           'Besöksstatistik: när en sida öppnas räknar vi sidans adress, webbplatsen du kom från, typen av enhet (mobil, surfplatta eller dator) och språket. För att räkna unika besökare utan kaka kombineras din IP-adress och webbläsare med ett slumpvärde som byts varje dygn och görs om till en envägskod. Själva IP-adressen sparas aldrig, och koden kan inte spåras tillbaka till dig eller kopplas ihop mellan dagar. Inget räknas om din webbläsare skickar Do Not Track eller Global Privacy Control.',
+          'Google Analytics, bara om du godkänner det i cookie-rutan: vilka sidor du tittar på, hur du kom hit, din enhet, webbläsare och ungefärliga plats (land eller stad, som Google härleder från din IP-adress), och en slumpmässig identifierare som sparas i en kaka. Vi använder det för att förstå hur webbplatsen används, aldrig för reklam: annonsfunktionerna är avstängda.',
         ],
       },
       {
@@ -30,6 +31,7 @@ export const legal: Messages['legal'] = {
           'För att leverera tjänsten du ber om – importera bilder, bygga boken, leverera PDF:en och skicka mejlen som hör till (returlänk, boken är klar, nytt lösenord, påminnelse före radering). Den rättsliga grunden är avtalet mellan dig och oss (GDPR artikel 6.1 b).',
           'För att hålla tjänsten säker och förhindra missbruk, till exempel gränser för inloggningsförsök. Den rättsliga grunden är vårt berättigade intresse (artikel 6.1 f).',
           'För att förstå hur många som besöker webbplatsen och vilka sidor de använder, genom den anonyma besöksstatistiken ovan. Den rättsliga grunden är vårt berättigade intresse (artikel 6.1 f).',
+          'Google Analytics används bara med ditt samtycke (artikel 6.1 a). Du kan återkalla det när som helst under Cookie-inställningar längst ner på varje sida; inget skickas till Google innan du godkänner.',
           'För att bevara bokföring över betalda beställningar enligt bokföringslagen (artikel 6.1 c).',
           'Vi använder inte dina bilder eller uppgifter för reklam, profilering eller för att träna något, och vi säljer dem inte.',
         ],
@@ -43,6 +45,7 @@ export const legal: Messages['legal'] = {
           'Åtkomsten till Instagram upphör senast efter 60 dagar, eller när du kopplar från. Åtkomsten till Google Foto upphör inom en timme.',
           'Bokföring av betalda beställningar sparas i de 7 år som lagen kräver.',
           'Besöksstatistik raderas efter 90 dagar.',
+          'Data i Google Analytics sparas av Google i 14 månader. Kakorna upphör efter högst 2 år, eller tas bort så fort du återkallar ditt samtycke.',
         ],
       },
       {
@@ -50,6 +53,7 @@ export const legal: Messages['legal'] = {
         paragraphs: [
           'Microsoft Azure driftar webbplatsen, databasen och bildlagringen i Microsofts region West Europe (Nederländerna).',
           'Resend skickar våra mejl och får din e-postadress och mejlets innehåll.',
+          'Google (Google Ireland Limited) driver Google Analytics åt oss som personuppgiftsbiträde, om du godkänner det.',
           'Stripe hanterar kortbetalningar när kortbetalning är aktiverad. Kortuppgifterna går direkt till Stripe och når aldrig oss.',
           'Google får din inloggning när du använder import från Google Foto och delar bara bilderna du väljer. Instagram (Meta) är inblandat bara om du ansluter det eller använder dess export.',
           'Webbplatsen hämtar sina typsnitt från Google Fonts, vilket innebär att din webbläsare kontaktar Googles servrar och att Google ser din IP-adress.',
@@ -78,8 +82,9 @@ export const legal: Messages['legal'] = {
       {
         title: 'Kakor och lagring i webbläsaren',
         paragraphs: [
-          'Inbunden sätter en kaka, pg_session, som håller dig inloggad i upp till 30 dagar. Den är nödvändig för tjänsten, så vi ber inte om samtycke. Det finns inga kakor för statistik eller reklam: besöksstatistiken ovan fungerar helt utan kakor och utan lagring i webbläsaren.',
-          'Din webbläsare sparar också ditt språkval och boken du arbetar med (lokal lagring), så att de finns kvar om sidan laddas om. De lämnar aldrig din enhet om du inte sparar boken.',
+          'Inbunden sätter en kaka, pg_session, som håller dig inloggad i upp till 30 dagar. Den är nödvändig för tjänsten, så vi ber inte om samtycke. Besöksstatistiken ovan fungerar helt utan kakor och utan lagring i webbläsaren.',
+          'Om du godkänner Google Analytics i cookie-rutan sätter Google kakorna _ga och _ga_JJQ0ZS1MSP (upp till 2 år). Inget sätts innan du godkänner, det är lika enkelt att avböja som att godkänna, och du kan ändra ditt val under Cookie-inställningar längst ner på varje sida. Det finns inga reklamkakor.',
+          'Din webbläsare sparar också ditt språkval, ditt cookie-val och boken du arbetar med (lokal lagring), så att de finns kvar om sidan laddas om. De lämnar aldrig din enhet om du inte sparar boken.',
         ],
       },
       {

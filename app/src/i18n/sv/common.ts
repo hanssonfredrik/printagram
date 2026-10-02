@@ -21,7 +21,15 @@ export const common: Messages['common'] = {
     about: 'Om Inbunden',
     privacy: 'Integritet',
     terms: 'Villkor',
+    cookies: 'Cookie-inställningar',
     tagline: 'Fotoböcker från ditt Instagram.',
+  },
+  consent: {
+    label: 'Samtycke till kakor',
+    body: 'Får vi använda Google Analytics för att se hur webbplatsen används? Det sätter kakor och skickar användningsdata till Google. Du kan ändra dig när som helst under Cookie-inställningar.',
+    more: 'Läs mer',
+    accept: 'Godkänn',
+    decline: 'Avböj',
   },
   notFound: {
     title: 'Här finns inget',

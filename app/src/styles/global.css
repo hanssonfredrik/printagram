@@ -421,6 +421,13 @@ body:has(.footer-bar) .site-footer {
   text-decoration: underline;
   text-underline-offset: 2px;
 }
+.site-footer__button {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+}
 .site-footer__inner {
   max-width: var(--max-wide);
   margin: 0 auto;

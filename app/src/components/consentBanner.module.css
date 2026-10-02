@@ -1,0 +1,42 @@
+.banner {
+  position: fixed;
+  left: 50%;
+  bottom: calc(16px + var(--safe-bottom));
+  transform: translateX(-50%);
+  z-index: 50;
+  width: min(560px, calc(100vw - 2 * var(--gutter)));
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-card);
+  padding: 14px 16px;
+  display: flex;
+  gap: 12px 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Screens with the fixed wizard bar: sit above it. */
+:global(body:has(.footer-bar)) .banner {
+  bottom: calc(96px + var(--safe-bottom));
+}
+
+.text {
+  margin: 0;
+  flex: 1 1 280px;
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}

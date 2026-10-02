@@ -108,6 +108,7 @@ Stripe stays dormant until `PAYMENT_PROVIDER=stripe` is set together with the ke
 - **Cron**: runs daily from GitHub Actions; trigger manually via *Actions → Scheduled maintenance → Run workflow*. Public repos disable scheduled workflows after 60 days without commits — keep the repo private or push occasionally.
 - **Logs**: attach Application Insights to the Static Web App (Monitoring) when needed; not provisioned by default to stay at €0.
 - **Rotate a secret**: Storage → regenerate key 2, update `STORAGE_CONNECTION_STRING`, then regenerate key 1. JWT secret rotation signs everyone out.
+- **Google Analytics** (`G-JJQ0ZS1MSP`, `app/src/services/analytics.ts`): loads only on inbunden.com / www.inbunden.com and only after the visitor accepts the cookie banner (GDPR/LEK consent); GPC and Do Not Track count as declined. Ad features are denied via Consent Mode. In GA *Admin → Data retention*, set event data retention to 14 months to match the privacy policy. Changing the ID means updating the constant, the cookie name in `app/src/i18n/*/legal.ts`, and the CSP if Google's domains change.
 - **Admin app**: users, orders, VAT report, visitors, promo codes, audit log. Setup, recovery (lost authenticator) and the security model are in `docs/admin.md`.
 - **Delete a user (GDPR request)**: *Admin → Users → Delete user* (the same code as `DELETE /api/account`, which a signed-in user can also call).
 - **Bandwidth**: SWA Free serves the SPA/JSON only (100 GB/month). Photos and PDFs are served from Blob (100 GB/month free egress, then ≈ $0.087/GB).

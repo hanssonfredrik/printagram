@@ -21,7 +21,15 @@ export const common = {
     about: 'About',
     privacy: 'Privacy',
     terms: 'Terms',
+    cookies: 'Cookie settings',
     tagline: 'Photo books from your Instagram.',
+  },
+  consent: {
+    label: 'Cookie consent',
+    body: 'May we use Google Analytics to see how the site is used? It sets cookies and sends usage data to Google. You can change your mind at any time under Cookie settings.',
+    more: 'Read more',
+    accept: 'Accept',
+    decline: 'Decline',
   },
   notFound: {
     title: 'Nothing here',
