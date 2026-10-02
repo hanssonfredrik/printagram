@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
 import type { Book, LibrarySummary, Order, Photo } from '@printagram/shared';
 import { fmtDate } from '@printagram/shared';
-import { Banner, Button, Card, LanguageSelect, Placeholder, Spinner } from '@/components/ui';
+import { Banner, Button, Card, Placeholder, Spinner } from '@/components/ui';
 import { CoverThumb } from '@/components/PageRenderer';
 import { api } from '@/services';
 import { useSession } from '@/state/session';
@@ -176,15 +176,7 @@ export function Books() {
 
   return (
     <div className="screen screen--padded">
-      <header className={s.header}>
-        <button
-          type="button"
-          className="brand"
-          style={{ background: 'none', border: 0, padding: 0, cursor: 'pointer' }}
-          onClick={() => nav('/')}
-        >
-          {t.common.brand}
-        </button>
+      <div className={s.header}>
         <div
           className="row row-wrap gap-12 small muted"
           style={{ justifyContent: 'flex-end', minWidth: 0 }}
@@ -214,9 +206,8 @@ export function Books() {
               {tb.signOut}
             </button>
           )}
-          <LanguageSelect />
         </div>
-      </header>
+      </div>
 
       <div className="container stack stack-28" style={{ maxWidth: 900, paddingTop: 8 }}>
         {err && (

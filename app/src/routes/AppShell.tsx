@@ -89,6 +89,7 @@ export function SessionGate() {
   if (!ready) return null;
   return (
     <>
+      <SiteHeader page={null} variant="app" />
       <Outlet />
       <SiteFooter />
     </>

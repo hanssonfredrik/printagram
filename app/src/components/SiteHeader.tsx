@@ -12,10 +12,18 @@ import s from './siteHeader.module.css';
 type NavItem = { page: PageKey; hash?: string; label: string; active: boolean };
 
 /**
- * Top navigation on the public pages (landing, guides, about, legal). App screens keep their own
- * headers. Links are real <a href>s in the current language so crawlers can follow them.
+ * Top navigation. `site` is the public pages' full bar (landing, guides, about, legal); links are
+ * real <a href>s in the current language so crawlers can follow them. `app` is the slim bar on the
+ * app screens (wizard, My books, sign-in): brand, language and account only, so nothing pulls the
+ * user out of the flow but they can always get home or switch language.
  */
-export function SiteHeader({ page }: { page: PageKey | null }) {
+export function SiteHeader({
+  page,
+  variant = 'site',
+}: {
+  page: PageKey | null;
+  variant?: 'site' | 'app';
+}) {
   const t = useT();
   const nav = useNavigate();
   const location = useLocation();
@@ -93,23 +101,43 @@ export function SiteHeader({ page }: { page: PageKey | null }) {
     </Button>
   );
 
+  const brandRow = (
+    <div className={s.brandRow}>
+      <PageLink page="landing" className={cx('brand', s.brand)}>
+        <img src="/logo.svg" alt="" width={28} height={28} className={s.mark} />
+        {t.common.brand}
+      </PageLink>
+      {ready && testMode && (
+        <span className={s.testPill} title={t.landing.testModeTitle}>
+          {t.landing.testMode}
+        </span>
+      )}
+    </div>
+  );
+
+  if (variant === 'app') {
+    // No link to the page you're already on.
+    const here = location.pathname === (signedIn ? '/books' : '/signin');
+    return (
+      <header className={cx(s.bar, s['bar--app'])}>
+        <div className={s.inner}>
+          {brandRow}
+          <div className={s.actions}>
+            <LanguageSelect />
+            {!here && account}
+          </div>
+        </div>
+      </header>
+    );
+  }
+
   return (
     <header className={s.bar} data-scrolled={scrolled || open ? '' : undefined}>
       <a href="#main" className={s.skip}>
         {t.common.nav.skip}
       </a>
       <div className={s.inner}>
-        <div className={s.brandRow}>
-          <PageLink page="landing" className={cx('brand', s.brand)}>
-            <img src="/logo.svg" alt="" width={28} height={28} className={s.mark} />
-            {t.common.brand}
-          </PageLink>
-          {ready && testMode && (
-            <span className={s.testPill} title={t.landing.testModeTitle}>
-              {t.landing.testMode}
-            </span>
-          )}
-        </div>
+        {brandRow}
 
         <nav aria-label={t.common.nav.label} className={s.nav}>
           {links(s.link)}

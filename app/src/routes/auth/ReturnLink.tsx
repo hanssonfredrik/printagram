@@ -50,7 +50,6 @@ export function ReturnLink() {
         style={{ width: '100%', maxWidth: 440 }}
         gap={16}
       >
-        <span className="brand">{t.common.brand}</span>
         <h2 className="h2" style={{ fontSize: 26 }}>
           {tr.title}
         </h2>

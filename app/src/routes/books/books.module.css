@@ -1,9 +1,9 @@
 .header {
   max-width: 900px;
   margin: 0 auto;
-  padding: 18px var(--gutter);
+  padding: 14px var(--gutter);
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
   align-items: center;
   gap: 12px;
 }

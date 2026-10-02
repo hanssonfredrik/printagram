@@ -13,6 +13,18 @@
   border-bottom-color: var(--border);
 }
 
+/* App screens: scrolls away with the page so it never stacks on the screens' own sticky
+   headers, and keeps brand and language visible at every width. */
+.bar--app {
+  position: static;
+  border-bottom-color: var(--border);
+}
+
+.bar--app .inner {
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
 .inner {
   display: flex;
   align-items: center;
@@ -227,5 +239,21 @@
   .cta {
     padding: 8px 14px;
     font-size: 14px;
+  }
+}
+
+@media (max-width: 420px) {
+  .bar--app .inner {
+    gap: 8px;
+  }
+
+  .bar--app .actions {
+    gap: 4px;
+  }
+
+  /* The My books / Sign in button. */
+  .bar--app .actions > a {
+    padding-left: 10px;
+    padding-right: 10px;
   }
 }
