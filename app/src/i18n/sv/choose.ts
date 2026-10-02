@@ -3,7 +3,7 @@ import type { Messages } from '../en';
 export const choose: Messages['choose'] = {
   title: 'Hämta dina bilder',
   adding: (n: number) =>
-    `Lägger till i ditt bibliotek. Bara inlägg som är nyare än din senaste import läggs till – de ${n} bilder du redan har ligger kvar som de är.`,
+    `Lägger till i ditt bibliotek. Bara inlägg som är nyare än din senaste import läggs till. ${n === 1 ? 'Bilden du redan har ligger kvar som den är.' : `De ${n} bilder du redan har ligger kvar som de är.`}`,
   intro:
     'Några sätt att få in dina inlägg i Inbunden. Alla ger bara läsåtkomst, och inget av dem delar ditt lösenord med oss.',
   instant: 'Direkt',
@@ -17,23 +17,23 @@ export const choose: Messages['choose'] = {
     public: 'Professionella konton är offentliga. Vill du vara privat? Använd exporten.',
     button: 'Anslut Instagram',
     waiting:
-      'Vi väntar på att Instagram ska godkänna Inbunden. Tills dess kan du använda exporten – den funkar för alla konton.',
+      'Vi väntar på att Instagram ska godkänna Inbunden. Tills dess kan du använda exporten. Den funkar för alla konton.',
   },
   export: {
     pill: 'Funkar för alla konton',
     title: 'Ladda upp din export',
     text: 'Be Instagram om en kopia av dina inlägg och släpp sedan ZIP-filen här. Inget ändras på ditt konto.',
-    every: 'Personligt, privat, kreatör eller företag – alla konton funkar.',
+    every: 'Personligt, privat, kreatör eller företag: alla konton funkar.',
     email:
-      'Instagram mejlar dig filen – efter några timmar, ibland en dag eller två. Vi skickar dig en returlänk.',
+      'Instagram mejlar dig filen inom några timmar, ibland efter en dag eller två. Vi skickar dig en returlänk.',
     noLikes: 'Gilla-markeringar brukar inte följa med i exporten.',
     button: 'Visa hur',
   },
   google: {
     pill: 'Funkar för alla konton',
     title: 'Via Google Foto',
-    text: 'Låt Instagram skicka dina inlägg till Google Foto och välj dem där. Inget att ladda ner – smidigt på mobilen.',
-    every: 'Personligt, privat, kreatör eller företag – alla konton funkar.',
+    text: 'Låt Instagram skicka dina inlägg till Google Foto och välj dem där. Inget att ladda ner, så det är smidigt på mobilen.',
+    every: 'Personligt, privat, kreatör eller företag: alla konton funkar.',
     background: 'Instagram kopierar bilderna i bakgrunden; du väljer dem när de är på plats.',
     noCaptions:
       'Bildtexter och gilla-markeringar följer inte med, och datumen kan bli överföringsdagen.',

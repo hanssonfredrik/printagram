@@ -13,16 +13,16 @@ export const connect: Messages['connect'] = {
   askFor: {
     title: 'Det här ber Inbunden om',
     profile: 'Ditt användarnamn och din profilbild',
-    posts: 'Dina inlägg – bilder, bildtexter, datum och gilla-markeringar',
+    posts: 'Dina inlägg: bilder, bildtexter, datum och gilla-markeringar',
     readOnly:
-      'Bara läsåtkomst. Inga inlägg, inga meddelanden, inga följare. Koppla från när du vill – åtkomsten upphör också av sig själv efter 60 dagar.',
+      'Bara läsåtkomst. Inga inlägg, inga meddelanden, inga följare. Koppla från när du vill. Åtkomsten upphör också av sig själv efter 60 dagar.',
   },
   continue: 'Fortsätt med Instagram',
   opensWindow:
-    'Öppnar instagram.com i ett nytt fönster. Du loggar in där – vi ser aldrig ditt lösenord.',
+    'Öppnar instagram.com i ett nytt fönster. Du loggar in där. Vi ser aldrig ditt lösenord.',
   switchFirst: {
     title: 'Byt till ett professionellt konto först',
-    text: 'Gratis, tar ungefär två minuter, går att ångra och ingen får någon avisering. En sak ändras: ett privat konto blir offentligt, och väntande följarförfrågningar godkänns. Vill du hellre vara privat? Använd exporten i stället – den funkar för alla konton.',
+    text: 'Gratis, tar ungefär två minuter, går att ångra och ingen får någon avisering. En sak ändras: ett privat konto blir offentligt, och väntande följarförfrågningar godkänns. Vill du hellre vara privat? Använd exporten i stället. Den funkar för alla konton.',
   },
   switchSteps: [
     {
@@ -39,7 +39,7 @@ export const connect: Messages['connect'] = {
     },
     {
       title: 'Välj en kategori',
-      text: 'Välj det som passar – Fotograf, Bloggare, Personlig blogg. Du kan dölja den på din profil.',
+      text: 'Välj det som passar, till exempel Fotograf, Bloggare eller Personlig blogg. Du kan dölja den på din profil.',
     },
     {
       title: 'Välj Kreatör',
@@ -50,14 +50,14 @@ export const connect: Messages['connect'] = {
     title: 'Bra att veta',
     text: 'På en dator hittar du samma inställning på instagram.com → Mer → Inställningar → Kontotyp och verktyg. Har du precis bytt? Det kan ta några minuter innan Instagram registrerar ändringen. Byt tillbaka när du vill under Kontotyp och verktyg → Byt till personligt konto.',
   },
-  switched: 'Jag har bytt – fortsätt med Instagram',
-  keepAccount: 'Behåll mitt konto som det är – använd exporten',
+  switched: 'Jag har bytt. Fortsätt med Instagram',
+  keepAccount: 'Använd exporten i stället',
   quickCheck: {
     title: 'Ett snabbt sätt att kolla',
     text: 'Öppna din egen profil i Instagram-appen. Finns knappen Professionell översikt under din bio har du ett kreatörs- eller företagskonto. Finns den inte är kontot personligt.',
   },
-  seeButton: 'Jag ser knappen – det är professionellt',
-  noButton: 'Ingen knapp – det är personligt',
+  seeButton: 'Jag ser knappen (kreatör eller företag)',
+  noButton: 'Ingen knapp (personligt konto)',
   waiting: {
     title: 'Väntar på Instagram…',
     text: 'Ett fönster öppnades på instagram.com. Logga in där och tryck på Tillåt. Sidan uppdateras av sig själv.',
@@ -85,10 +85,10 @@ export const connect: Messages['connect'] = {
   tryAgain: 'Försök igen',
   useExport: 'Använd exporten i stället',
   importing: {
-    account: 'Kreatörskonto · anslutet nyss',
+    account: 'Professionellt konto · anslutet nyss',
     connected: 'Ansluten',
     copying: 'Kopierar dina inlägg…',
-    note: 'Vi kopierar dina bilder en gång, i full storlek. Instagrams länkar slutar fungera efter ett tag, så vi sparar kopiorna tills din bok är klar – sedan raderas de.',
+    note: 'Vi kopierar dina bilder en gång, i full storlek, eftersom Instagrams länkar slutar fungera efter ett tag. Vi sparar kopiorna i 3 månader, och varje ny bok lägger till 3 månader till. Vi mejlar dig en vecka innan de raderas.',
   },
   found: (n: number) => (n === 1 ? 'Hittade 1 bild' : `Hittade ${n} bilder`),
   foundFrom: (n: number, years: string) =>
@@ -100,8 +100,8 @@ export const connect: Messages['connect'] = {
   readUntil: 'Inbunden kan läsa dina inlägg tills du kopplar från, eller som längst i 60 dagar.',
   disconnectNow: 'Koppla från nu',
   disconnected:
-    'Frånkopplat. Dina kopierade bilder finns kvar tills din bok är klar, sedan raderas de.',
+    'Frånkopplat. Dina kopierade bilder finns kvar i ditt bibliotek i 3 månader, och varje ny bok lägger till 3 månader till.',
   storage:
-    'Dina bilder sparas bara för att skapa dina böcker, i 3 månader, och du kan radera dem när du vill. Instagram delar aldrig ditt lösenord med oss.',
+    'Vi sparar dina bilder i 3 månader, bara för att göra dina böcker. Du kan radera dem när du vill. Vi ser aldrig ditt Instagram-lösenord.',
   libraryReady: (id: string) => `Biblioteket ${id} är klart`,
 };

@@ -139,7 +139,7 @@ function llmsTxt(pages: Map<string, { title: string; description: string }>): st
     '',
     `> ${en.description}`,
     '',
-    'Inbunden is made in Sweden by Venueve AB (hello@inbunden.com). Photos come in through Instagram’s own login (Professional accounts), the Instagram data export ZIP (any account, including private ones) or the Google Photos picker; Inbunden never asks for a password. Output is a print-ready PDF (square 21 × 21 cm or portrait 21 × 28 cm, 4 mm bleed, sRGB) for one flat price per book. Printed softcover and hardcover books are coming soon. The site is in English and Swedish.',
+    'Inbunden is made in Sweden by Venueve AB (hello@inbunden.com). Photos come in through the Instagram data export ZIP (any account, including private ones) or the Google Photos picker. Connecting an Instagram account directly is coming soon. Inbunden never asks for your Instagram or Google password. Output is a print-ready PDF (square 21 × 21 cm or portrait 21 × 28 cm, 4 mm bleed, sRGB) for one flat price per book. Printed softcover and hardcover books are coming soon. The site is in English and Swedish.',
     '',
     '## Pages',
     '',

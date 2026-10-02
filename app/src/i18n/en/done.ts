@@ -21,7 +21,7 @@ export const done = {
   portrait: 'Portrait',
   yourEmail: 'your email',
   readySummary: (pages: number, format: string, email: string) =>
-    `${pages} pages, ${format}. We also sent the link to ${email}.`,
+    `${pages} ${pages === 1 ? 'page' : 'pages'}, ${format}. We also sent the link to ${email}.`,
   download: 'Download your PDF',
   downloadAgain: 'Downloaded · Download again',
   share: 'Share',
@@ -31,11 +31,11 @@ export const done = {
   newLink: 'Make a new link',
   newLinkMade: 'New link made, the old one no longer works',
   libraryTitle: 'Your photo library',
-  photos: (n: number) => `${n} photos`,
+  photos: (n: number) => `${n} ${n === 1 ? 'photo' : 'photos'}`,
   keptUntilBefore: 'Kept until',
   keptUntilAfter:
-    "- this order extended it by 3 months. Make another book anytime without importing again. We'll email you a week before it's deleted.",
+    "(this order added 3 months). Make another book any time without importing again. We'll email you a week before your photos are deleted.",
   libraryDeleted: 'Deleted. Your PDF stays downloadable.',
   deleteNow: 'Delete photos now',
-  printNote: 'Print it at any print shop, or wait for shipped books - coming soon.',
+  printNote: 'Print it at any print shop. Printed books delivered to your door are coming soon.',
 };

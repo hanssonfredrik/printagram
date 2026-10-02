@@ -7,21 +7,21 @@ export const landing = {
   testModeTitle: 'Payments are in test mode. No money is taken.',
   hero: {
     title: 'Your Instagram, as a real book.',
-    lead: 'Inbunden turns your Instagram posts into a print‑ready photo book. Pick the photos, we lay out the pages: a year, a trip, a first year, as a PDF you keep forever. Printed books are coming soon.',
+    lead: 'Inbunden turns your Instagram posts into a print‑ready photo book. Pick the photos from a year, a trip or a first year. We lay out the pages and you get a PDF to keep. Printed books are coming soon.',
     price: (price: string) => `PDF ${price}`,
     noPassword:
-      "We never ask for your password. Connect through Instagram's own login, or upload your export.",
+      'We never ask for your Instagram password. You download your photos from Instagram and upload the file here.',
   },
   how: {
     title: 'How it works',
     steps: [
       {
         title: 'Bring in your photos',
-        text: 'Connect your Instagram in seconds, or upload the export Instagram sends you. Either way, we never see your password.',
+        text: 'Ask Instagram for a copy of your posts and upload the ZIP it emails you. Or send your posts to Google Photos and pick them there.',
       },
       {
         title: 'Pick',
-        text: 'Choose by month or year (or most liked, when you connect). Carousels included.',
+        text: 'Choose whole months or years, or single photos. Every photo in a carousel comes along.',
       },
       { title: 'Print', text: 'Preview every page, then download your print‑ready PDF.' },
     ],
@@ -29,7 +29,7 @@ export const landing = {
   samples: {
     title: 'Sample spreads',
     intro:
-      'Real pages from the layout engine: one to four photos per page, full‑bleed or framed, text pages, captions if you want them.',
+      'Real pages made by Inbunden: one to four photos per page, full‑bleed or framed, text pages, captions if you want them.',
     bookTitle: 'Our year · 2025',
     yearText: '2025\nin 84 photos',
     spreads: {
@@ -78,15 +78,15 @@ export const landing = {
     },
     {
       q: 'Is it safe?',
-      a: "Yes. If you connect, you log in on Instagram's own site and Instagram lets us read your posts - nothing more. We can't post, message or see your password. If you upload, you download your own photos from Instagram and drop the file here. We never touch your account.",
+      a: 'Yes. You download your own photos from Instagram and upload the file here. We never log in to your account, never see your password and can never post anything.',
     },
     {
-      q: 'Connect or upload - which one?',
-      a: 'Connect if you have a Creator or Business account: it takes seconds and brings your likes along. Upload the export if you have a personal account and want to keep it that way. It works for every account, but Instagram needs a few hours to a couple of days to prepare the file.',
+      q: 'Can I connect my Instagram directly?',
+      a: "Not yet. We're waiting for Instagram to approve Inbunden. Until then, use the export. It works for every account, but Instagram needs a few hours to a couple of days to prepare the file.",
     },
     {
       q: 'Do private accounts work?',
-      a: 'Yes, with the export. Connecting needs a Professional account, and Instagram makes those public - so if you want to stay private, use the export.',
+      a: 'Yes. The export works for private accounts too, and your account stays private.',
     },
     {
       q: 'How long does the Instagram export take?',
@@ -94,7 +94,7 @@ export const landing = {
     },
     {
       q: 'What happens to my photos?',
-      a: 'They stay in your Inbunden library for 3 months so you can make more books without importing again. Every new book extends that by 3 months. Delete them yourself anytime, or we delete them when the 3 months are up - after a reminder email. Ordered PDFs stay downloadable either way.',
+      a: 'They stay in your Inbunden library for 3 months so you can make more books without importing again. Every new book extends that by 3 months. You can delete them yourself any time. Otherwise we delete them when the 3 months are up, and email you a week before. Ordered PDFs stay downloadable either way.',
     },
     {
       q: 'What do I get right now?',
@@ -110,7 +110,7 @@ export const landing = {
     },
     {
       q: 'Can I use Google Photos?',
-      a: "Yes. Besides Instagram, you can pick photos in Google Photos' own picker. We only see the photos you choose.",
+      a: "Yes. Instagram can send a copy of your posts to Google Photos, and then you pick them in Google's own picker. You can also pick any other photos you have there. We only see the photos you choose.",
     },
     {
       q: 'Can I edit the layout?',

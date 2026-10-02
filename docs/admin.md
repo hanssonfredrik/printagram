@@ -26,7 +26,7 @@ Who gets in: a user row with `isAdmin = true`, signed in with their Inbunden ema
 5. **TOTP secrets** are stored AES-256-GCM-encrypted with `ADMIN_TOTP_ENC_KEY`.
 6. **What the UI can see** is listed field by field in `admin/api/src/lib/views.ts`. It never includes password hashes, TOTP secrets, access tokens, share tokens or blob paths.
 7. **Headers** (`admin/app/public/staticwebapp.config.json`): strict CSP (`default-src 'self'`, no inline script or style, no third-party origins), `frame-ancestors 'none'`, HSTS, `noindex`, and `/.auth/*` disabled.
-8. **Guard rails:** you cannot remove your own admin access, reset your own authenticator, or delete your own account from the admin. Deleting a user requires typing their email.
+8. **Guard rails:** you cannot remove your own admin access, reset your own authenticator, or delete your own account from the admin. Deleting a user requires typing their email. Deleting an order requires typing the order id, and a paid Stripe order also needs the "Stripe test-mode payment" box ticked, because real paid orders must be kept for the accounts (7 years).
 
 ### `isAdmin` on the user row
 
@@ -67,7 +67,7 @@ Then sign in again to enroll a new authenticator. `scripts/admin.ts list` shows 
 | --- | --- | --- |
 | Dashboard | `GET stats/overview` | Revenue (Stripe vs test payments), paid orders, visitors, accounts, active accounts (lastSeenAt), paying customers, libraries/photos, per-day charts |
 | Users | `GET/PATCH/DELETE users…` | Search and filter; edit email, language and admin access; sign the user out everywhere; delete (same code as `DELETE /api/account`: `api/src/lib/accountService.ts`) |
-| Orders | `GET orders…` | Filter by status, provider and date; detail with Stripe links and a 10-minute PDF link (audited) |
+| Orders | `GET/DELETE orders…` | Filter by status, provider and date; detail with Stripe links and a 10-minute PDF link (audited); delete a test order (`deleteOrder` in `api/src/lib/accountService.ts`: PDFs, share link and promo use go, the book becomes a draft again) |
 | VAT report | `GET reports/vat` | Month/quarter/year, Stripe or test payments. VAT = gross × r / (100 + r), per order; refunded orders shown apart; CSV export |
 | Visitors | `GET stats/visits` | From the cookieless beacon (below) |
 | Promo codes | `GET/POST/PATCH promos` | The same rows `scripts/promo.ts` manages |
@@ -88,7 +88,7 @@ All lists are full table scans (no secondary indexes in Table Storage). That is 
 - No cookie, no localStorage, no IP.
 - `visitor` = sha256(daily salt + IP + user agent), first 16 characters. The salt is random per day (Lookups `visit_salt`) and deleted afterwards by `cleanupTokens`. A visitor is therefore counted once per day and cannot be followed across days.
 - Tokens in `/s/…`, `/r/…`, `/reset/…` and `/done/…` are replaced with placeholders before storing.
-- Bots, automated browsers (prerender, e2e), and Do Not Track / Global Privacy Control are skipped.
+- Bots and automated browsers (prerender, e2e) are skipped. Do Not Track and Global Privacy Control are not: nothing here identifies a person, and both still block Google Analytics.
 - Rows older than 90 days are deleted by the cron task `cleanupVisits`.
 
 The privacy policy (`app/src/i18n/*/legal.ts`) describes this.

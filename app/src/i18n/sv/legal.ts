@@ -21,14 +21,14 @@ export const legal: Messages['legal'] = {
           'Ditt konto: din e-postadress och ett hashat lösenord (aldrig själva lösenordet), om du skapar ett konto. Innan dess använder du Inbunden med en anonym session.',
           'Åtkomstnycklar: om du ansluter Instagram eller Google Foto sparar vi nyckeln de ger oss, krypterad. Vi ser eller sparar aldrig ditt lösenord till Instagram eller Google.',
           'Teknisk information: din IP-adress används kort för att begränsa upprepade inloggningsförsök och sparas inte.',
-          'Besöksstatistik: när en sida öppnas räknar vi sidans adress, webbplatsen du kom från, typen av enhet (mobil, surfplatta eller dator) och språket. För att räkna unika besökare utan kaka kombineras din IP-adress och webbläsare med ett slumpvärde som byts varje dygn och görs om till en envägskod. Själva IP-adressen sparas aldrig, och koden kan inte spåras tillbaka till dig eller kopplas ihop mellan dagar. Inget räknas om din webbläsare skickar Do Not Track eller Global Privacy Control.',
+          'Besöksstatistik: när en sida öppnas räknar vi sidans adress, webbplatsen du kom från, typen av enhet (mobil, surfplatta eller dator) och språket. För att räkna unika besökare utan kaka kombineras din IP-adress och webbläsare med ett slumpvärde som byts varje dygn och görs om till en envägskod. Själva IP-adressen sparas aldrig, och koden kan inte spåras tillbaka till dig eller kopplas ihop mellan dagar.',
           'Google Analytics, bara om du godkänner det i cookie-rutan: vilka sidor du tittar på, hur du kom hit, din enhet, webbläsare och ungefärliga plats (land eller stad, som Google härleder från din IP-adress), och en slumpmässig identifierare som sparas i en kaka. Vi använder det för att förstå hur webbplatsen används, aldrig för reklam: annonsfunktionerna är avstängda.',
         ],
       },
       {
         title: 'Varför, och med vilken rättslig grund',
         paragraphs: [
-          'För att leverera tjänsten du ber om – importera bilder, bygga boken, leverera PDF:en och skicka mejlen som hör till (returlänk, boken är klar, nytt lösenord, påminnelse före radering). Den rättsliga grunden är avtalet mellan dig och oss (GDPR artikel 6.1 b).',
+          'För att leverera tjänsten du ber om: importera bilder, bygga boken, leverera PDF:en och skicka mejlen som hör till (returlänk, boken är klar, nytt lösenord, påminnelse före radering). Den rättsliga grunden är avtalet mellan dig och oss (GDPR artikel 6.1 b).',
           'För att hålla tjänsten säker och förhindra missbruk, till exempel gränser för inloggningsförsök. Den rättsliga grunden är vårt berättigade intresse (artikel 6.1 f).',
           'För att förstå hur många som besöker webbplatsen och vilka sidor de använder, genom den anonyma besöksstatistiken ovan. Den rättsliga grunden är vårt berättigade intresse (artikel 6.1 f).',
           'Google Analytics används bara med ditt samtycke (artikel 6.1 a). Du kan återkalla det när som helst under Cookie-inställningar längst ner på varje sida; inget skickas till Google innan du godkänner.',
@@ -51,7 +51,7 @@ export const legal: Messages['legal'] = {
       {
         title: 'Vilka mer som behandlar dina uppgifter',
         paragraphs: [
-          'Microsoft Azure driftar webbplatsen, databasen och bildlagringen i Microsofts region West Europe (Nederländerna).',
+          'Microsoft Azure driver webbplatsen, databasen och bildlagringen i Microsofts region West Europe (Nederländerna).',
           'Resend skickar våra mejl och får din e-postadress och mejlets innehåll.',
           'Google (Google Ireland Limited) driver Google Analytics åt oss som personuppgiftsbiträde, om du godkänner det.',
           'Stripe hanterar kortbetalningar när kortbetalning är aktiverad. Kortuppgifterna går direkt till Stripe och når aldrig oss.',
@@ -64,7 +64,7 @@ export const legal: Messages['legal'] = {
         title: 'Så skyddar vi dina uppgifter',
         paragraphs: [
           'Under överföring: all trafik till och från Inbunden, och mellan Inbunden och tjänsterna vi använder, krypteras med HTTPS (TLS 1.2 eller nyare).',
-          'I lagring: dina bilder, böcker och vår databas lagras krypterade hos Microsoft Azure inom EU. Lagringen är aldrig öppen för allmänheten. Dina bilder ligger i egna privata lagringsbehållare, och dina bilder kan bara öppnas via kortlivade signerade länkar som ges till din egen session.',
+          'I lagring: dina bilder, böcker och vår databas lagras krypterade hos Microsoft Azure inom EU. Lagringen är aldrig öppen för allmänheten. Dina bilder ligger i privata lagringsbehållare och kan bara öppnas via kortlivade signerade länkar som ges till din egen session.',
           'Åtkomstnycklar: nycklarna vi får från Google och Instagram krypteras med AES-256-GCM innan de sparas, med en nyckel som förvaras skild från uppgifterna. Google-nyckeln ger bara läsrätt, gäller bara bilderna du väljer, förnyas aldrig och upphör inom en timme. Kopplar du från återkallas den hos Google direkt.',
           'Lösenord och sessioner: lösenord sparas bara som en saltad scrypt-hash. Din session är en signerad kaka som skript på sidan inte kan läsa (HttpOnly) och som bara skickas över HTTPS.',
           'Behörighet: bara Inbundens egen tjänst kan läsa dina bilder och nycklar. Ingen på Venueve AB tittar på dina bilder om du inte ber oss hjälpa till med en viss bok. Vårt eget administrationsverktyg är en separat webbplats som kräver inloggning i två steg, och allt som görs där loggas. Upprepade inloggningsförsök begränsas.',
@@ -90,7 +90,7 @@ export const legal: Messages['legal'] = {
       {
         title: 'Dina rättigheter',
         paragraphs: [
-          'Du kan begära en kopia av dina uppgifter, få dem rättade eller raderade, begränsa eller invända mot behandlingen och få ut dem i ett flyttbart format. Skriv till hello@inbunden.com; vi svarar inom en månad. Vill du radera ditt konto och allt i det räcker det att du hör av dig – bilder kan du radera själv direkt under Mina böcker.',
+          'Du kan begära en kopia av dina uppgifter, få dem rättade eller raderade, begränsa eller invända mot behandlingen och få ut dem i ett flyttbart format. Skriv till hello@inbunden.com; vi svarar inom en månad. Vill du radera ditt konto och allt i det räcker det att du hör av dig. Bilder kan du radera själv direkt under Mina böcker.',
           'Tycker du att vi hanterar dina uppgifter fel kan du klaga hos Integritetsskyddsmyndigheten (IMY, imy.se).',
         ],
       },

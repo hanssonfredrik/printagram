@@ -11,7 +11,7 @@ export const common: Messages['common'] = {
     how: 'Så funkar det',
     pricing: 'Priser',
     guides: 'Guider',
-    about: 'Om oss',
+    about: 'Om Inbunden',
     menu: 'Meny',
     closeMenu: 'Stäng menyn',
     skip: 'Hoppa till innehållet',
@@ -46,16 +46,16 @@ export const common: Messages['common'] = {
     preview: 'Förhandsgranska',
     checkout: 'Kassa',
   },
-  loadingPhotos: 'Det gick inte att läsa in dina bilder.',
-  noServer: 'Det gick inte att nå servern.',
+  loadingPhotos: 'Vi kunde inte läsa in dina bilder. Kontrollera anslutningen och försök igen.',
+  noServer: 'Vi kunde inte nå Inbunden. Kontrollera anslutningen och försök igen.',
 };
 
 export const errors: Messages['errors'] = {
   generic: 'Något gick fel. Försök igen.',
   codes: {
-    INTERNAL: 'Något gick fel hos oss.',
+    INTERNAL: 'Något gick fel hos oss. Försök igen om en minut.',
     UNAUTHORIZED: 'Logga in för att fortsätta.',
-    NOT_FOUND: 'Vi hittade inte det du letade efter.',
+    NOT_FOUND: 'Vi hittade inte sidan.',
     RATE_LIMITED: 'För många försök. Vänta en minut och försök igen.',
     INVALID_EMAIL: 'Ange en giltig e-postadress.',
     ALREADY_SIGNED_IN: 'Du är inloggad med ett annat konto.',
@@ -65,7 +65,7 @@ export const errors: Messages['errors'] = {
     EXPIRED_TOKEN: 'Länken har gått ut.',
     USED_TOKEN: 'Länken har redan använts.',
     NOT_CONNECTED: 'Anslut ditt Instagram-konto först.',
-    TOO_MANY_PHOTOS: 'Boken har fler bilder än vad som får plats i en bok.',
+    TOO_MANY_PHOTOS: 'En bok rymmer högst 999 bilder. Ta bort några och försök igen.',
     BOOK_ORDERED: 'Boken är redan beställd. Gör en kopia om du vill ändra den.',
     EMPTY_BOOK: 'Välj minst en bild.',
     ACCOUNT_REQUIRED: 'Skapa ditt konto först så att vi kan skicka din nedladdningslänk.',
@@ -75,7 +75,8 @@ export const errors: Messages['errors'] = {
     INSUFFICIENT_FUNDS: 'Det finns inte tillräckligt med pengar på kortet. Prova ett annat kort.',
     NOT_FREE: 'Den här beställningen behöver betalas.',
     NOT_PAID: 'Beställningen är inte betald än.',
-    PHOTOS_MISSING: 'Några bilder i boken finns inte längre sparade, så PDF:en kan inte skapas.',
+    PHOTOS_MISSING:
+      'Några bilder i boken finns inte längre sparade, så vi kan inte göra PDF:en. Hämta in dina bilder igen och gör en ny bok.',
     PDF_MISSING: 'PDF:en är inte klar än.',
     PDF_INVALID: 'PDF:en kunde inte sparas. Försök igen.',
     PDF_SIZE_MISMATCH: 'PDF:en kunde inte sparas. Försök igen.',

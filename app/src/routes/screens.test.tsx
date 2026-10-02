@@ -65,7 +65,7 @@ describe('screens (against the in-memory test API)', () => {
     expect(await screen.findByText('Open Instagram settings')).toBeTruthy();
     fireEvent.click(screen.getByText("I've requested my export"));
     expect(await screen.findByText('Instagram is preparing your photos')).toBeTruthy();
-    fireEvent.click(screen.getByText('I have my ZIP - upload it'));
+    fireEvent.click(screen.getByText('I have the ZIP. Upload it'));
     expect(await screen.findByText('Drop the ZIP here')).toBeTruthy();
     expect(router.state.location.pathname).toBe('/export/upload');
   });
@@ -85,7 +85,7 @@ describe('screens (against the in-memory test API)', () => {
     expect(screen.getByText('Choose Creator')).toBeTruthy();
     fireEvent.click(screen.getByRole('tab', { name: 'Not sure' }));
     expect(await screen.findByText('A quick way to check')).toBeTruthy();
-    fireEvent.click(screen.getByText("I see the button - it's Professional"));
+    fireEvent.click(screen.getByText('I see the button (Creator or Business)'));
     expect(await screen.findByText('Continue with Instagram')).toBeTruthy();
   });
 
@@ -122,10 +122,10 @@ describe('screens (against the in-memory test API)', () => {
     expect(
       screen.getByText('Have you already sent your Instagram photos to Google Photos?'),
     ).toBeTruthy();
-    fireEvent.click(screen.getByText('Not yet - show me how'));
+    fireEvent.click(screen.getByText('Not yet. Show me how'));
     expect(await screen.findByText('Choose Google Photos')).toBeTruthy();
     expect(screen.getByText(/captions and likes stay on Instagram/)).toBeTruthy();
-    fireEvent.click(screen.getByText("I've started the transfer - continue"));
+    fireEvent.click(screen.getByText("I've started the transfer. Continue"));
     expect(await screen.findByText('Next: sign in with Google')).toBeTruthy();
     expect(screen.getByText('Sign in with Google')).toBeTruthy();
     fireEvent.click(screen.getByText('Show the Instagram steps again'));
@@ -177,7 +177,7 @@ describe('screens (against the in-memory test API)', () => {
     cleanup();
     renderAt('/sv/om');
     expect(await screen.findByRole('heading', { name: 'Om Inbunden' })).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Om Inbunden' })).toBeTruthy();
+    expect(within(screen.getByRole('contentinfo')).getByRole('link', { name: 'Om Inbunden' })).toBeTruthy();
   });
 
   it('legal: footer links open the privacy policy and terms in both languages', async () => {
@@ -269,7 +269,7 @@ describe('screens (against the in-memory test API)', () => {
   it('checkout (test payment): account validation, test card → done', async () => {
     await seedLibraryAndDraft();
     const { router } = renderAt('/checkout');
-    expect(await screen.findByText('Test payment - no money is taken')).toBeTruthy();
+    expect(await screen.findByText('Test payment: no money is taken')).toBeTruthy();
     // No editable card fields in test mode.
     expect(screen.queryByPlaceholderText('Card number')).toBeNull();
     const place = await screen.findByRole('button', { name: 'Place test order' });
@@ -306,14 +306,14 @@ describe('screens (against the in-memory test API)', () => {
   it('checkout: a 100 % discount code skips payment', async () => {
     await seedLibraryAndDraft();
     const { router } = renderAt('/checkout');
-    await screen.findByText('Test payment - no money is taken');
+    await screen.findByText('Test payment: no money is taken');
     fireEvent.click(await screen.findByText('Have a discount code?'));
     fireEvent.change(screen.getByLabelText('Discount code'), { target: { value: 'nope' } });
     fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
     expect(await screen.findByText(/That code doesn't exist/)).toBeTruthy();
     fireEvent.change(screen.getByLabelText('Discount code'), { target: { value: 'welcome100' } });
     fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
-    expect(await screen.findByText(/no payment needed/)).toBeTruthy();
+    expect(await screen.findByText(/No payment needed/)).toBeTruthy();
     expect(screen.getByText(/Code/).textContent).toContain('WELCOME100');
     fireEvent.change(screen.getByPlaceholderText('Email'), {
       target: { value: 'mara@example.com' },
@@ -449,7 +449,7 @@ describe('public pages: navigation and search metadata', () => {
     const guides = within(nav).getByRole('link', { name: 'Guider' });
     expect(guides.getAttribute('href')).toBe('/sv/guider');
     expect(guides.getAttribute('aria-current')).toBe('page');
-    expect(within(nav).getByRole('link', { name: 'Om oss' }).getAttribute('href')).toBe('/sv/om');
+    expect(within(nav).getByRole('link', { name: 'Om Inbunden' }).getAttribute('href')).toBe('/sv/om');
   });
 
   it('opens and closes the phone menu', async () => {

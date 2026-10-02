@@ -56,29 +56,29 @@ export const guides: GuidesMessages = {
     guideInstagramBook: {
       title: 'How to make a photo book from your Instagram',
       description:
-        'Make a photo book from your Instagram posts: bring in your photos (connect, export or Google Photos), pick the posts, adjust the layout and download a print-ready PDF.',
-      lead: 'To make a photo book from Instagram you need three things: your photos out of Instagram, a way to choose the posts, and a layout that prints well. With Inbunden that means bringing in your photos, picking the posts and downloading a print-ready PDF. It takes minutes, plus the time Instagram needs if you use the data export.',
+        'Make a photo book from your Instagram posts: get your photos out of Instagram, pick the posts, adjust the layout and download a print-ready PDF.',
+      lead: 'To make a photo book from Instagram you need your photos out of Instagram, a way to choose the posts and a layout that prints well. With Inbunden you upload your Instagram export, pick the posts and download a print-ready PDF. It takes a few minutes, plus the time Instagram needs to prepare the export.',
       sections: [
         {
           title: 'Step 1: Get your photos out of Instagram',
           paragraphs: [
-            'Instagram has no "print a book" button, so the photos have to come out first. There are three ways, and none of them asks for your password:',
+            'Instagram has no "print a book" button, so the photos have to come out first. There are two ways, and neither asks for your Instagram password:',
           ],
           bullets: [
-            'Connect: log in on Instagram’s own page and let Inbunden read your posts. It takes seconds and brings your likes along, but Instagram only allows it for Professional (Creator or Business) accounts.',
-            'Data export: ask Instagram for a copy of your posts and upload the ZIP it emails you. It works for every account, private ones included, but Instagram needs a few hours to a couple of days to prepare it.',
-            'Google Photos: if your photos are also in Google Photos, pick them in Google’s own picker.',
+            'Data export: ask Instagram for a copy of your posts and upload the ZIP it emails you. It works for every account, private ones included. Instagram needs a few hours to a couple of days to prepare it.',
+            'Google Photos: ask Instagram to send a copy of your posts to Google Photos, then pick them in Google’s own picker.',
+            'Connecting your Instagram account directly is coming soon. We’re waiting for Instagram to approve Inbunden.',
           ],
         },
         {
           title: 'Step 2: Choose the posts',
           paragraphs: [
-            'A book works best with a theme: a year, a trip, a child’s first year. Inbunden groups your posts by month and year, so you can tick whole periods at once or pick single photos. When you connect, you can also sort by most liked. Carousel posts are included, with every image in them.',
+            'A book works best with a theme: a year, a trip, a child’s first year. Inbunden groups your posts by month and year, so you can tick whole periods at once or pick single photos. Carousel posts come with every photo in them.',
             'A book holds up to 999 photos. The PDF has no minimum or maximum page count, and the price stays the same whatever the number of pages.',
           ],
         },
         {
-          title: 'Step 3: Let the layout happen, then adjust',
+          title: 'Step 3: Check the layout and adjust it',
           paragraphs: [
             'Inbunden lays out the pages for you in date order, with one to four photos per page, full-bleed or framed. Then you can change anything:',
           ],
@@ -94,7 +94,7 @@ export const guides: GuidesMessages = {
           title: 'Step 4: Download the print-ready PDF',
           paragraphs: [
             'The preview is exactly what prints. When you are happy, you pay once and download a high-resolution PDF. Every page has 4 mm of bleed and a trim box. Your photos are embedded as the original files, never re-compressed, and the colour is tagged as sRGB, so a print shop can print the file as it is.',
-            'The preview flags low-resolution photos before you pay. Instagram stores photos at up to 1080 pixels wide, which prints sharply at the sizes the layout uses.',
+            'Instagram stores photos at up to 1080 pixels wide. That looks good when a photo takes half or a quarter of a page, but can look soft across a full page. The preview warns you about any photo that is too small for its spot, before you pay.',
           ],
         },
         {
@@ -107,7 +107,7 @@ export const guides: GuidesMessages = {
       faq: [
         {
           q: 'Can I make a photo book from a private Instagram account?',
-          a: 'Yes, with Instagram’s data export, which works for private accounts. Connecting directly needs a Professional account, and Instagram makes those public.',
+          a: 'Yes. Instagram’s data export works for private accounts, and your account stays private.',
         },
         {
           q: 'Are captions and dates included?',
@@ -123,28 +123,28 @@ export const guides: GuidesMessages = {
       title: 'How to download your Instagram data (photos and posts)',
       description:
         'Step by step: request a copy of your Instagram posts in Accounts Center, choose the right format and quality, and download the ZIP when Instagram emails you.',
-      lead: 'You can download everything you have posted on Instagram from Accounts Center → Your information and permissions → Export your information. Choose Posts, All time, JSON and Higher media quality. Instagram then emails you a download link, usually within a few hours, and the link works for four days.',
+      lead: 'You can download everything you have posted on Instagram from Accounts Center → Your information and permissions → Export your information. Choose Posts, All time, JSON and the highest media quality. Instagram then emails you a download link, usually within a few hours. The link works for four days.',
       sections: [
         {
           title: 'Before you start',
           bullets: [
             'It works for every account: personal, private, Creator and Business.',
-            'You need your Instagram password once, to confirm the request on Instagram’s own site.',
+            'Instagram may ask for your password to confirm the request. You type it in Instagram, never on Inbunden.',
             'Choose Posts only. The file gets much smaller, and your posts are all Inbunden needs.',
           ],
         },
         { title: 'On your phone (Instagram app)', exportSteps: 'mobile' },
         { title: 'On a computer (instagram.com)', exportSteps: 'desktop' },
         {
-          title: 'Why JSON and Higher quality?',
+          title: 'Why JSON and the highest quality?',
           paragraphs: [
-            'JSON keeps the dates, captions and carousel order in a form that software can read reliably, while HTML is meant for reading in a browser. Higher media quality gives you the largest copies Instagram has kept, which is what you want in print.',
+            'JSON keeps the dates, captions and carousel order in a form software can read reliably. HTML is meant for reading in a browser. The highest media quality gives you the largest copies Instagram has kept, which is what you want in print.',
           ],
         },
         {
           title: 'What happens next',
           paragraphs: [
-            'Instagram prepares the file and emails you when it is ready. That usually takes a few hours, sometimes a day or two, and Instagram officially allows itself up to 30 days. The download link is valid for only four days, so download the ZIP as soon as the email arrives. If no email shows up, check your spam folder or look under Export your information in Accounts Center.',
+            'Instagram prepares the file and emails you when it is ready. That usually takes a few hours, sometimes a day or two, and officially it can take up to 30 days. The download link only works for four days, so download the ZIP as soon as the email arrives. No email? Check your spam folder, or look under Available downloads in Export your information.',
             'Then upload the ZIP to Inbunden without unpacking it. Inbunden reads the posts straight from the file and shows them grouped by month.',
           ],
         },
@@ -192,11 +192,11 @@ export const guides: GuidesMessages = {
             },
             {
               title: 'Binding',
-              text: 'Stapled binding (saddle stitch) works for thin books, usually up to about 48–64 pages. Glued binding (perfect binding) suits thicker books. Lay-flat binding lets spreads open fully.',
+              text: 'Stapled binding (saddle stitch) works for thin books, usually up to about 48 to 64 pages. Glued binding (perfect binding) suits thicker books. Lay-flat binding lets spreads open fully.',
             },
             {
               title: 'Paper',
-              text: 'For photos, coated paper of around 150–200 g/m² is a good start. Silk or matte paper shows fewer reflections than gloss.',
+              text: 'For photos, coated paper of around 150 to 200 g/m² is a good start. Silk or matte paper shows fewer reflections than gloss.',
             },
             {
               title: 'Cover',
@@ -218,11 +218,11 @@ export const guides: GuidesMessages = {
         },
         {
           q: 'Why are there white or cut-off edges?',
-          a: 'Usually the pages were scaled to fit. Ask the printer to print at 100 % and trim at the trim box. The 4 mm of bleed is meant to be cut off.',
+          a: 'Usually the pages were scaled to fit. Ask the printer to print at 100% and trim at the trim box. The 4 mm of bleed is meant to be cut off.',
         },
         {
           q: 'Will my Instagram photos be sharp in print?',
-          a: 'Instagram stores photos at up to 1080 pixels wide, which prints well at the sizes the layout uses. The preview flags any photo that would print soft or blurry.',
+          a: 'Instagram stores photos at up to 1080 pixels wide. They look good at half or quarter page, but can look soft across a full page. The preview warns you about any photo that would print soft.',
         },
       ],
     },

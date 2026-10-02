@@ -20,29 +20,29 @@ export const guides: Messages['guides'] = {
     guideInstagramBook: {
       title: 'Så gör du en fotobok av ditt Instagram',
       description:
-        'Gör en fotobok av dina Instagram-inlägg: hämta in bilderna (anslut, exportera eller Google Foto), välj inläggen, justera layouten och ladda ner en tryckfärdig PDF.',
-      lead: 'För att göra en fotobok av Instagram behöver du tre saker: bilderna ut ur Instagram, ett sätt att välja inläggen och en layout som håller i tryck. Med Inbunden hämtar du in bilderna, väljer inläggen och laddar ner en tryckfärdig PDF. Det tar några minuter, plus den tid Instagram behöver om du använder dataexporten.',
+        'Gör en fotobok av dina Instagram-inlägg: få ut bilderna ur Instagram, välj inläggen, justera layouten och ladda ner en tryckfärdig PDF.',
+      lead: 'För att göra en fotobok av Instagram behöver du bilderna ut ur Instagram, ett sätt att välja inläggen och en layout som håller i tryck. Med Inbunden laddar du upp din Instagram-export, väljer inläggen och laddar ner en tryckfärdig PDF. Det tar några minuter, plus den tid Instagram behöver för att ta fram exporten.',
       sections: [
         {
           title: 'Steg 1: Få ut bilderna ur Instagram',
           paragraphs: [
-            'Instagram har ingen knapp för att trycka en bok, så bilderna måste ut först. Det finns tre sätt, och inget av dem kräver ditt lösenord:',
+            'Instagram har ingen knapp för att trycka en bok, så bilderna måste ut först. Det finns två sätt, och inget av dem kräver ditt Instagram-lösenord:',
           ],
           bullets: [
-            'Anslut: logga in på Instagrams egen sida och låt Inbunden läsa dina inlägg. Det tar några sekunder och gillamarkeringarna följer med, men Instagram tillåter det bara för professionella konton (kreatör eller företag).',
-            'Dataexport: be Instagram om en kopia av dina inlägg och ladda upp ZIP-filen du får via mejl. Det fungerar för alla konton, även privata, men Instagram behöver några timmar till ett par dagar för att ta fram den.',
-            'Google Foto: om dina bilder också finns i Google Foto kan du välja dem i Googles egen bildväljare.',
+            'Dataexport: be Instagram om en kopia av dina inlägg och ladda upp ZIP-filen du får via mejl. Det fungerar för alla konton, även privata. Instagram behöver några timmar till ett par dagar för att ta fram den.',
+            'Google Foto: be Instagram skicka en kopia av dina inlägg till Google Foto och välj dem sedan i Googles egen bildväljare.',
+            'Att ansluta ditt Instagram-konto direkt kommer snart. Vi väntar på att Instagram ska godkänna Inbunden.',
           ],
         },
         {
           title: 'Steg 2: Välj inläggen',
           paragraphs: [
-            'En bok blir bäst med ett tema: ett år, en resa, ett barns första år. Inbunden grupperar dina inlägg per månad och år, så att du kan bocka för hela perioder på en gång eller välja enstaka bilder. När du ansluter kan du också sortera på flest gillamarkeringar. Karusellinlägg följer med, med alla bilder i dem.',
+            'En bok blir bäst med ett tema: ett år, en resa, ett barns första år. Inbunden grupperar dina inlägg per månad och år, så att du kan bocka för hela perioder på en gång eller välja enstaka bilder. Karusellinlägg följer med, med alla bilder i dem.',
             'En bok rymmer upp till 999 bilder. PDF:en har inget minsta eller högsta antal sidor, och priset är detsamma oavsett hur många sidor det blir.',
           ],
         },
         {
-          title: 'Steg 3: Låt layouten göras, justera sedan',
+          title: 'Steg 3: Kolla layouten och justera den',
           paragraphs: [
             'Inbunden lägger ut sidorna åt dig i datumordning, med en till fyra bilder per sida, utfallande eller med marginal. Sedan kan du ändra allt:',
           ],
@@ -58,7 +58,7 @@ export const guides: Messages['guides'] = {
           title: 'Steg 4: Ladda ner den tryckfärdiga PDF:en',
           paragraphs: [
             'Förhandsvisningen är exakt det som trycks. När du är nöjd betalar du en gång och laddar ner en högupplöst PDF. Varje sida har 4 mm utfall och en trimbox. Bilderna bäddas in som originalfilerna, utan omkomprimering, och färgerna är märkta som sRGB, så att ett tryckeri kan trycka filen som den är.',
-            'Förhandsvisningen varnar för bilder med låg upplösning innan du betalar. Instagram sparar bilder i upp till 1080 pixlars bredd, vilket blir skarpt i de storlekar layouten använder.',
+            'Instagram sparar bilder i upp till 1080 pixlars bredd. Det ser bra ut när en bild tar en halv eller en kvarts sida, men kan bli mjukt över en hel sida. Förhandsvisningen varnar för bilder som är för små för sin plats, innan du betalar.',
           ],
         },
         {
@@ -71,7 +71,7 @@ export const guides: Messages['guides'] = {
       faq: [
         {
           q: 'Kan jag göra en fotobok av ett privat Instagram-konto?',
-          a: 'Ja, med Instagrams dataexport, som fungerar för privata konton. För att ansluta direkt krävs ett professionellt konto, och sådana gör Instagram offentliga.',
+          a: 'Ja. Instagrams dataexport fungerar för privata konton, och ditt konto förblir privat.',
         },
         {
           q: 'Kommer bildtexter och datum med?',
@@ -87,28 +87,28 @@ export const guides: Messages['guides'] = {
       title: 'Så laddar du ner din Instagram-data (bilder och inlägg)',
       description:
         'Steg för steg: begär en kopia av dina Instagram-inlägg i Kontocenter, välj rätt format och kvalitet och ladda ner ZIP-filen när Instagram mejlar dig.',
-      lead: 'Du kan ladda ner allt du har lagt upp på Instagram via Kontocenter → Din information och dina behörigheter → Exportera din information. Välj Inlägg, Hela tiden, JSON och Högre mediekvalitet. Instagram mejlar sedan en nedladdningslänk, oftast inom några timmar, och länken fungerar i fyra dagar.',
+      lead: 'Du kan ladda ner allt du har lagt upp på Instagram via Kontocenter → Din information och dina behörigheter → Exportera din information. Välj Inlägg, hela perioden, JSON och högsta mediekvalitet. Instagram mejlar sedan en nedladdningslänk, oftast inom några timmar. Länken fungerar i fyra dagar.',
       sections: [
         {
           title: 'Innan du börjar',
           bullets: [
             'Det fungerar för alla konton: personliga, privata, kreatörs- och företagskonton.',
-            'Du behöver ditt Instagram-lösenord en gång, för att bekräfta beställningen på Instagrams egen sida.',
+            'Instagram kan be om ditt lösenord för att bekräfta begäran. Du skriver det hos Instagram, aldrig hos Inbunden.',
             'Välj bara Inlägg. Filen blir mycket mindre, och det är bara dina inlägg Inbunden behöver.',
           ],
         },
         { title: 'I mobilen (Instagram-appen)', exportSteps: 'mobile' },
         { title: 'På en dator (instagram.com)', exportSteps: 'desktop' },
         {
-          title: 'Varför JSON och Högre kvalitet?',
+          title: 'Varför JSON och högsta kvalitet?',
           paragraphs: [
-            'JSON behåller datum, bildtexter och ordningen i karuseller i en form som program kan läsa säkert, medan HTML är tänkt för att läsas i en webbläsare. Högre mediekvalitet ger dig de största kopior Instagram har sparat, och det är dem du vill ha i tryck.',
+            'JSON behåller datum, bildtexter och ordningen i karuseller i en form som program kan läsa säkert. HTML är tänkt för att läsas i en webbläsare. Högsta mediekvalitet ger dig de största kopior Instagram har sparat, och det är dem du vill ha i tryck.',
           ],
         },
         {
-          title: 'Vad händer sedan',
+          title: 'Vad händer sedan?',
           paragraphs: [
-            'Instagram tar fram filen och mejlar dig när den är klar. Det brukar ta några timmar, ibland en dag eller två, och officiellt ger Instagram sig själv upp till 30 dagar. Nedladdningslänken gäller bara i fyra dagar, så ladda ner ZIP-filen så fort mejlet kommer. Om inget mejl dyker upp, titta i skräpposten eller under Exportera din information i Kontocenter.',
+            'Instagram tar fram filen och mejlar dig när den är klar. Det brukar ta några timmar, ibland en dag eller två, och officiellt kan det ta upp till 30 dagar. Nedladdningslänken fungerar bara i fyra dagar, så ladda ner ZIP-filen så fort mejlet kommer. Inget mejl? Kolla skräpposten, eller titta under Tillgängliga nedladdningar i Exportera din information.',
             'Ladda sedan upp ZIP-filen till Inbunden utan att packa upp den. Inbunden läser inläggen direkt ur filen och visar dem grupperade per månad.',
           ],
         },
@@ -156,11 +156,11 @@ export const guides: Messages['guides'] = {
             },
             {
               title: 'Bindning',
-              text: 'Häftning (klammerhäftning) fungerar för tunna böcker, oftast upp till omkring 48–64 sidor. Limbindning passar tjockare böcker. Layflat-bindning gör att uppslagen öppnar sig helt.',
+              text: 'Häftning (klammerhäftning) fungerar för tunna böcker, oftast upp till omkring 48 till 64 sidor. Limbindning passar tjockare böcker. Layflat-bindning gör att uppslagen öppnar sig helt.',
             },
             {
               title: 'Papper',
-              text: 'För bilder är ett bestruket papper på runt 150–200 g/m² en bra början. Silk eller matt papper ger mindre reflexer än blankt.',
+              text: 'För bilder är ett bestruket papper på runt 150 till 200 g/m² en bra början. Silk eller matt papper ger mindre reflexer än blankt.',
             },
             {
               title: 'Omslag',
@@ -186,7 +186,7 @@ export const guides: Messages['guides'] = {
         },
         {
           q: 'Blir mina Instagram-bilder skarpa i tryck?',
-          a: 'Instagram sparar bilder i upp till 1080 pixlars bredd, vilket blir bra i de storlekar layouten använder. Förhandsvisningen varnar för bilder som skulle bli oskarpa eller suddiga.',
+          a: 'Instagram sparar bilder i upp till 1080 pixlars bredd. De blir bra på en halv eller en kvarts sida, men kan bli mjuka över en hel sida. Förhandsvisningen varnar för bilder som skulle bli oskarpa i tryck.',
         },
       ],
     },

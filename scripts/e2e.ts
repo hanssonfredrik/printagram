@@ -63,7 +63,7 @@ async function main() {
   await shot(page, '04-waiting');
   ok('export guide + return link');
 
-  await page.getByRole('button', { name: 'I have my ZIP - upload it' }).click();
+  await page.getByRole('button', { name: 'I have the ZIP. Upload it' }).click();
   await page.getByText('Drop the ZIP here').waitFor();
   await shot(page, '05-upload');
 
@@ -78,9 +78,9 @@ async function main() {
   // Real import through the Web Worker
   await page.setInputFiles('input[type=file]', fixture);
   await page.getByText(/Found 5 photos from 2025/).waitFor({ timeout: 60000 });
-  const found = await page.getByText(/posts · \d+ carousels · \d+ videos skipped/).innerText();
+  const found = await page.getByText(/posts · \d+ carousels? · \d+ videos? skipped/).innerText();
   assert(
-    found.includes('4 posts') && found.includes('1 carousels') && found.includes('1 videos'),
+    found.includes('4 posts') && found.includes('1 carousel ') && found.includes('1 video '),
     `summary: ${found}`,
   );
   await shot(page, '06-upload-done');
@@ -119,7 +119,7 @@ async function main() {
   const expectedPages = Number(/(\d+) pages/.exec(footer)![1]);
   await page.getByRole('button', { name: 'Checkout' }).click();
   await page.getByText('Choose a format').waitFor();
-  await page.getByText('Test payment - no money is taken').waitFor();
+  await page.getByText('Test payment: no money is taken').waitFor();
   await shot(page, '09-checkout');
   ok(`preview: density, arrange, ${expectedPages} pages`);
 
@@ -169,7 +169,7 @@ async function main() {
   ok('my books lists the ordered book');
 
   await page.getByRole('button', { name: 'Delete photos now' }).click();
-  await page.getByText(/Delete 5 photos and/).waitFor();
+  await page.getByText(/Delete 5 photos/).waitFor();
   await page.getByRole('button', { name: 'Keep my photos' }).click();
   ok('delete confirmation');
 

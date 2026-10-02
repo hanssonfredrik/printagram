@@ -8,6 +8,6 @@ export const share: Messages['share'] = {
   size: (mb: number) => `${mb.toFixed(1).replace('.', ',')} MB`,
   download: 'Ladda ner PDF:en',
   notReady: 'Ägaren har inte skapat klart den här PDF:en än.',
-  madeWith: 'Skapad med Inbunden – ditt Instagram som en riktig bok.',
+  madeWith: 'Skapad med Inbunden: ditt Instagram som en riktig bok.',
   makeOwn: 'Gör din egen',
 };

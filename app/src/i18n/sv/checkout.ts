@@ -21,8 +21,7 @@ export const checkout: Messages['checkout'] = {
   discount: (code: string) => `Rabatt (${code})`,
   total: 'Totalt',
   totalAmount: (amount: string) => `Totalt ${amount}`,
-  summaryNote:
-    'Du får en tryckklar PDF att ladda ner. Tryckta böcker kommer senare – vi mejlar dig när de finns.',
+  summaryNote: 'Du får en tryckfärdig PDF att ladda ner. Tryckta böcker kommer snart.',
   accountTitle: 'Ditt Inbunden-konto',
   accountSaved: 'Din PDF och ditt bibliotek sparas på det här kontot.',
   signedIn: 'Inloggad',
@@ -30,13 +29,14 @@ export const checkout: Messages['checkout'] = {
   passwordPlaceholder: 'Välj ett lösenord (minst 8 tecken)',
   password: 'Lösenord',
   accountKeeps:
-    'Sparar dina bilder och böcker i 3 månader så att du kan beställa fler utan att importera igen.',
+    'Sparar dina bilder i 3 månader så att du kan beställa fler utan att importera igen.',
   haveAccount: 'Har du redan ett konto? ',
   signIn: 'Logga in',
-  freeBanner: 'Rabatten täcker hela boken – ingen betalning behövs.',
+  freeBanner: 'Rabatten täcker hela boken. Ingen betalning behövs.',
   oneMoment: 'Ett ögonblick…',
   getPdf: 'Hämta min PDF',
-  notConfigured: 'Betalningar är inte rätt inställda på den här servern.',
+  notConfigured:
+    'Betalningen fungerar inte just nu. Försök igen senare eller skriv till hello@inbunden.com.',
   chooseFormat: 'Välj format',
   pdfHint: 'Ladda ner direkt, skriv ut var som helst',
   softcover: 'Häftad bok',
@@ -55,7 +55,7 @@ export const checkout: Messages['checkout'] = {
     pay: (amount: string) => `Betala ${amount}`,
   },
   stripeTest: {
-    title: 'Stripe i testläge – inga pengar dras',
+    title: 'Stripe i testläge: inga pengar dras',
     body: 'Skriv in ett av de här kortnumren i kortformuläret nedan, med valfritt framtida utgångsdatum, valfri CVC och valfritt postnummer.',
     listLabel: 'Stripes testkort',
     copy: 'Kopiera',
@@ -69,9 +69,8 @@ export const checkout: Messages['checkout'] = {
     },
   },
   fake: {
-    bannerTitle: 'Testbetalning – inga pengar dras',
-    bannerBody:
-      'Inbunden är i testläge. Välj ett testkort och se vad som händer – inget debiteras.',
+    bannerTitle: 'Testbetalning: inga pengar dras',
+    bannerBody: 'Inbunden är i testläge. Välj ett testkort och se vad som händer. Inget debiteras.',
     cardGroup: 'Testkort',
     chip: 'TEST',
     cards: {

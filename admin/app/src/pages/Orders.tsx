@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, useParams } from 'react-router';
+import { useState, type FormEvent } from 'react';
+import { Link, useNavigate, useParams } from 'react-router';
 import { api, qs } from '../api';
 import { ErrorMsg, Loading, PageHead, Pager, RangePicker, StatusBadge, Tile } from '../components';
 import { bytes, dateTime, defaultRange, eur, num } from '../format';
@@ -163,7 +163,31 @@ export function OrderDetail() {
     `orders/${encodeURIComponent(userId)}/${encodeURIComponent(orderId)}`,
   );
   const [pdfError, setPdfError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const [confirm, setConfirm] = useState('');
+  const [stripeTest, setStripeTest] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
   const o = data?.order;
+  const paidStripe =
+    o?.paymentProvider === 'stripe' &&
+    (o.status === 'paid' || o.status === 'ready' || o.status === 'refunded');
+
+  async function remove(e: FormEvent) {
+    e.preventDefault();
+    setBusy(true);
+    setDeleteError(null);
+    try {
+      await api(`orders/${userId}/${orderId}`, {
+        method: 'DELETE',
+        body: { confirm, stripeTest },
+      });
+      navigate('/orders', { replace: true });
+    } catch (err) {
+      setDeleteError((err as Error).message);
+      setBusy(false);
+    }
+  }
 
   async function openPdf() {
     setPdfError(null);
@@ -274,6 +298,42 @@ export function OrderDetail() {
             </p>
           </div>
         </div>
+      ) : null}
+      {o ? (
+        <form className="card section danger-zone" onSubmit={remove}>
+          <h2>Delete order</h2>
+          <p className="muted">
+            For test orders. Deletes the order, its PDF and share link, and gives back a used promo
+            code. The book becomes a draft again. Payment records at Stripe are not affected. This
+            cannot be undone.
+          </p>
+          {paidStripe ? (
+            <label className="toolbar">
+              <input
+                type="checkbox"
+                checked={stripeTest}
+                onChange={(e) => setStripeTest(e.target.checked)}
+              />
+              This was a Stripe test-mode payment. Real paid orders must be kept for the accounts.
+            </label>
+          ) : null}
+          <div className="toolbar">
+            <input
+              aria-label="Confirm"
+              placeholder={`Type ${o.id} to confirm`}
+              value={confirm}
+              onChange={(e) => setConfirm(e.target.value)}
+              size={36}
+            />
+            <button
+              className="btn danger"
+              disabled={busy || confirm !== o.id || (paidStripe && !stripeTest)}
+            >
+              Delete order permanently
+            </button>
+          </div>
+          <ErrorMsg error={deleteError} />
+        </form>
       ) : null}
     </>
   );

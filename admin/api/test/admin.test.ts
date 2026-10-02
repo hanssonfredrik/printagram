@@ -579,4 +579,91 @@ describe.skipIf(!up)('admin API against Azurite', () => {
       ].sort(),
     );
   });
+
+  it('orders: delete needs the id, paid Stripe orders need the test-mode box, and is audited', async () => {
+    const { orders, books, lookups, libraries, audit } =
+      await import('../../../api/src/lib/tables.js');
+    const me = await makeUser({ isAdmin: true });
+    const buyer = await makeUser({ isAdmin: false });
+    const call = client();
+    expect((await signIn(call, me.email)).status).toBe(200);
+
+    const libraryId = randomUUID();
+    await libraries.upsert({ userId: buyer.userId, libraryId, status: 'ready' } as never);
+    const bookId = randomUUID();
+    const fakeId = randomUUID();
+    const stripeId = randomUUID();
+    await books.upsert({
+      userId: buyer.userId,
+      bookId,
+      libraryId,
+      title: 'T',
+      format: 'square',
+      showMeta: true,
+      coverPhotoId: null,
+      layout: {},
+      pages: [],
+      manualLayout: false,
+      photoIds: [],
+      pageCount: 24,
+      version: 1,
+      status: 'ordered',
+      orderId: fakeId,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    } as never);
+    const base = {
+      userId: buyer.userId,
+      bookId,
+      libraryId,
+      title: 'T',
+      layout: {},
+      pages: [],
+      photoIds: [],
+      amountCents: 900,
+      promoCode: null,
+      pdfBlob: null,
+      createdAt: new Date().toISOString(),
+      status: 'ready',
+    };
+    const share = `share-${randomUUID()}`;
+    await orders.upsert({
+      ...base,
+      orderId: fakeId,
+      paymentProvider: 'fake',
+      shareToken: share,
+    } as never);
+    await lookups.insert('share', share, { userId: buyer.userId, value: fakeId });
+    await orders.upsert({ ...base, orderId: stripeId, paymentProvider: 'stripe' } as never);
+
+    const del = (orderId: string, body: unknown) =>
+      call('ordersDelete', 'DELETE', `orders/${buyer.userId}/${orderId}`, body, {
+        userId: buyer.userId,
+        orderId,
+      });
+
+    expect((await del(fakeId, { confirm: 'wrong' })).status).toBe(400);
+    expect((await del(fakeId, { confirm: fakeId })).status).toBe(200);
+    expect(await orders.get(buyer.userId, fakeId)).toBeNull();
+    expect(await lookups.get('share', share)).toBeNull();
+    const book = await books.get(buyer.userId, bookId);
+    expect(book?.status).toBe('draft');
+    expect(book?.orderId).toBeNull();
+
+    expect((await del(stripeId, { confirm: stripeId })).status).toBe(400);
+    expect(await orders.get(buyer.userId, stripeId)).not.toBeNull();
+    expect((await del(stripeId, { confirm: stripeId, stripeTest: true })).status).toBe(200);
+    expect(await orders.get(buyer.userId, stripeId)).toBeNull();
+
+    const log = await audit.listMonth(new Date().toISOString().slice(0, 7), 5000);
+    expect(
+      log.some(
+        (r) =>
+          r.actorId === me.userId &&
+          r.action === 'ordersDelete' &&
+          r.ok &&
+          r.target === `${buyer.userId}/${fakeId}`,
+      ),
+    ).toBe(true);
+  });
 });

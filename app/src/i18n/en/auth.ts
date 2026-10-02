@@ -8,7 +8,7 @@ export const auth = {
     submit: 'Sign in',
     busy: 'Signing in…',
     wrongPassword: 'Wrong email or password.',
-    failed: 'Could not sign in.',
+    failed: "We couldn't sign you in. Try again in a minute.",
     emailFirst: 'Enter your email above first, then tap Forgot password.',
     resetSent: 'If that address has an account, a reset link is on its way.',
     sentTitle: 'Check your email',

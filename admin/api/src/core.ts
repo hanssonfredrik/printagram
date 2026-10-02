@@ -23,7 +23,7 @@ export {
   type UserRow,
   type VisitRow,
 } from '../../../api/src/lib/tables.js';
-export { deleteUserData } from '../../../api/src/lib/accountService.js';
+export { deleteOrder, deleteUserData } from '../../../api/src/lib/accountService.js';
 export { verifyPassword, hashPassword } from '../../../api/src/lib/auth.js';
 export { readSasUrl, PDF_CONTAINER } from '../../../api/src/lib/blobs.js';
 export {

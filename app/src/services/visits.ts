@@ -15,12 +15,10 @@ interface RouterLike {
  * Cookieless page-view beacon for the admin's visitor stats (api/src/functions/visits.ts).
  * Sends the path (the server replaces tokens in /s/, /r/ and /reset/ links with placeholders),
  * the referrer host on the first page and the UI language. No cookie, no id, no storage.
- * Skipped for automated browsers (prerender, e2e) and when Do Not Track / GPC is on.
+ * Skipped for automated browsers (prerender, e2e).
  */
 export function trackVisits(router: RouterLike): void {
   if (typeof navigator === 'undefined' || navigator.webdriver) return;
-  const nav = navigator as Navigator & { globalPrivacyControl?: boolean };
-  if (nav.doNotTrack === '1' || nav.globalPrivacyControl === true) return;
 
   let last = '';
   let first = true;

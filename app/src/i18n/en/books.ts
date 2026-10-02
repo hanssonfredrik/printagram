@@ -5,7 +5,7 @@ export const books = {
   square: 'Square',
   portrait: 'Portrait',
   meta: (pages: number, format: string, photos: number) =>
-    `${pages} pages · ${format} · ${photos} photos`,
+    `${pages} ${pages === 1 ? 'page' : 'pages'} · ${format} · ${photos} ${photos === 1 ? 'photo' : 'photos'}`,
   ordered: (date: string, generating: boolean) =>
     `Ordered ${date} · PDF${generating ? ' · generating' : ''}`,
   downloadPdf: 'Download PDF',
@@ -15,7 +15,7 @@ export const books = {
   duplicate: 'Duplicate',
   libraryTitle: 'Your photo library',
   libraryMeta: (photos: number, source: string, date: string) =>
-    `${photos} photos · ${source} · imported ${date}`,
+    `${photos} ${photos === 1 ? 'photo' : 'photos'} · ${source} · imported ${date}`,
   exportSource: 'Instagram export',
   googleSource: 'Google Photos',
   keptUntilBefore: 'Kept until',
@@ -24,7 +24,7 @@ export const books = {
   addPhotos: 'Add more photos',
   deleteNow: 'Delete photos now',
   deleteTitle: (photos: number, drafts: number) =>
-    `Delete ${photos} photos and ${drafts === 1 ? '1 draft' : drafts > 1 ? `${drafts} drafts` : 'drafts'}?`,
+    `Delete ${photos} ${photos === 1 ? 'photo' : 'photos'}${drafts === 1 ? ' and 1 draft' : drafts > 1 ? ` and ${drafts} drafts` : ''}?`,
   deleteBody:
     "This can't be undone. Ordered PDFs stay downloadable. To make another book later you'd import your photos again.",
   deleting: 'Deleting…',
@@ -32,7 +32,7 @@ export const books = {
   keepPhotos: 'Keep my photos',
   noPhotosTitle: 'No photos stored',
   libraryDeleted:
-    'Your library was deleted. Bring in photos again to make a new book - ordered PDFs below are still yours.',
+    'Your library was deleted. Bring in photos again to make a new book. Ordered PDFs below are still yours.',
   bringInFirst: 'Bring in your Instagram photos to make your first book.',
   bringIn: 'Bring in photos',
   yourBooks: 'Your books',

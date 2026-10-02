@@ -12,16 +12,15 @@ export const connect = {
   askFor: {
     title: 'What Inbunden will ask for',
     profile: 'Your username and profile picture',
-    posts: 'Your posts - photos, captions, dates and likes',
+    posts: 'Your posts: photos, captions, dates and likes',
     readOnly:
-      'Read‑only. No posting, no messages, no followers. Disconnect anytime - access also ends by itself after 60 days.',
+      'Read‑only. No posting, no messages, no followers. Disconnect any time. Access also ends by itself after 60 days.',
   },
   continue: 'Continue with Instagram',
-  opensWindow:
-    'Opens instagram.com in a new window. You log in there - we never see your password.',
+  opensWindow: 'Opens instagram.com in a new window. You log in there. We never see your password.',
   switchFirst: {
     title: 'Switch to a Professional account first',
-    text: 'Free, about two minutes, reversible, and nobody is notified. One thing changes: a private account becomes public, and pending follow requests are accepted. Prefer to stay private? Use the export instead - it works for every account.',
+    text: 'Free, about two minutes, reversible, and nobody is notified. One thing changes: a private account becomes public, and pending follow requests are accepted. Prefer to stay private? Use the export instead. It works for every account.',
   },
   switchSteps: [
     {
@@ -38,7 +37,7 @@ export const connect = {
     },
     {
       title: 'Pick a category',
-      text: 'Choose whatever fits - Photographer, Blogger, Personal blog. You can hide it from your profile.',
+      text: 'Choose whatever fits, such as Photographer, Blogger or Personal blog. You can hide it from your profile.',
     },
     {
       title: 'Choose Creator',
@@ -47,16 +46,16 @@ export const connect = {
   ],
   goodToKnow: {
     title: 'Good to know',
-    text: 'On a computer the same setting is at instagram.com → More → Settings → Account type and tools. Just switched? Instagram can take a few minutes to register the change. Switch back anytime under Account type and tools → Switch to personal account.',
+    text: 'On a computer the same setting is at instagram.com → More → Settings → Account type and tools. Just switched? Instagram can take a few minutes to register the change. Switch back any time under Account type and tools → Switch to personal account.',
   },
-  switched: "I've switched - continue with Instagram",
-  keepAccount: 'Keep my account as it is - use the export',
+  switched: "I've switched. Continue with Instagram",
+  keepAccount: 'Use the export instead',
   quickCheck: {
     title: 'A quick way to check',
     text: "Open your own profile in the Instagram app. If there's a Professional dashboard button under your bio, you have a Creator or Business account. If there isn't, it's personal.",
   },
-  seeButton: "I see the button - it's Professional",
-  noButton: "No button - it's personal",
+  seeButton: 'I see the button (Creator or Business)',
+  noButton: 'No button (personal account)',
   waiting: {
     title: 'Waiting for Instagram…',
     text: 'A window opened at instagram.com. Log in there and tap Allow. This page updates by itself.',
@@ -84,22 +83,23 @@ export const connect = {
   tryAgain: 'Try again',
   useExport: 'Use the export instead',
   importing: {
-    account: 'Creator account · connected just now',
+    account: 'Professional account · connected just now',
     connected: 'Connected',
     copying: 'Copying your posts…',
-    note: "We copy your photos once, at full size. Instagram's links expire, so we keep the copies until your book is done - then they're deleted.",
+    note: "We copy your photos once, at full size, because Instagram's links expire. We keep the copies for 3 months, and each new book adds 3 more. We email you a week before they're deleted.",
   },
-  found: (n: number) => `Found ${n} photos`,
-  foundFrom: (n: number, years: string) => `Found ${n} photos from ${years}`,
+  found: (n: number) => (n === 1 ? 'Found 1 photo' : `Found ${n} photos`),
+  foundFrom: (n: number, years: string) =>
+    n === 1 ? `Found 1 photo from ${years}` : `Found ${n} photos from ${years}`,
   foundStats: (posts: number, carousels: number, videos: number) =>
-    `${posts} posts · ${carousels} carousels · ${videos} videos skipped by default · likes included`,
+    `${posts} ${posts === 1 ? 'post' : 'posts'} · ${carousels} ${carousels === 1 ? 'carousel' : 'carousels'} · ${videos} ${videos === 1 ? 'video' : 'videos'} skipped by default · likes included`,
   backToBooks: 'Back to My books',
   choosePhotos: 'Choose photos',
-  readUntil: 'Inbunden can read your posts until you disconnect, or automatically after 60 days.',
+  readUntil: 'Inbunden can read your posts until you disconnect, for 60 days at most.',
   disconnectNow: 'Disconnect now',
   disconnected:
-    "Disconnected. Your copied photos stay until your book is done, then they're deleted.",
+    'Disconnected. Your copied photos stay in your library for 3 months, and each new book adds 3 more.',
   storage:
-    'Your photos are stored only to build your books, kept for 3 months, and deletable by you at any time. Instagram never shares your password with us.',
+    'We keep your photos for 3 months, only to make your books. You can delete them any time. We never see your Instagram password.',
   libraryReady: (id: string) => `Library ${id} ready`,
 };

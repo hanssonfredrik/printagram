@@ -82,9 +82,8 @@ export function Visitors() {
           </div>
           <p className="muted section">
             Numbers are views / visitors. Visitors are counted per day without cookies (a hash that
-            changes daily), so a person who comes back on three days counts three times. Bots and
-            browsers with Do Not Track or Global Privacy Control are not counted. Raw rows are kept
-            90 days.
+            changes daily), so a person who comes back on three days counts three times. Bots are
+            not counted. Raw rows are kept 90 days.
           </p>
         </>
       ) : null}

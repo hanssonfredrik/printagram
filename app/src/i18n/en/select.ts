@@ -17,7 +17,7 @@ export const select = {
   notFoundBody:
     "We couldn't find any posts here. If you uploaded an export, make sure you selected “Posts” when requesting it.",
   goBack: 'Go back and try again',
-  photos: (n: number) => `${n} photos`,
+  photos: (n: number) => `${n} ${n === 1 ? 'photo' : 'photos'}`,
   deselectYear: 'Deselect year',
   selectYear: 'Select whole year',
   deselectAll: 'Deselect all',
@@ -25,7 +25,7 @@ export const select = {
   photo: 'Photo',
   noMatch: 'No photos match these filters.',
   continue: 'Continue',
-  selected: (n: number) => `${n} photos selected`,
+  selected: (n: number) => `${n} ${n === 1 ? 'photo' : 'photos'} selected`,
   maxPhotos: (n: number) => `Maximum ${n} photos per book`,
   pagesPrice: (pages: number, price: string) => `~${pages} pages · ${price}`,
 };

@@ -9,7 +9,7 @@ export const auth: Messages['auth'] = {
     submit: 'Logga in',
     busy: 'Loggar in…',
     wrongPassword: 'Fel e-postadress eller lösenord.',
-    failed: 'Det gick inte att logga in.',
+    failed: 'Vi kunde inte logga in dig. Försök igen om en minut.',
     emailFirst: 'Fyll i din e-postadress ovan först och tryck sedan på Glömt lösenordet.',
     resetSent: 'Om det finns ett konto för den adressen är en återställningslänk på väg.',
     sentTitle: 'Kolla din e-post',

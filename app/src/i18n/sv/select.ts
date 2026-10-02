@@ -2,7 +2,7 @@ import type { Messages } from '../en';
 
 export const select: Messages['select'] = {
   noPhotosTitle: 'Inga bilder än',
-  noPhotosBody: 'Hämta först dina Instagrambilder och välj sedan vilka som ska med i boken.',
+  noPhotosBody: 'Hämta först dina Instagram-bilder och välj sedan vilka som ska med i boken.',
   bringIn: 'Hämta bilder',
   connected: (label: string) => `${label} · ansluten`,
   title: 'Välj dina bilder',

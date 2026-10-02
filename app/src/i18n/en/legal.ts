@@ -20,14 +20,14 @@ export const legal = {
           'Your account: your email address and a hashed password (never the password itself), if you create an account. Before that you use Inbunden with an anonymous session.',
           'Access tokens: if you connect Instagram or Google Photos, the access token they give us, stored encrypted. We never see or store your Instagram or Google password.',
           'Technical data: your IP address is used briefly to limit repeated sign-in attempts and is not kept.',
-          'Visit statistics: when a page opens we count the page address, the website you came from, the type of device (phone, tablet or computer) and the language. To count unique visitors without a cookie, your IP address and browser are combined with a random value that changes every day and turned into a one-way code; the IP address itself is never stored, and the code cannot be traced back to you or linked across days. Nothing is counted if your browser sends Do Not Track or Global Privacy Control.',
+          'Visit statistics: when a page opens we count the page address, the website you came from, the type of device (phone, tablet or computer) and the language. To count unique visitors without a cookie, your IP address and browser are combined with a random value that changes every day and turned into a one-way code; the IP address itself is never stored, and the code cannot be traced back to you or linked across days.',
           'Google Analytics, only if you accept it in the cookie banner: which pages you view, how you arrived, your device, browser and approximate location (country or city, which Google derives from your IP address), and a random identifier stored in a cookie. We use it to understand how the site is used, never for advertising: ad features are switched off.',
         ],
       },
       {
         title: 'Why, and on what legal basis',
         paragraphs: [
-          'To provide the service you ask for - importing photos, building the book, delivering the PDF, sending the emails that belong to it (return link, book ready, password reset, deletion reminder). The legal basis is the contract between you and us (GDPR article 6.1.b).',
+          'To provide the service you ask for: importing photos, building the book, delivering the PDF, sending the emails that belong to it (return link, book ready, password reset, deletion reminder). The legal basis is the contract between you and us (GDPR article 6.1.b).',
           'To keep the service secure and prevent abuse, such as rate limits on sign-in. The legal basis is our legitimate interest (article 6.1.f).',
           'To understand how many people visit the site and which pages they use, through the anonymous visit statistics above. The legal basis is our legitimate interest (article 6.1.f).',
           'Google Analytics is used only with your consent (article 6.1.a). You can withdraw it at any time under Cookie settings at the bottom of every page; nothing is sent to Google before you accept.',
@@ -63,7 +63,7 @@ export const legal = {
         title: 'How we protect your data',
         paragraphs: [
           'In transit: all traffic to and from Inbunden, and between Inbunden and the services it uses, is encrypted with HTTPS (TLS 1.2 or newer).',
-          'At rest: your photos, books and our database are stored encrypted by Microsoft Azure in the EU. The storage is never publicly readable. Your photos are kept in private storage containers of their own, and your photos can only be opened through short-lived signed links issued to your own session.',
+          'At rest: your photos, books and our database are stored encrypted by Microsoft Azure in the EU. The storage is never publicly readable. Your photos are kept in private storage containers and can only be opened through short-lived signed links issued to your own session.',
           'Access tokens: the tokens Google and Instagram give us are encrypted with AES-256-GCM before they are stored, with a key kept separately from the data. The Google token is read-only, covers only the photos you pick, is never refreshed and expires within an hour. Disconnecting revokes it at Google right away.',
           'Passwords and sessions: passwords are stored only as a salted scrypt hash. Your session is a signed cookie that scripts on the page cannot read (HttpOnly) and that is only sent over HTTPS.',
           'Access control: only Inbunden’s own service can read your photos and tokens. Nobody at Venueve AB looks at your photos unless you ask us to help with a specific book. Our own administration tool is a separate site that requires two-factor sign-in, and every action in it is logged. Repeated sign-in attempts are rate-limited.',
@@ -89,7 +89,7 @@ export const legal = {
       {
         title: 'Your rights',
         paragraphs: [
-          'You can ask for a copy of your data, have it corrected, have it deleted, restrict or object to its processing, and receive it in a portable format. Write to hello@inbunden.com; we answer within a month. To delete your account and everything in it, just ask - photos you can delete yourself right away under My books.',
+          'You can ask for a copy of your data, have it corrected, have it deleted, restrict or object to its processing, and receive it in a portable format. Write to hello@inbunden.com; we answer within a month. To delete your account and everything in it, write to us. You can delete your photos yourself right away under My books.',
           'If you think we handle your data wrongly, you can complain to the Swedish Authority for Privacy Protection (IMY, imy.se).',
         ],
       },

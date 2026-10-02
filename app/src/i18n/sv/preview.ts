@@ -39,7 +39,7 @@ export const preview: Messages['preview'] = {
   coverPhoto: 'Omslagsbild',
   useAsCover: (what: string) => `Använd som omslag: ${what}`,
   captions: 'Bildtexter och datum',
-  captionsHintLikes: 'Bildtext, gillningar och datum under varje bild',
+  captionsHintLikes: 'Bildtext, gilla-markeringar och datum under varje bild',
   captionsHint: 'Skrivs ut under varje bild',
   lowResBlurry: (n: number) =>
     `${n} ${n === 1 ? 'bild' : 'bilder'} blir suddiga i tryck i nuvarande storlek. `,
@@ -47,7 +47,8 @@ export const preview: Messages['preview'] = {
   lowResTip: 'Mindre layouter (två eller fler bilder per sida) blir skarpare.',
   saving: 'Sparar…',
   checkout: 'Till kassan',
-  summary: (pages: number, format: string) => `${pages} sidor · ${format}`,
+  summary: (pages: number, format: string) =>
+    `${pages} ${pages === 1 ? 'sida' : 'sidor'} · ${format}`,
   pdfPrice: (price: string) => `PDF ${price}`,
   arrange: {
     help: 'Dra bilderna för att ändra ordning eller flytta dem till en annan sida. Med tangentbord: markera en bild, tryck på mellanslag, använd piltangenterna och tryck på mellanslag igen.',

@@ -1,4 +1,14 @@
-import { badRequest, json, notFound, orders, PDF_CONTAINER, readSasUrl, users } from '../core.js';
+import {
+  badRequest,
+  deleteOrder,
+  json,
+  notFound,
+  orders,
+  PDF_CONTAINER,
+  readJson,
+  readSasUrl,
+  users,
+} from '../core.js';
 import { adminRoute } from '../lib/route.js';
 import { getVatRatePct } from '../lib/settings.js';
 import { addTo, emptyTotals, splitVat, type VatTotals } from '../lib/vat.js';
@@ -88,6 +98,31 @@ adminRoute(
     if (!o?.pdfBlob) throw notFound('PDF');
     note('PDF link issued', `${o.userId}/${o.orderId}`);
     return json({ url: readSasUrl(PDF_CONTAINER, o.pdfBlob, `inbunden-${o.orderId}.pdf`, 10) });
+  },
+);
+
+/**
+ * Deletes an order, for removing test orders. Body: { confirm: orderId, stripeTest?: true }.
+ * A Stripe order that was paid is real bookkeeping unless it was a test-mode payment, so the
+ * admin has to say so explicitly (the admin API has no Stripe key to check it).
+ */
+adminRoute(
+  'ordersDelete',
+  { methods: ['DELETE'], route: 'orders/{userId}/{orderId}' },
+  async ({ req, note }) => {
+    const o = await orders.get(req.params.userId ?? '', req.params.orderId ?? '');
+    if (!o) throw notFound('Order');
+    const body = await readJson<{ confirm?: unknown; stripeTest?: unknown }>(req);
+    if (body.confirm !== o.orderId) throw badRequest('CONFIRM', 'Type the order id to confirm.');
+    const paid = o.status === 'paid' || o.status === 'ready' || o.status === 'refunded';
+    if (o.paymentProvider === 'stripe' && paid && body.stripeTest !== true)
+      throw badRequest(
+        'PAID_ORDER',
+        'This Stripe order was paid. Only delete it if it was a Stripe test-mode payment, and tick the box to say so.',
+      );
+    note(`deleted ${o.paymentProvider} order (${o.status})`, `${o.userId}/${o.orderId}`);
+    await deleteOrder(o);
+    return json({ deleted: true });
   },
 );
 

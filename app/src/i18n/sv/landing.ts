@@ -8,21 +8,21 @@ export const landing: Messages['landing'] = {
   testModeTitle: 'Betalningarna är i testläge. Inga pengar dras.',
   hero: {
     title: 'Ditt Instagram som en riktig bok.',
-    lead: 'Inbunden gör dina Instagram-inlägg till en tryckfärdig fotobok. Välj bilderna, vi gör layouten: ett år, en resa, ett första år, som en PDF du har för alltid. Tryckta böcker kommer snart.',
+    lead: 'Inbunden gör dina Instagram-inlägg till en tryckfärdig fotobok. Välj bilderna från ett år, en resa eller ett första år. Vi gör layouten och du får en PDF att spara. Tryckta böcker kommer snart.',
     price: (price: string) => `PDF ${price}`,
     noPassword:
-      'Vi ber aldrig om ditt lösenord. Anslut via Instagrams egen inloggning, eller ladda upp din export.',
+      'Vi ber aldrig om ditt Instagram-lösenord. Du laddar ner dina bilder från Instagram och laddar upp filen här.',
   },
   how: {
     title: 'Så funkar det',
     steps: [
       {
         title: 'Hämta dina bilder',
-        text: 'Anslut ditt Instagram på några sekunder, eller ladda upp exporten som Instagram skickar dig. Hur du än gör ser vi aldrig ditt lösenord.',
+        text: 'Be Instagram om en kopia av dina inlägg och ladda upp ZIP-filen du får via mejl. Eller skicka inläggen till Google Foto och välj dem där.',
       },
       {
         title: 'Välj',
-        text: 'Välj per månad eller år (eller mest gillade, om du ansluter). Karuseller ingår.',
+        text: 'Välj hela månader eller år, eller enstaka bilder. Alla bilder i en karusell följer med.',
       },
       {
         title: 'Skriv ut',
@@ -33,7 +33,7 @@ export const landing: Messages['landing'] = {
   samples: {
     title: 'Exempeluppslag',
     intro:
-      'Riktiga sidor från layoutmotorn: en till fyra bilder per sida, utfallande eller med marginal, textsidor och bildtexter om du vill.',
+      'Riktiga sidor gjorda med Inbunden: en till fyra bilder per sida, utfallande eller med marginal, textsidor och bildtexter om du vill.',
     bookTitle: 'Vårt år · 2025',
     yearText: '2025\ni 84 bilder',
     spreads: {
@@ -81,15 +81,15 @@ export const landing: Messages['landing'] = {
     },
     {
       q: 'Är det säkert?',
-      a: 'Ja. Om du ansluter loggar du in på Instagrams egen webbplats, och Instagram låter oss läsa dina inlägg – inget mer. Vi kan inte publicera, skicka meddelanden eller se ditt lösenord. Om du laddar upp hämtar du själv dina bilder från Instagram och släpper filen här. Vi rör aldrig ditt konto.',
+      a: 'Ja. Du laddar själv ner dina bilder från Instagram och laddar upp filen här. Vi loggar aldrig in på ditt konto, ser aldrig ditt lösenord och kan aldrig publicera något.',
     },
     {
-      q: 'Ansluta eller ladda upp – vilket ska jag välja?',
-      a: 'Anslut om du har ett kreatörs- eller företagskonto: det tar några sekunder och dina gilla-markeringar följer med. Ladda upp exporten om du har ett personligt konto och vill behålla det så. Det funkar för alla konton, men Instagram behöver några timmar till ett par dagar för att ta fram filen.',
+      q: 'Kan jag ansluta mitt Instagram direkt?',
+      a: 'Inte än. Vi väntar på att Instagram ska godkänna Inbunden. Använd exporten så länge. Den funkar för alla konton, men Instagram behöver några timmar till ett par dagar för att ta fram filen.',
     },
     {
       q: 'Fungerar privata konton?',
-      a: 'Ja, med exporten. För att ansluta krävs ett professionellt konto, och sådana gör Instagram offentliga – så om du vill vara privat, använd exporten.',
+      a: 'Ja. Exporten fungerar för privata konton också, och ditt konto förblir privat.',
     },
     {
       q: 'Hur lång tid tar exporten från Instagram?',
@@ -97,7 +97,7 @@ export const landing: Messages['landing'] = {
     },
     {
       q: 'Vad händer med mina bilder?',
-      a: 'De ligger kvar i ditt Inbunden-bibliotek i 3 månader, så att du kan göra fler böcker utan att importera igen. Varje ny bok förlänger tiden med 3 månader. Radera dem själv när du vill, annars raderar vi dem när de 3 månaderna har gått – efter ett påminnelsemejl. Beställda PDF:er går att ladda ner oavsett.',
+      a: 'De ligger kvar i ditt Inbunden-bibliotek i 3 månader, så att du kan göra fler böcker utan att importera igen. Varje ny bok förlänger tiden med 3 månader. Du kan radera dem själv när du vill. Annars raderar vi dem när de 3 månaderna har gått, och mejlar dig en vecka innan. Beställda PDF:er går att ladda ner oavsett.',
     },
     {
       q: 'Vad får jag just nu?',
@@ -113,7 +113,7 @@ export const landing: Messages['landing'] = {
     },
     {
       q: 'Kan jag använda Google Foto?',
-      a: 'Ja. Förutom Instagram kan du välja bilder i Google Fotos egen bildväljare. Vi ser bara de bilder du väljer.',
+      a: 'Ja. Instagram kan skicka en kopia av dina inlägg till Google Foto, och sedan väljer du dem i Googles egen bildväljare. Du kan också välja andra bilder du har där. Vi ser bara de bilder du väljer.',
     },
     {
       q: 'Kan jag ändra layouten?',

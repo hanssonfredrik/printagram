@@ -549,6 +549,13 @@ export const orders = {
       'Merge',
     );
   },
+  async delete(userId: string, id: string) {
+    await client(TABLE_ACCOUNTS)
+      .deleteEntity(userId, rk.order(id))
+      .catch((e) => {
+        if (!is404(e)) throw e;
+      });
+  },
   /**
    * Full scan of order rows without the book snapshot (layout/pages/photoIds are skipped,
    * so admin lists and reports stay light).
@@ -818,6 +825,23 @@ export const promos = {
       }
     }
     return false;
+  },
+  /** Gives back one redemption (an order that used the code was deleted). Never goes below 0. */
+  async unredeem(code: string): Promise<void> {
+    for (let attempt = 0; attempt < 5; attempt++) {
+      const p = await this.get(code);
+      if (!p || p.redemptions <= 0) return;
+      try {
+        await client(TABLE_LOOKUPS).updateEntity(
+          toEntity('promo', code, { redemptions: p.redemptions - 1 }),
+          'Merge',
+          { etag: p.etag },
+        );
+        return;
+      } catch (e) {
+        if (!is409(e)) throw e;
+      }
+    }
   },
 };
 

@@ -46,17 +46,17 @@ export const common = {
     preview: 'Preview',
     checkout: 'Checkout',
   },
-  loadingPhotos: 'Could not load your photos.',
-  noServer: 'Could not reach the server.',
+  loadingPhotos: "We couldn't load your photos. Check your connection and try again.",
+  noServer: "We couldn't reach Inbunden. Check your connection and try again.",
 };
 
 /** Error text by API error code (api/src/lib/http.ts call sites), plus a generic fallback. */
 export const errors = {
   generic: 'Something went wrong. Please try again.',
   codes: {
-    INTERNAL: 'Something went wrong on our side.',
+    INTERNAL: 'Something went wrong on our side. Try again in a minute.',
     UNAUTHORIZED: 'Please sign in.',
-    NOT_FOUND: 'We could not find that.',
+    NOT_FOUND: "We couldn't find that page.",
     RATE_LIMITED: 'Too many attempts. Please wait a minute and try again.',
     INVALID_EMAIL: 'Please enter a valid email address.',
     ALREADY_SIGNED_IN: 'You are signed in with a different account.',
@@ -66,7 +66,7 @@ export const errors = {
     EXPIRED_TOKEN: 'This link has expired.',
     USED_TOKEN: 'This link was already used.',
     NOT_CONNECTED: 'Connect your Instagram account first.',
-    TOO_MANY_PHOTOS: 'This book has more photos than a book can hold.',
+    TOO_MANY_PHOTOS: 'A book holds up to 999 photos. Remove some and try again.',
     BOOK_ORDERED: 'This book was already ordered. Duplicate it to make changes.',
     EMPTY_BOOK: 'Choose at least one photo.',
     ACCOUNT_REQUIRED: 'Create your account first so we can send your download link.',
@@ -76,7 +76,8 @@ export const errors = {
     INSUFFICIENT_FUNDS: 'Your card has insufficient funds. Try another card.',
     NOT_FREE: 'This order needs a payment.',
     NOT_PAID: 'This order has not been paid yet.',
-    PHOTOS_MISSING: 'Some photos in this book are no longer stored, so the PDF cannot be built.',
+    PHOTOS_MISSING:
+      "Some photos in this book are no longer stored, so we can't make the PDF. Bring in your photos again and make a new book.",
     PDF_MISSING: 'The PDF is not ready yet.',
     PDF_INVALID: 'The PDF could not be saved. Please try again.',
     PDF_SIZE_MISMATCH: 'The PDF could not be saved. Please try again.',

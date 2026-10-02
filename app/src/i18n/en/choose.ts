@@ -2,7 +2,7 @@
 export const choose = {
   title: 'Bring in your photos',
   adding: (n: number) =>
-    `Adding to your library. Only posts newer than your last import are added - the ${n} photos you already have stay as they are.`,
+    `Adding to your library. Only posts newer than your last import are added. ${n === 1 ? 'The photo you already have stays as it is.' : `The ${n} photos you already have stay as they are.`}`,
   intro:
     'A few ways to get your posts into Inbunden. All of them are read‑only, and none shares your password with us.',
   instant: 'Instant',
@@ -16,23 +16,23 @@ export const choose = {
     public: 'Professional accounts are public. Want to stay private? Use the export.',
     button: 'Connect Instagram',
     waiting:
-      "We're waiting for Instagram to approve Inbunden. Until then, use the export - it works for every account.",
+      "We're waiting for Instagram to approve Inbunden. Until then, use the export. It works for every account.",
   },
   export: {
     pill: 'Works for every account',
     title: 'Upload your export',
     text: 'Ask Instagram for a copy of your posts, then drop the ZIP here. Nothing about your account changes.',
-    every: 'Personal, private, Creator or Business - every account works.',
+    every: 'Personal, private, Creator or Business: every account works.',
     email:
-      'Instagram emails you the file - a few hours, sometimes a day or two. We send you a return link.',
+      'Instagram emails you the file within a few hours, sometimes a day or two. We send you a return link.',
     noLikes: "Likes usually aren't included in the export.",
     button: 'Show me how',
   },
   google: {
     pill: 'Works for every account',
     title: 'Via Google Photos',
-    text: 'Let Instagram send your posts to Google Photos, then pick them there. Nothing to download - handy on a phone.',
-    every: 'Personal, private, Creator or Business - every account works.',
+    text: "Let Instagram send your posts to Google Photos, then pick them there. Nothing to download, so it's handy on a phone.",
+    every: 'Personal, private, Creator or Business: every account works.',
     background: 'Instagram copies the photos in the background; you pick them once they are there.',
     noCaptions: 'Captions and likes stay behind, and dates may be the transfer date.',
     button: 'Send via Google Photos',

@@ -45,7 +45,8 @@ export const preview = {
   lowResTip: 'Smaller layouts (two or more photos per page) print sharper.',
   saving: 'Saving…',
   checkout: 'Checkout',
-  summary: (pages: number, format: string) => `${pages} pages · ${format}`,
+  summary: (pages: number, format: string) =>
+    `${pages} ${pages === 1 ? 'page' : 'pages'} · ${format}`,
   pdfPrice: (price: string) => `PDF ${price}`,
   arrange: {
     help: 'Drag photos to reorder them or move them to another page. On a keyboard: focus a photo, press Space, use the arrow keys, then Space again.',
@@ -58,6 +59,7 @@ export const preview = {
     movePageEarlier: (n: number) => `Move page ${n} earlier`,
     movePageLater: (n: number) => `Move page ${n} later`,
     textPage: 'Text page',
-    photo: (caption: string, date: string) => `Photo ${caption ? `“${caption}”` : ''} from ${date}`,
+    photo: (caption: string, date: string) =>
+      caption ? `Photo “${caption}” from ${date}` : `Photo from ${date}`,
   },
 };
