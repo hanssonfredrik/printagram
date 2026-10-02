@@ -44,7 +44,10 @@ describe('sessions and state tokens (jose)', () => {
   it('signs and verifies OAuth state, rejects tampering', async () => {
     const s = await signState({ sub: 'u1', n: 'abc' });
     expect(await verifyState<{ sub: string }>(s)).toMatchObject({ sub: 'u1' });
-    expect(await verifyState(s.slice(0, -2) + 'xx')).toBeNull();
+    const [head, payload, sig] = s.split('.');
+    const bad = Buffer.from(sig!, 'base64url');
+    bad[0]! ^= 1;
+    expect(await verifyState(`${head}.${payload}.${bad.toString('base64url')}`)).toBeNull();
   });
 });
 
@@ -54,7 +57,11 @@ describe('token encryption (AES-256-GCM)', () => {
     expect(enc).not.toContain('secret');
     expect(decrypt(enc)).toBe('IGQVJ...secret');
     const [iv, tag, data] = enc.split('.');
-    expect(() => decrypt(`${iv}.${tag}.${data!.slice(0, -1)}A`)).toThrow();
+    // Flip a bit in the decoded bytes: editing the last base64url character can leave the bytes
+    // unchanged (its low bits are padding), which made this test fail about one run in four.
+    const bytes = Buffer.from(data!, 'base64url');
+    bytes[0]! ^= 1;
+    expect(() => decrypt(`${iv}.${tag}.${bytes.toString('base64url')}`)).toThrow();
   });
 });
 
