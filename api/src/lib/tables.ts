@@ -822,7 +822,7 @@ export const promos = {
 };
 
 /* ------------------------------------------------------------------ */
-/* Visits (PK = yyyy-mm-dd, RK = ulid) — cookieless page-view beacon     */
+/* Visits (PK = yyyy-mm-dd, RK = ulid) - cookieless page-view beacon     */
 /* ------------------------------------------------------------------ */
 
 /**

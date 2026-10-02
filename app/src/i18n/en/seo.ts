@@ -5,7 +5,7 @@ export const seo = {
   locale: 'en_GB',
   pages: {
     landing: {
-      title: 'Inbunden — Your Instagram, as a real book',
+      title: 'Inbunden - Your Instagram, as a real book',
       description:
         'Inbunden turns your Instagram posts into a print-ready photo book. Pick the photos, we lay out the pages, you download a PDF for one flat price.',
     },

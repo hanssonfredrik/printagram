@@ -27,7 +27,7 @@ export const legal = {
       {
         title: 'Why, and on what legal basis',
         paragraphs: [
-          'To provide the service you ask for — importing photos, building the book, delivering the PDF, sending the emails that belong to it (return link, book ready, password reset, deletion reminder). The legal basis is the contract between you and us (GDPR article 6.1.b).',
+          'To provide the service you ask for - importing photos, building the book, delivering the PDF, sending the emails that belong to it (return link, book ready, password reset, deletion reminder). The legal basis is the contract between you and us (GDPR article 6.1.b).',
           'To keep the service secure and prevent abuse, such as rate limits on sign-in. The legal basis is our legitimate interest (article 6.1.f).',
           'To understand how many people visit the site and which pages they use, through the anonymous visit statistics above. The legal basis is our legitimate interest (article 6.1.f).',
           'Google Analytics is used only with your consent (article 6.1.a). You can withdraw it at any time under Cookie settings at the bottom of every page; nothing is sent to Google before you accept.',
@@ -89,7 +89,7 @@ export const legal = {
       {
         title: 'Your rights',
         paragraphs: [
-          'You can ask for a copy of your data, have it corrected, have it deleted, restrict or object to its processing, and receive it in a portable format. Write to hello@inbunden.com; we answer within a month. To delete your account and everything in it, just ask — photos you can delete yourself right away under My books.',
+          'You can ask for a copy of your data, have it corrected, have it deleted, restrict or object to its processing, and receive it in a portable format. Write to hello@inbunden.com; we answer within a month. To delete your account and everything in it, just ask - photos you can delete yourself right away under My books.',
           'If you think we handle your data wrongly, you can complain to the Swedish Authority for Privacy Protection (IMY, imy.se).',
         ],
       },

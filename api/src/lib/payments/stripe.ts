@@ -26,7 +26,7 @@ export const stripeProvider: PaymentProvider = {
         amount: order.amountCents,
         currency: 'eur',
         automatic_payment_methods: { enabled: true },
-        description: `Inbunden PDF photo book — ${order.pageCount} pages`,
+        description: `Inbunden PDF photo book - ${order.pageCount} pages`,
         receipt_email: email ?? undefined,
         metadata: { orderId: order.orderId, userId: order.userId, bookId: order.bookId },
       },

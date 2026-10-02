@@ -62,10 +62,10 @@ export const exportFlow = {
     },
     nextTitle: 'What happens next',
     nextBody:
-      "Instagram emails you a download link — usually within a few hours, sometimes a day or two (Instagram officially allows up to 30 days). The download stays available for only four days, so grab the ZIP as soon as it arrives and come back here. If the email doesn't show up, check spam or look under Export your information in Accounts Center.",
+      "Instagram emails you a download link - usually within a few hours, sometimes a day or two (Instagram officially allows up to 30 days). The download stays available for only four days, so grab the ZIP as soon as it arrives and come back here. If the email doesn't show up, check spam or look under Export your information in Accounts Center.",
     requested: "I've requested my export",
     emailPlaceholder: 'you@example.com',
-    sent: 'Sent — check your inbox',
+    sent: 'Sent - check your inbox',
     sendToAddress: 'Send the steps to this address',
     emailSteps: 'Email me these steps',
     haveZip: 'Already have the ZIP? Upload it',
@@ -75,7 +75,7 @@ export const exportFlow = {
     heading: 'Instagram is preparing your photos',
     body: "This usually takes a few hours. You'll get an email from Instagram with a download link. Then come back here and upload the ZIP.",
     returnTitle: 'Get a return link',
-    returnText: 'Continue on any device — phone, laptop, wherever the ZIP lands.',
+    returnText: 'Continue on any device - phone, laptop, wherever the ZIP lands.',
     emailPlaceholder: 'you@example.com',
     emailLabel: 'Email address',
     sending: 'Sending…',
@@ -85,7 +85,7 @@ export const exportFlow = {
     squareOrPortrait: 'Square or portrait',
     anyCover: 'Any cover photo',
     captionsDates: 'Captions & dates',
-    haveZip: 'I have my ZIP — upload it',
+    haveZip: 'I have my ZIP - upload it',
   },
   upload: {
     title: 'Upload your Instagram export',
@@ -124,7 +124,7 @@ export const exportFlow = {
     files: (n: number) => `${n} files`,
     reading: 'Reading your export…',
     readingDetail: (name: string, size: string) =>
-      `${name} · ${size}. Looking for your posts — nothing is uploaded yet.`,
+      `${name} · ${size}. Looking for your posts - nothing is uploaded yet.`,
     adding: (done: number, total: number) => `Adding photos · ${done} of ${total}`,
     keepOpen: 'Only your photos are uploaded · keep this tab open',
     stop: 'Stop here',
@@ -137,7 +137,7 @@ export const exportFlow = {
     notes: {
       alreadyThere: (n: number) => `${n} ${n === 1 ? 'was' : 'were'} already in your library`,
       missing: (n: number) =>
-        `${n} ${n === 1 ? 'is' : 'are'} in a part of the export you didn't add — drop all the ZIP parts together`,
+        `${n} ${n === 1 ? 'is' : 'are'} in a part of the export you didn't add - drop all the ZIP parts together`,
       unsupported: (n: number) => `${n} ${n === 1 ? 'uses' : 'use'} a format we can't print`,
       failed: (n: number) => `${n} could not be read or uploaded`,
       intro: (list: string) => `Of the photos in your export: ${list}.`,

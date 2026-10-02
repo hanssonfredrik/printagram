@@ -32,7 +32,7 @@ export const books = {
   keepPhotos: 'Keep my photos',
   noPhotosTitle: 'No photos stored',
   libraryDeleted:
-    'Your library was deleted. Bring in photos again to make a new book — ordered PDFs below are still yours.',
+    'Your library was deleted. Bring in photos again to make a new book - ordered PDFs below are still yours.',
   bringInFirst: 'Bring in your Instagram photos to make your first book.',
   bringIn: 'Bring in photos',
   yourBooks: 'Your books',

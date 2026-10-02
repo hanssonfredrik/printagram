@@ -5,7 +5,7 @@ export const seo: Messages['seo'] = {
   locale: 'sv_SE',
   pages: {
     landing: {
-      title: 'Inbunden — Ditt Instagram som en riktig bok',
+      title: 'Inbunden - Ditt Instagram som en riktig bok',
       description:
         'Inbunden gör dina Instagram-inlägg till en tryckfärdig fotobok. Välj bilderna, vi gör layouten och du laddar ner en PDF till ett fast pris.',
     },

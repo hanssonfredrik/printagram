@@ -20,7 +20,7 @@ describe('Stripe test mode', () => {
     useLang.getState().setLang('en');
     const writeText = vi.spyOn(navigator.clipboard, 'writeText');
     render(<StripeTestCards />);
-    expect(screen.getByText('Stripe test mode — no money is taken')).toBeTruthy();
+    expect(screen.getByText('Stripe test mode - no money is taken')).toBeTruthy();
     for (const c of STRIPE_TEST_CARDS) expect(screen.getByText(c.number)).toBeTruthy();
     expect(screen.getByText('Asks for 3-D Secure, then succeeds')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Copy card number 4242 4242 4242 4242' }));

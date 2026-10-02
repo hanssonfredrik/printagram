@@ -20,7 +20,7 @@ export const checkout = {
   total: 'Total',
   totalAmount: (amount: string) => `Total ${amount}`,
   summaryNote:
-    "You receive a downloadable, print‑ready PDF. Printed books ship later — we'll email you when they're ready.",
+    "You receive a downloadable, print‑ready PDF. Printed books ship later - we'll email you when they're ready.",
   accountTitle: 'Your Inbunden account',
   accountSaved: 'Your PDF and library will be saved to this account.',
   signedIn: 'Signed in',
@@ -31,7 +31,7 @@ export const checkout = {
     'Keeps your photos and books for 3 months so you can order more without importing again.',
   haveAccount: 'Already have an account? ',
   signIn: 'Sign in',
-  freeBanner: 'Your discount covers the whole book — no payment needed.',
+  freeBanner: 'Your discount covers the whole book - no payment needed.',
   oneMoment: 'One moment…',
   getPdf: 'Get my PDF',
   notConfigured: 'Payments are not configured correctly on this server.',
@@ -53,7 +53,7 @@ export const checkout = {
     pay: (amount: string) => `Pay ${amount}`,
   },
   stripeTest: {
-    title: 'Stripe test mode — no money is taken',
+    title: 'Stripe test mode - no money is taken',
     body: 'Type one of these card numbers into the card form below, with any future expiry date, any CVC and any postcode.',
     listLabel: 'Stripe test cards',
     copy: 'Copy',
@@ -67,7 +67,7 @@ export const checkout = {
     },
   },
   fake: {
-    bannerTitle: 'Test payment — no money is taken',
+    bannerTitle: 'Test payment - no money is taken',
     bannerBody:
       'Inbunden is in test mode. Choose a test card to see what happens; nothing is charged.',
     cardGroup: 'Test card',

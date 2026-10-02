@@ -1,4 +1,4 @@
-// Inbunden — near-zero-cost infrastructure
+// Inbunden - near-zero-cost infrastructure
 //   • 1 Storage account (Blob for photos/PDFs, Table for metadata)  ≈ cents/month at low usage
 //   • 1 Static Web App (Free plan) hosting the SPA + managed Functions ≈ €0
 //

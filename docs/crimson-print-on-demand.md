@@ -175,24 +175,24 @@ Ask Markbladet questions 1–3, 7 and 8 too.
 
 Provider-agnostic, Crimson first. Nothing here is started; Phase 0 has to happen before code is worth writing.
 
-### Phase 0 — commercial (no code)
+### Phase 0 - commercial (no code)
 
 Apply for a CAPI key with Debug mode, send the questions above, and get the same answers from Markbladet. Decide the printed retail prices in SEK and EUR and whether the PDF stays a separate €9 product or is included with a printed book. Settle the 6 %/25 % VAT question with an accountant.
 
-### Phase 1 — PDF output
+### Phase 1 - PDF output
 
 - Add a `PrintProfile` in `shared/src/layout.ts`: trim size (200×200 for Crimson), bleed (2 mm), minimum pages (24), page-count multiple (4), whether a separate cover file is required. The current PDF-only profile keeps 210×210 and 4 mm.
 - Pad the content with blank pages to the multiple, and cap at the product maximum (100 softcover / 200 hardcover).
 - Extend `buildBookPdf` (`app/src/workers/pdfBook.ts`) to emit `interior` and, when the profile needs it, a `cover` spread (back + spine + front) whose width depends on the page count from Crimson's formula. Keep the sRGB OutputIntent.
 - Extend `scripts/pdf-check.ts` to assert the profile's boxes and page count.
 
-### Phase 2 — data model
+### Phase 2 - data model
 
 - `OrderRow`: `binding: 'pdf' | 'softcover' | 'hardcover'`, `shippingAddress` (name, street, postal code, city, country `SE`|`NO`, phone, email), `print: { provider, externalId, status, tracking[], submittedAt, shippedAt }`, `currency`.
 - `OrderStatus` gains `submitted | printing | shipped | delivered | cancelled`.
 - `printedBooksEnabled` read from a setting (`FEATURE_PRINTED_BOOKS_ENABLED`); price table per binding, format and country in config next to `PRICE_*_FROM_CENTS`.
 
-### Phase 3 — API
+### Phase 3 - API
 
 - `api/src/lib/print/provider.ts` with `submit(order, files)`, `status(order)`; `crimson.ts` and `fake.ts`, chosen by `PRINT_PROVIDER` (mirror `payments/provider.ts`).
 - Crimson client: `POST /v1/order/` with `instance_id = order.id`, files as SAS URLs from `readSasUrl` with a TTL long enough for the fetch (or multipart upload if the fetch window is short), `callback = {SITE_URL}/api/print/crimson/webhook`. API key only from config.
@@ -201,13 +201,13 @@ Apply for a CAPI key with Debug mode, send the questions above, and get the same
 - Cleanup guard in `cron.ts`: never delete `pdfBlob` (or cover blob) of an order that has a print job not yet `CLOSED`.
 - Submit after `pdf/complete` when `binding !== 'pdf'`; the PDF download stays available to the customer as today.
 
-### Phase 4 — UI
+### Phase 4 - UI
 
 - Checkout: binding choice (PDF / softcover / hardcover) with prices, address form shown for printed bindings, country limited to SE/NO while Crimson is the only provider, delivery estimate (5–7 days + PostNord).
 - My books and Done: print status, tracking link, "order another copy".
 - i18n `sv`/`en` for all of the above; landing/FAQ copy changes from "coming soon" to the offer.
 
-### Phase 5 — verification
+### Phase 5 - verification
 
 - `api/test/routes.test.ts`: `vi.mock` the Crimson client like the Google Photos stub; cover submit, webhook dedupe, out-of-order callbacks, cleanup guard.
 - End-to-end order in Crimson Debug mode, then one real paid order to the owner's address before enabling the feature flag in production.

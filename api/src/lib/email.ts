@@ -112,13 +112,13 @@ const TEXT = {
       title: 'Choose a new password',
       body: 'This link works for one hour.',
       button: 'Reset password',
-      footer: 'If you did not ask for this, ignore this email — your password stays the same.',
+      footer: 'If you did not ask for this, ignore this email - your password stays the same.',
       text: (url: string) => `Choose a new password (link valid for one hour):\n${url}\n`,
     },
     orderReady: {
       subject: (title: string) => `Your book “${title}” is ready`,
       title: 'Your book is ready',
-      body: 'Your print-ready PDF is waiting in your Inbunden account. Ordered PDFs stay downloadable — whatever happens to your photo library.',
+      body: 'Your print-ready PDF is waiting in your Inbunden account. Ordered PDFs stay downloadable - whatever happens to your photo library.',
       button: 'Open My books',
       footer: 'Thanks for making a book with Inbunden.',
       text: (title: string, url: string) =>

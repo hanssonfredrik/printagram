@@ -126,7 +126,7 @@ async function main() {
       'land',
       1080,
       720,
-      'Sunset at the lake 🌅 with friends ❤️ — a very long caption that has to wrap onto a second line and then be cut off with an ellipsis because it is far too long to fit',
+      'Sunset at the lake 🌅 with friends ❤️ - a very long caption that has to wrap onto a second line and then be cut off with an ellipsis because it is far too long to fit',
       128,
       1,
     ),

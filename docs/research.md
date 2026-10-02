@@ -2,12 +2,12 @@
 
 Sources were checked on 18 Sep 2026. Pricing changes; re-verify before relying on a number.
 
-## Azure Static Web Apps — Free vs Standard
+## Azure Static Web Apps - Free vs Standard
 
 | | Free | Standard |
 | --- | --- | --- |
 | Price | €0 | ≈ $9/month |
-| Bandwidth | 100 GB/month (no overage — throttled) | 100 GB + $0.20/GB |
+| Bandwidth | 100 GB/month (no overage - throttled) | 100 GB + $0.20/GB |
 | App size | 250 MB per environment (500 MB total) | 500 MB / 2 GB |
 | Custom domains | 2, free SSL | 5–6 |
 | APIs | **Managed Functions only**: HTTP triggers, Consumption, Node 20/22 (`apiRuntime`), 45 s proxy timeout, 30 MB request limit, no managed identity, no Key Vault references, no Durable | Managed or bring-your-own Functions app |
@@ -23,7 +23,7 @@ Sources: [plans](https://learn.microsoft.com/en-us/azure/static-web-apps/plans),
 
 | Option | Free tier | Notes |
 | --- | --- | --- |
-| Azure Table Storage | none, but ≈ $0.045/GB + $0.00036 per 10k transactions → cents | same account as blobs, Azurite emulates it, no secondary indexes — **chosen** |
+| Azure Table Storage | none, but ≈ $0.045/GB + $0.00036 per 10k transactions → cents | same account as blobs, Azurite emulates it, no secondary indexes - **chosen** |
 | Cosmos DB free tier | 1000 RU/s + 25 GB for the account's lifetime, one per subscription | richer queries; heavier SDK; Table API is a drop-in migration path |
 | Azure SQL free offer | 100k vCore-seconds/month, auto-pauses | resume latency (30–60 s) collides with the 45 s Function timeout |
 | Blob Storage hot LRS | ≈ $0.018/GB/month; first 100 GB/month internet egress free | photos + PDFs |
@@ -38,7 +38,7 @@ Azure Functions Flex Consumption: 250k executions + 100k GB-s free per month per
 
 | Provider | Free | Then |
 | --- | --- | --- |
-| Resend | 3 000/month, 100/day | $20/month for 50k — **chosen** (HTTP API, no SDK needed) |
+| Resend | 3 000/month, 100/day | $20/month for 50k - **chosen** (HTTP API, no SDK needed) |
 | Brevo | 300/day | $9+/month |
 | Azure Communication Services | none | $0.00025/email + $0.00012/MB |
 
@@ -48,14 +48,14 @@ Stripe EU cards 1.5 % + €0.25 (non-EU higher). Payment Element + Express Check
 
 ## Instagram
 
-**Instagram API with Instagram Login** (Business Login for Instagram) — the only official way to read a user's own media since the Basic Display API was switched off (Dec 2024). Professional (Creator/Business) accounts only; personal accounts cannot be read by any API.
+**Instagram API with Instagram Login** (Business Login for Instagram) - the only official way to read a user's own media since the Basic Display API was switched off (Dec 2024). Professional (Creator/Business) accounts only; personal accounts cannot be read by any API.
 
 - Authorize: `https://www.instagram.com/oauth/authorize?client_id&redirect_uri&response_type=code&scope=instagram_business_basic&state`
 - Code → short-lived token: `POST https://api.instagram.com/oauth/access_token`
 - Long-lived (60 days): `GET https://graph.instagram.com/access_token?grant_type=ig_exchange_token&client_secret&access_token`
 - Refresh: `GET https://graph.instagram.com/refresh_access_token?grant_type=ig_refresh_token&access_token` (token must be ≥ 24 h old, unexpired)
 - Media: `GET https://graph.instagram.com/me/media?fields=id,media_type,media_url,thumbnail_url,timestamp,like_count,children{...}`; `media_url` CDN links expire and are not CORS-readable → copy server-side.
-- **Caption**: the media reference marks `caption` as "Instagram API with Facebook Login only" — verify with a tester account; the UI hides empty captions.
+- **Caption**: the media reference marks `caption` as "Instagram API with Facebook Login only" - verify with a tester account; the UI hides empty captions.
 - Access: Standard Access works for app testers; Advanced Access (public users) requires App Review with business verification, a live privacy policy, a data-deletion callback and a screencast. Expect weeks → ship behind `FEATURE_CONNECT_ENABLED`.
 - Rate limit ≈ 200 calls/hour/user (list pages only; CDN downloads don't count).
 
@@ -79,12 +79,12 @@ The one compliant route where **Meta pushes a user's photos to a third party by 
 - Roles are reversed: **Inbunden would be the OAuth 2.0 provider and Meta the client.** Meta sends the user to our authorize URL, exchanges the code at our token URL, then its Data Transfer Project worker POSTs items to our HTTP API ("Universal Adapters": *"implement an HTTP API conforming to the Generic Importers API specification"*, any language; the alternative is a Java adapter in the DTP repo).
 - Data from Instagram: Photos and Videos (posts and stories) and Social Posts. Photo items carry title, description (caption), uploadedTime and a favorite flag; no like counts.
 - Meta documents deep linking, so a "Send my Instagram to Inbunden" button could open the transfer with Inbunden, `date_range=ALL_TIME` and a cadence (one-time, or recurring up to daily for 3 years) preselected. Transfers are asynchronous; no ZIP, nothing on the user's device.
-- Prerequisites: (1) **DTI Data Trust Registry Level 1** (photos/videos/posts; only archives need Level 2): company registration number (LEI/DUNS), homepage, privacy policy covering collection/use/sharing/protection/retention and data-subject rights, security contact, service description — granted from the form, no audit. (2) **Verified Meta Business Manager** (the same business verification App Review needs). (3) A **Data Transfer app** on developers.facebook.com ("Allow users to transfer their data to other apps"); Meta engineers run end-to-end test transfers; release on request to dataportability@meta.com. Meta then monitors endpoint availability and success rate and can delist a destination.
+- Prerequisites: (1) **DTI Data Trust Registry Level 1** (photos/videos/posts; only archives need Level 2): company registration number (LEI/DUNS), homepage, privacy policy covering collection/use/sharing/protection/retention and data-subject rights, security contact, service description - granted from the form, no audit. (2) **Verified Meta Business Manager** (the same business verification App Review needs). (3) A **Data Transfer app** on developers.facebook.com ("Allow users to transfer their data to other apps"); Meta engineers run end-to-end test transfers; release on request to dataportability@meta.com. Meta then monitors endpoint availability and success rate and can delist a destination.
 - Unknowns: approval timeline for a small company; whether Meta pushes bytes or a fetchable URL (matters for the 30 MB / 45 s managed-Functions limits); exact Generic Importers request shape. A Dutch open-source family archive verified the protocol in 2026 and reports it "implementable, external approval required" with Meta doing HTTP POST per item.
 
 Sources: [Data Portability](https://developers.facebook.com/docs/data-portability/), [overview](https://developers.facebook.com/docs/data-portability/overview), [get started](https://developers.facebook.com/docs/data-portability/get-started), [onboarding guide](https://developers.facebook.com/docs/data-portability/onboarding-guide), [FAQ](https://developers.facebook.com/docs/data-portability/data-port-faq/), [DTI registry](https://dt-reg.org/about/), [application guide](https://www.dt-reg.org/application-guide/), [DTI post-pilot](https://dtinit.org/blog/2026/04/28/dtr-now-post-pilot), [Fabric, first EYI destination](https://onfabric.substack.com/p/build-personal-context-into-your), [Koofr transfer flow](https://koofr.eu/help/koofr-integrations/how-can-i-transfer-posts-and-stories-with-my-mobile-instagram-app/), [Bewora EYI implementation](https://github.com/Hylke75/Digitaal-Familiearchief/pull/17).
 
-## Google Photos (Picker API) — the built fallback for private accounts
+## Google Photos (Picker API) - the built fallback for private accounts
 
 Instagram → Google Photos already works for every account through Meta's own transfer tool; Google Photos is then read with the **Picker API**, the only third-party read path since the Library API stopped exposing user libraries on 31 Mar 2025.
 
@@ -106,7 +106,7 @@ Sources: [timestamp quirks gist](https://gist.github.com/JoeGermuska/5e0f91b6bee
 
 ## Browser libraries
 
-- **zip.js** (`@zip.js/zip.js`): streaming, Zip64, multi-GB via `BlobReader`; JSZip loads everything into memory — rejected.
+- **zip.js** (`@zip.js/zip.js`): streaming, Zip64, multi-GB via `BlobReader`; JSZip loads everything into memory - rejected.
 - **pdf-lib** + `@pdf-lib/fontkit`: embeds JPEG without re-encoding, custom TTF fonts (Lora, Albert Sans bundled under OFL), runs in a Worker. Instagram media are ≤ 1080 px → ≈ 130 dpi at 21 cm (fine for consumer PDFs; print shops prefer 150–300 dpi).
 
 ## Print-on-demand providers (future)

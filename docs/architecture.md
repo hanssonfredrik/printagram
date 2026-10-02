@@ -39,7 +39,7 @@ GitHub Actions: deploy on push · daily cron → POST /api/cron/run
 
 ## Data model (Azure Table Storage)
 
-**Accounts** — `PK = userId`
+**Accounts** - `PK = userId`
 
 | RowKey | Row | Notes |
 | --- | --- | --- |
@@ -49,13 +49,13 @@ GitHub Actions: deploy on push · daily cron → POST /api/cron/run
 | `book_<id>` | title, format, showMeta, coverPhotoId, layout `{density, fullBleed}`, pages (chunked JSON `PageSpec[]`), manualLayout, photoIds (derived), pageCount, version, status | drafts and ordered books; `version` only changes when the content hash does |
 | `order_<id>` | frozen book snapshot incl. pages, contentHash, subtotal/discount/amount, promoCode, paymentProvider, status (created→paid→ready, retryable `failed`), failureReason, pdfBlob/version, shareToken | price computed server-side |
 
-**Photos** — `PK = libraryId`, `RK = <reverseMs(takenAt)>_<photoId>` (newest first; month ranges are RK ranges). Deterministic ids (`ex_<64-bit fnv1a(uri)>`, `ig_<mediaId>`) make re-imports idempotent. Rows keep width, height and the sniffed mime type.
+**Photos** - `PK = libraryId`, `RK = <reverseMs(takenAt)>_<photoId>` (newest first; month ranges are RK ranges). Deterministic ids (`ex_<64-bit fnv1a(uri)>`, `ig_<mediaId>`) make re-imports idempotent. Rows keep width, height and the sniffed mime type.
 
-**Lookups** — `PK = kind`: `email` (uniqueness via insert-if-absent), `token` (sha256 of magic/reset tokens), `share`, `stripe_evt` (webhook idempotency), `ig_user`, `rl` (rate-limit buckets), `promo` (discount codes, redemptions counted with ETag concurrency), `promo_use` (`CODE:userId`, once-per-user codes), `visit_salt` (daily salt for visitor hashes, deleted after the day), `admin_setting` (e.g. VAT rate).
+**Lookups** - `PK = kind`: `email` (uniqueness via insert-if-absent), `token` (sha256 of magic/reset tokens), `share`, `stripe_evt` (webhook idempotency), `ig_user`, `rl` (rate-limit buckets), `promo` (discount codes, redemptions counted with ETag concurrency), `promo_use` (`CODE:userId`, once-per-user codes), `visit_salt` (daily salt for visitor hashes, deleted after the day), `admin_setting` (e.g. VAT rate).
 
-**Visits** — `PK = yyyy-mm-dd`, `RK = ulid`: one cookieless page view (path, referrer host, device, language, daily-salted visitor hash; no IP). Kept 90 days.
+**Visits** - `PK = yyyy-mm-dd`, `RK = ulid`: one cookieless page view (path, referrer host, device, language, daily-salted visitor hash; no IP). Kept 90 days.
 
-**AdminAudit** — `PK = yyyy-mm`, `RK = reverseMs_ulid`: admin sign-ins and changes (`docs/admin.md`).
+**AdminAudit** - `PK = yyyy-mm`, `RK = reverseMs_ulid`: admin sign-ins and changes (`docs/admin.md`).
 
 ## Blob layout & SAS policy
 
@@ -69,7 +69,7 @@ Blob CORS allows the app origins for `GET, HEAD, PUT, OPTIONS`. Lifecycle: `pdfs
 ## Auth
 
 - Anonymous session cookie `pg_session` (jose HS256 JWT, 30 days, HttpOnly, Secure, SameSite=Lax). Each request point-reads the user row and rejects if `sessionVersion` differs.
-- Passwords: Node `crypto.scrypt` (N=2¹⁷, r=8, p=1) — no native modules.
+- Passwords: Node `crypto.scrypt` (N=2¹⁷, r=8, p=1) - no native modules.
 - CSRF: SameSite=Lax + JSON-only mutations + Origin/Sec-Fetch-Site check (webhooks/callbacks exempt).
 - Register upgrades the current user in place; login with `mergeFrom` re-parents an anonymous session's rows.
 - Magic links: 32 random bytes, hash stored, 30 days, consumed by an explicit click (mail scanners don't burn them), reusable for 15 minutes.

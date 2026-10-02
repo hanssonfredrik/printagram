@@ -33,7 +33,7 @@ Flags: `-NoBrowser`, `-Force` (stop whatever holds the ports without asking), `-
 
 ### Payments locally
 
-`PAYMENT_PROVIDER=fake` (the default everywhere): Checkout shows a "Test payment — no money is taken" banner and three read-only test cards. The server decides the outcome:
+`PAYMENT_PROVIDER=fake` (the default everywhere): Checkout shows a "Test payment - no money is taken" banner and three read-only test cards. The server decides the outcome:
 
 | Card | Outcome |
 | --- | --- |
@@ -59,11 +59,11 @@ The script uses Azurite by default. Set `STORAGE_CONNECTION_STRING` to manage co
 
 ```bash
 npm run lint && npm run typecheck
-npm test                              # shared, app (happy-dom), api — API route tests need Azurite (skipped otherwise)
+npm test                              # shared, app (happy-dom), api - API route tests need Azurite (skipped otherwise)
 npx tsx scripts/make-fixtures.ts      # fixture export ZIPs → fixtures/
 npx tsx scripts/pdf-check.ts out.pdf  # builds a sample book with the real PDF code and checks boxes, OutputIntent, images
 npx tsx scripts/smoke.ts              # API end-to-end against the running stack
-npx tsx scripts/e2e.ts                # headless Chromium against :4280 — writes docs/screenshots
+npx tsx scripts/e2e.ts                # headless Chromium against :4280 - writes docs/screenshots
 CRON_URL=http://localhost:7071 CRON_SECRET=… npx tsx scripts/cron.ts
 ```
 
@@ -105,7 +105,7 @@ Stripe stays dormant until `PAYMENT_PROVIDER=stripe` is set together with the ke
 
 ## Operations
 
-- **Cron**: runs daily from GitHub Actions; trigger manually via *Actions → Scheduled maintenance → Run workflow*. Public repos disable scheduled workflows after 60 days without commits — keep the repo private or push occasionally.
+- **Cron**: runs daily from GitHub Actions; trigger manually via *Actions → Scheduled maintenance → Run workflow*. Public repos disable scheduled workflows after 60 days without commits - keep the repo private or push occasionally.
 - **Logs**: attach Application Insights to the Static Web App (Monitoring) when needed; not provisioned by default to stay at €0.
 - **Rotate a secret**: Storage → regenerate key 2, update `STORAGE_CONNECTION_STRING`, then regenerate key 1. JWT secret rotation signs everyone out.
 - **Google Analytics** (`G-JJQ0ZS1MSP`, `app/src/services/analytics.ts`): loads only on inbunden.com / www.inbunden.com and only after the visitor accepts the cookie banner (GDPR/LEK consent); GPC and Do Not Track count as declined. Ad features are denied via Consent Mode. In GA *Admin → Data retention*, set event data retention to 14 months to match the privacy policy. Changing the ID means updating the constant, the cookie name in `app/src/i18n/*/legal.ts`, and the CSP if Google's domains change.

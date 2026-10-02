@@ -2,18 +2,18 @@
 export const google = {
   title: 'Bring in photos via Google Photos',
   intro:
-    'Instagram can send a copy of your posts straight to Google Photos — for every account, private ones too. Then you pick the photos in Google Photos and we copy them. No ZIP to download.',
+    'Instagram can send a copy of your posts straight to Google Photos - for every account, private ones too. Then you pick the photos in Google Photos and we copy them. No ZIP to download.',
   ask: {
     question: 'Have you already sent your Instagram photos to Google Photos?',
     hint: 'This is done inside Instagram, not here. It takes two minutes to start, and Instagram does the copying in the background.',
     yes: "Yes, they're in Google Photos",
-    no: 'Not yet — show me how',
+    no: 'Not yet - show me how',
   },
   howTo: 'How to send your posts to Google Photos',
-  started: "I've started the transfer — continue",
+  started: "I've started the transfer - continue",
   ready: {
     title: 'Next: sign in with Google',
-    text: 'Sign in once the photos have arrived in Google Photos (look for the Data Transfer album). Started the transfer just now? Come back later — nothing is lost, and the steps are in your inbox if you emailed them.',
+    text: 'Sign in once the photos have arrived in Google Photos (look for the Data Transfer album). Started the transfer just now? Come back later - nothing is lost, and the steps are in your inbox if you emailed them.',
     back: 'Show the Instagram steps again',
   },
   steps: [
@@ -31,7 +31,7 @@ export const google = {
     },
     {
       title: 'Wait for Instagram',
-      text: 'Instagram copies your photos in the background — usually within an hour, sometimes longer. Google Photos shows them in a folder or album called Data Transfer.',
+      text: 'Instagram copies your photos in the background - usually within an hour, sometimes longer. Google Photos shows them in a folder or album called Data Transfer.',
     },
   ],
   goodToKnow: {
@@ -43,10 +43,10 @@ export const google = {
   sent: 'Sent ✓',
   emailPlaceholder: 'your@email.com',
   signIn: 'Sign in with Google',
-  opensWindow: 'Opens accounts.google.com. You sign in there — we never see your password.',
+  opensWindow: 'Opens accounts.google.com. You sign in there - we never see your password.',
   signedIn: {
     title: 'Signed in with Google',
-    text: 'Next, pick the photos for your book inside Google Photos. Look for the Data Transfer album — that is where Instagram put them. Choose as many as you like, then tap Done.',
+    text: 'Next, pick the photos for your book inside Google Photos. Look for the Data Transfer album - that is where Instagram put them. Choose as many as you like, then tap Done.',
     pick: 'Pick photos in Google Photos',
     note: 'Google only shares the photos you pick. Inbunden never sees the rest of your library.',
   },
@@ -75,12 +75,12 @@ export const google = {
     account: 'Google Photos · signed in just now',
     connected: 'Connected',
     copying: 'Copying your photos…',
-    note: 'We copy the photos you picked, at full size, and keep them until your book is done — then they are deleted.',
+    note: 'We copy the photos you picked, at full size, and keep them until your book is done - then they are deleted.',
   },
   found: (n: number) => `Found ${n} photos`,
   foundFrom: (n: number, years: string) => `Found ${n} photos from ${years}`,
   foundStats: (videos: number) =>
-    `${videos} videos skipped · no captions or likes — those stay on Instagram`,
+    `${videos} videos skipped · no captions or likes - those stay on Instagram`,
   backToBooks: 'Back to My books',
   choosePhotos: 'Choose photos',
   readUntil: "Inbunden's access to Google Photos ends by itself within an hour.",

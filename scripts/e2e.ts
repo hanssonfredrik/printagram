@@ -63,7 +63,7 @@ async function main() {
   await shot(page, '04-waiting');
   ok('export guide + return link');
 
-  await page.getByRole('button', { name: 'I have my ZIP — upload it' }).click();
+  await page.getByRole('button', { name: 'I have my ZIP - upload it' }).click();
   await page.getByText('Drop the ZIP here').waitFor();
   await shot(page, '05-upload');
 
@@ -119,7 +119,7 @@ async function main() {
   const expectedPages = Number(/(\d+) pages/.exec(footer)![1]);
   await page.getByRole('button', { name: 'Checkout' }).click();
   await page.getByText('Choose a format').waitFor();
-  await page.getByText('Test payment — no money is taken').waitFor();
+  await page.getByText('Test payment - no money is taken').waitFor();
   await shot(page, '09-checkout');
   ok(`preview: density, arrange, ${expectedPages} pages`);
 

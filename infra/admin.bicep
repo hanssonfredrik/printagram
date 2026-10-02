@@ -1,4 +1,4 @@
-// Inbunden Admin — a second Static Web App (Free) in the same resource group, sharing the
+// Inbunden Admin - a second Static Web App (Free) in the same resource group, sharing the
 // existing storage account. Deployed separately from main.bicep (infra/deploy-admin.ps1) so it
 // never touches the main site's app settings.
 //

@@ -88,7 +88,7 @@ Or set them in the portal: Static Web App → Environment variables → `GOOGLE_
 **Check it works**
 
 1. Open the app → Start your book → the third card **Via Google Photos** is visible → **Send via Google Photos**.
-2. Click **My photos are in Google Photos — sign in with Google**. Google shows an "unverified app" warning while in Testing mode; click *Continue*. Choose the account you added as a test user.
+2. Click **My photos are in Google Photos - sign in with Google**. Google shows an "unverified app" warning while in Testing mode; click *Continue*. Choose the account you added as a test user.
 3. Back in Inbunden click **Pick photos in Google Photos**. A Google Photos tab opens; pick a few photos and press **Done**. The tab closes, the copy runs, and the photos appear without captions.
 
 If Google says `redirect_uri_mismatch`, the URI in step 5 and `GOOGLE_REDIRECT_URI` (or `APP_BASE_URL`) differ; fix either side so they match character for character.

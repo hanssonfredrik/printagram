@@ -74,7 +74,7 @@ adminRoute('statsVisits', { methods: ['GET'], route: 'stats/visits' }, async ({ 
   return json({ from, to, ...aggregateVisits(await visitRows(from, to), from, to) });
 });
 
-/** GET stats/overview?from&to — users, orders, revenue, libraries and visits in one call. */
+/** GET stats/overview?from&to - users, orders, revenue, libraries and visits in one call. */
 adminRoute('statsOverview', { methods: ['GET'], route: 'stats/overview' }, async ({ req }) => {
   const { from, to } = range(req.query);
   const now = Date.now();

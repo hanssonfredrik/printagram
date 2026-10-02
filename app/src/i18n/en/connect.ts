@@ -12,16 +12,16 @@ export const connect = {
   askFor: {
     title: 'What Inbunden will ask for',
     profile: 'Your username and profile picture',
-    posts: 'Your posts — photos, captions, dates and likes',
+    posts: 'Your posts - photos, captions, dates and likes',
     readOnly:
-      'Read‑only. No posting, no messages, no followers. Disconnect anytime — access also ends by itself after 60 days.',
+      'Read‑only. No posting, no messages, no followers. Disconnect anytime - access also ends by itself after 60 days.',
   },
   continue: 'Continue with Instagram',
   opensWindow:
-    'Opens instagram.com in a new window. You log in there — we never see your password.',
+    'Opens instagram.com in a new window. You log in there - we never see your password.',
   switchFirst: {
     title: 'Switch to a Professional account first',
-    text: 'Free, about two minutes, reversible, and nobody is notified. One thing changes: a private account becomes public, and pending follow requests are accepted. Prefer to stay private? Use the export instead — it works for every account.',
+    text: 'Free, about two minutes, reversible, and nobody is notified. One thing changes: a private account becomes public, and pending follow requests are accepted. Prefer to stay private? Use the export instead - it works for every account.',
   },
   switchSteps: [
     {
@@ -38,7 +38,7 @@ export const connect = {
     },
     {
       title: 'Pick a category',
-      text: 'Choose whatever fits — Photographer, Blogger, Personal blog. You can hide it from your profile.',
+      text: 'Choose whatever fits - Photographer, Blogger, Personal blog. You can hide it from your profile.',
     },
     {
       title: 'Choose Creator',
@@ -49,14 +49,14 @@ export const connect = {
     title: 'Good to know',
     text: 'On a computer the same setting is at instagram.com → More → Settings → Account type and tools. Just switched? Instagram can take a few minutes to register the change. Switch back anytime under Account type and tools → Switch to personal account.',
   },
-  switched: "I've switched — continue with Instagram",
-  keepAccount: 'Keep my account as it is — use the export',
+  switched: "I've switched - continue with Instagram",
+  keepAccount: 'Keep my account as it is - use the export',
   quickCheck: {
     title: 'A quick way to check',
     text: "Open your own profile in the Instagram app. If there's a Professional dashboard button under your bio, you have a Creator or Business account. If there isn't, it's personal.",
   },
-  seeButton: "I see the button — it's Professional",
-  noButton: "No button — it's personal",
+  seeButton: "I see the button - it's Professional",
+  noButton: "No button - it's personal",
   waiting: {
     title: 'Waiting for Instagram…',
     text: 'A window opened at instagram.com. Log in there and tap Allow. This page updates by itself.',
@@ -87,7 +87,7 @@ export const connect = {
     account: 'Creator account · connected just now',
     connected: 'Connected',
     copying: 'Copying your posts…',
-    note: "We copy your photos once, at full size. Instagram's links expire, so we keep the copies until your book is done — then they're deleted.",
+    note: "We copy your photos once, at full size. Instagram's links expire, so we keep the copies until your book is done - then they're deleted.",
   },
   found: (n: number) => `Found ${n} photos`,
   foundFrom: (n: number, years: string) => `Found ${n} photos from ${years}`,

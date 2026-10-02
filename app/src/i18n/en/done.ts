@@ -34,8 +34,8 @@ export const done = {
   photos: (n: number) => `${n} photos`,
   keptUntilBefore: 'Kept until',
   keptUntilAfter:
-    "— this order extended it by 3 months. Make another book anytime without importing again. We'll email you a week before it's deleted.",
+    "- this order extended it by 3 months. Make another book anytime without importing again. We'll email you a week before it's deleted.",
   libraryDeleted: 'Deleted. Your PDF stays downloadable.',
   deleteNow: 'Delete photos now',
-  printNote: 'Print it at any print shop, or wait for shipped books — coming soon.',
+  printNote: 'Print it at any print shop, or wait for shipped books - coming soon.',
 };

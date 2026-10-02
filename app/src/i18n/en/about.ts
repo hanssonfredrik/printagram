@@ -13,7 +13,7 @@ export const about = {
     {
       title: 'What Inbunden does',
       paragraphs: [
-        'You pick the posts — a year, a trip, a first year — and Inbunden lays out the pages. You get a print-ready PDF in minutes, to print wherever you like or keep as it is. Printed hardcovers are on the way.',
+        'You pick the posts - a year, a trip, a first year - and Inbunden lays out the pages. You get a print-ready PDF in minutes, to print wherever you like or keep as it is. Printed hardcovers are on the way.',
       ],
     },
     {

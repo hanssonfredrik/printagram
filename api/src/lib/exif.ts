@@ -1,7 +1,7 @@
 /**
  * Minimal EXIF reader: the original capture date of a JPEG, if the file carries one.
  * Google Photos derives `createTime` from the same field when it exists, but files that
- * went through Instagram usually have no EXIF at all — then the caller falls back.
+ * went through Instagram usually have no EXIF at all - then the caller falls back.
  */
 
 const TAG_DATETIME_ORIGINAL = 0x9003;

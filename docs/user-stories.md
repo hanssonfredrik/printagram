@@ -1,4 +1,4 @@
-# Inbunden — User stories
+# Inbunden - User stories
 
 Status legend
 
@@ -13,7 +13,7 @@ Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas
 
 ---
 
-## Epic 1 — Marketing & landing
+## Epic 1 - Marketing & landing
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
@@ -27,7 +27,7 @@ Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas
 | 1.7 | As Ops I want the public pages to look right when shared and to be found by search engines and AI assistants. | Public pages (landing, about, guides, privacy, terms) in English at `/` and Swedish at `/sv/...` (`app/src/seo/routes.ts`), prerendered to static HTML at build time; per-page title, description, canonical, hreflang, Open Graph and JSON-LD (Organization, WebSite, FAQPage, Article, BreadcrumbList, Product once payments are real); `robots.txt`, `sitemap.xml` with alternates and `llms.txt`; app screens and unknown URLs are `noindex`. | ✅ UI |
 | 1.9 | As a visitor I want to find my way around the public pages and read how it works before I start. | A top navigation on every public page (How it works, Pricing, Guides, About, language, sign in, Start), collapsing into a menu on narrow screens; three guides in both languages (making a photo book from Instagram, downloading your Instagram data, printing the PDF). | ✅ UI |
 
-## Epic 2 — Bring in photos: choose a source
+## Epic 2 - Bring in photos: choose a source
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
@@ -36,23 +36,23 @@ Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas
 | 2.3 | As a returning user adding photos I want to be told only newer posts are imported. | "Adding to your library" banner with current count; back goes to My books. | ✅ UI |
 | 2.4 | As Mara (private account) I want a third way in that needs no ZIP and keeps my account private. | "Via Google Photos" card, shown only when `FEATURE_GOOGLE_PHOTOS_ENABLED` → `/api/config.googlePhotosEnabled`; states that captions and likes stay behind and dates may be the transfer date. | ✅ UI ✅ API |
 
-## Epic 3 — Import via Instagram connect
+## Epic 3 - Import via Instagram connect
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
 | 3.1 | As Jonas I want to say what kind of account I have and see what will be requested. | Segmented Creator/Business · Personal · Not sure; permission list; "Continue with Instagram". | ✅ UI |
 | 3.2 | As Mara (personal) I want step-by-step instructions to switch to a Professional account, with the privacy warning. | Five steps, "Good to know" box, "I've switched" and "use the export" actions. | ✅ UI |
 | 3.3 | As a user I want a quick way to check my account type. | "Not sure" path with the Professional dashboard hint and two buttons. | ✅ UI |
-| 3.4 | As a user I want to log in on instagram.com and come back automatically. | OAuth start (`/api/instagram/start`, signed state) → Instagram → `/api/instagram/callback` → short → long-lived token (60 d) → back to `/connect?connected=1`. | 🟡 Partial — code complete; needs a Meta app + App Review (Advanced Access for `instagram_business_basic`) |
+| 3.4 | As a user I want to log in on instagram.com and come back automatically. | OAuth start (`/api/instagram/start`, signed state) → Instagram → `/api/instagram/callback` → short → long-lived token (60 d) → back to `/connect?connected=1`. | 🟡 Partial - code complete; needs a Meta app + App Review (Advanced Access for `instagram_business_basic`) |
 | 3.5 | As a user whose account is personal or who cancelled I want a clear error and next steps. | Error card with "Show me how to switch", "Try again", "Use the export instead". | ✅ UI |
 | 3.6 | As a user I want to see my posts being copied with progress. | Client loops `POST /api/imports/{job}/run` (22 s batches, lease, resumable); progress bar and explanation. | ✅ UI ✅ API |
 | 3.7 | As a user I want a summary of what was found and to continue to selection. | "Found N photos from YYYY–YYYY", posts/carousels/videos, sample grid, CTA. | ✅ UI |
 | 3.8 | As a user I want to disconnect Instagram at any time. | "Disconnect now" → token removed; copied photos stay. | ✅ UI ✅ API |
 | 3.9 | As Ops I must honour Meta's deauthorize and data-deletion callbacks. | `POST /api/instagram/deauthorize`, `POST /api/instagram/data-deletion` (signed_request verified). | ✅ API |
 | 3.10 | As Ops I want long-lived tokens refreshed before they expire. | Cron `refreshIgTokens` refreshes tokens with < 30 days left; invalid tokens flag "reconnect". | ✅ API |
-| 3.11 | As Jonas I want captions from Instagram on my pages. | Depends on Instagram Login exposing `caption` (docs say Facebook Login only); UI hides empty captions. | 🟡 Partial — verify with a tester account |
+| 3.11 | As Jonas I want captions from Instagram on my pages. | Depends on Instagram Login exposing `caption` (docs say Facebook Login only); UI hides empty captions. | 🟡 Partial - verify with a tester account |
 
-## Epic 4 — Import via Instagram export (ZIP)
+## Epic 4 - Import via Instagram export (ZIP)
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
@@ -70,21 +70,21 @@ Personas: **Mara** (personal Instagram account, wants a book of a year), **Jonas
 | 4.12 | As Mara I want to stop an import and keep what's done, without losing it by closing the tab by accident. | "Stop here" finishes with the photos uploaded so far; `beforeunload` guard while reading/uploading. | ✅ UI |
 | 4.13 | As Mara I want to include archived posts if I choose to. | `archived_posts*.json` detected; "Add them too" re-runs incrementally with archived posts. | ✅ UI |
 
-## Epic 4b — Import via Google Photos (Instagram → Google Photos → Picker)
+## Epic 4b - Import via Google Photos (Instagram → Google Photos → Picker)
 
 Why: no Instagram API can read a private account and professional accounts cannot be private (`docs/research.md`). Instagram's own transfer tool sends any account's posts to Google Photos; Google's Picker API is the only third-party read path there.
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
 | 4b.1 | As Mara I want to be asked whether my posts are already in Google Photos, and if not, step-by-step instructions I can also get by email. | Wizard: "Have you already sent your Instagram photos to Google Photos?" → *Yes* goes to sign-in; *Not yet* shows four drawn steps (Accounts Center → Transfer a copy → Google Photos → wait), "Good to know" on captions/dates, "Email me these steps" → `POST /api/auth/export-steps` with `kind: 'google'`, then "I've started the transfer" → sign-in step with a come-back-later note. | ✅ UI ✅ API |
-| 4b.2 | As Mara I want to sign in with Google without giving Inbunden my whole library. | `GET /api/google/start` (signed state) → Google consent, Picker scope only, 1-hour online token → `GET /api/google/callback` → token encrypted on the library row → `/google?connected=1`. Errors `denied`, `expired`, `unknown`. | 🟡 Partial — code complete; needs a Google OAuth client verified for the Picker scope |
+| 4b.2 | As Mara I want to sign in with Google without giving Inbunden my whole library. | `GET /api/google/start` (signed state) → Google consent, Picker scope only, 1-hour online token → `GET /api/google/callback` → token encrypted on the library row → `/google?connected=1`. Errors `denied`, `expired`, `unknown`. | 🟡 Partial - code complete; needs a Google OAuth client verified for the Picker scope |
 | 4b.3 | As Mara I want to pick the photos inside Google Photos. | `POST /api/google/session` opens a Picker session and returns `pickerUri` (opened with `/autoclose`); the app polls `GET /api/google/session` at Google's interval until `mediaItemsSet`. | ✅ UI ✅ API |
 | 4b.4 | As Mara I want the copy to run with progress and survive a slow connection. | Same job loop as connect: `POST /api/libraries/{id}/imports` → `POST /api/imports/{job}/run` (22 s batches, lease, resumable, idempotent on `gp_<mediaId>`); bytes fetched with the bearer token and `=d`, jimp thumbnails; HEIC skipped, videos recorded never printed; the session is deleted afterwards. Route-tested with a stubbed Google client. | ✅ UI ✅ API |
 | 4b.5 | As Mara I want the best possible dates. | EXIF `DateTimeOriginal` read from the JPEG when present (`api/src/lib/exif.ts`, unit-tested), else Google's `createTime`; the UI warns that dates may be the transfer date. | ✅ API |
 | 4b.6 | As Mara I want to end Google's access whenever I like. | "End it now" → `POST /api/google/disconnect` revokes the token; copied photos stay. Access also lapses by itself after an hour. | ✅ UI ✅ API |
 | 4b.7 | As Mara (private account) I want my captions too, without a ZIP. | Become a destination of Meta's "Transfer a copy of your information" (DTI registry Level 1, Meta business verification, Data Transfer app, OAuth-provider + importer endpoints). See `docs/go-live.md` §7. | ⬜ Future |
 
-## Epic 5 — Photo library & retention
+## Epic 5 - Photo library & retention
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
@@ -95,7 +95,7 @@ Why: no Instagram API can read a private account and professional accounts canno
 | 5.5 | As Ops I want expired libraries removed automatically and the user informed. | Cron `expireLibraries` deletes container + rows, keeps the library row as `expired`, sends "deleted" email. | ✅ API |
 | 5.6 | As Ops I want orphaned blobs, stale pending photos and abandoned anonymous sessions cleaned up. | Cron `cleanupOrphans`, `cleanupAnonymous` (30 days, no orders), `cleanupTokens`. | ✅ API |
 
-## Epic 6 — Selecting photos
+## Epic 6 - Selecting photos
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
@@ -106,7 +106,7 @@ Why: no Instagram API can read a private account and professional accounts canno
 | 6.5 | As a user with no posts I want a helpful empty state. | "No photos found" with guidance and back button. | ✅ UI |
 | 6.6 | As a user I want my selection to survive a refresh or a return link. | Draft persisted in localStorage per library. | ✅ UI |
 
-## Epic 7 — Book design & preview
+## Epic 7 - Book design & preview
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
@@ -117,7 +117,7 @@ Why: no Instagram API can read a private account and professional accounts canno
 | 7.5 | As a user I want more layout choices (1–4 photos per page, full-bleed, text pages). | Templates `1-margin`, `1-bleed`, `2-stack`, `2-side`, `3-hero`, `4-grid`, `text`; automatic layout by density (Mixed/One/Two/Three/Four; Mixed starts a new page after a 24 h gap); full-bleed only offered for One and Mixed; per-page template picker; text pages; the server validates pages against the library. | ✅ UI ✅ API |
 | 7.6 | As a user I want to reorder photos or pages by drag and drop. | "Arrange pages" view (dnd-kit): drag photos within and between pages and move pages, by mouse, touch (200 ms hold) or keyboard, with screen-reader announcements; full pages push overflow onward; "Reset to automatic layout". | ✅ UI |
 
-## Epic 8 — Checkout & payment
+## Epic 8 - Checkout & payment
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
@@ -131,7 +131,7 @@ Why: no Instagram API can read a private account and professional accounts canno
 | 8.8 | As a user I want a receipt email. | Stripe `receipt_email`. | ✅ API (Stripe-side) |
 | 8.9 | As a user I want discount codes / gift cards. | "Have a discount code?" on Checkout → `POST /orders/{id}/promo`; percent or fixed, validity window, max redemptions (ETag-safe), once per user; 100 % → "Get my PDF" without payment (`confirm-free`). Codes managed with `scripts/promo.ts`. Gift cards not built. | ✅ UI ✅ API |
 
-## Epic 9 — PDF generation & delivery
+## Epic 9 - PDF generation & delivery
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
@@ -142,7 +142,7 @@ Why: no Instagram API can read a private account and professional accounts canno
 | 9.5 | As a user I want an email when the book is ready. | `order-ready` template. | ✅ API |
 | 9.6 | As a user I want print-shop-grade output. | MediaBox = trim + 4 mm bleed (from config), TrimBox/BleedBox on every page, full-bleed photos extend into the bleed; sRGB OutputIntent + XMP; original JPEG bytes with EXIF orientation as a transform (WebP re-encoded); Noto Sans/Noto Emoji fallback per glyph; no upscaling (warn instead); the upload is refused unless it starts with `%PDF-`. Checked by `scripts/pdf-check.ts` and `scripts/e2e.ts`. Not claimed as PDF/X. | ✅ UI ✅ API |
 
-## Epic 10 — Accounts & auth
+## Epic 10 - Accounts & auth
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
@@ -151,25 +151,25 @@ Why: no Instagram API can read a private account and professional accounts canno
 | 10.3 | As a user I want to reset a forgotten password. | `/auth/forgot` (always 202) → email → `/reset/:token` (1 h). | ✅ UI ✅ API |
 | 10.4 | As a user I want to sign out everywhere when I change my password. | `sessionVersion` bump invalidates old cookies. | ✅ API |
 | 10.5 | As a user I want to delete my account and all data. | `DELETE /api/account` removes photos, PDFs, drafts, orders, lookups. | ✅ API (no UI yet) |
-| 10.6 | As a user I want to sign in with Google/Apple. | — | ⬜ Future |
+| 10.6 | As a user I want to sign in with Google/Apple. | - | ⬜ Future |
 
-## Epic 11 — My books
+## Epic 11 - My books
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
 | 11.1 | As a user I want to see my library (count, source, imported date, kept-until) with New book / Add more photos / Delete actions. | Library card, empty state when deleted/expired. Back from a book started or opened here returns to My books. | ✅ UI |
 | 11.2 | As a user I want my drafts and ordered books listed with the right actions. | Draft → Continue; Ordered → Download PDF (or Finish PDF), Duplicate. | ✅ UI ✅ API |
 | 11.3 | As a user I want to duplicate an ordered book to tweak it. | `POST /api/books/{id}/duplicate` → preview. | ✅ UI ✅ API |
-| 11.4 | As a user I want to rename or delete drafts from the list. | — | ⬜ Future |
+| 11.4 | As a user I want to rename or delete drafts from the list. | - | ⬜ Future |
 
-## Epic 12 — Emails
+## Epic 12 - Emails
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
 | 12.1 | Return link, export steps, password reset, order ready, library reminder, library deleted. | Templates in `api/src/emails` (HTML + text); Resend driver, console driver for dev. | ✅ API |
 | 12.2 | As Ops I want a verified sending domain (SPF/DKIM/DMARC). | Runbook step. | ⬜ Ops task |
 
-## Epic 13 — Ops, deployment & cost
+## Epic 13 - Ops, deployment & cost
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
@@ -180,26 +180,26 @@ Why: no Instagram API can read a private account and professional accounts canno
 | 13.5 | As Ops I want monitoring. | Application Insights can be attached to the SWA; not provisioned to stay at €0. | ⬜ Future |
 | 13.6 | As Ops I want to know when to move to SWA Standard / Cosmos. | `infra/README.md` scale-up path. | ✅ |
 
-## Epic 14 — Printed books (future)
+## Epic 14 - Printed books (future)
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
 | 14.1 | As a user I want to order a softcover or hardcover book shipped to me. | Print provider behind `PRINT_PROVIDER` (Crimson CAPI for Sweden/Norway: RGB PDF, 2 mm bleed, 20×20 cm; or Gelato/Prodigi for the EU); provider order webhook → status emails. Analysis and phased plan: `docs/crimson-print-on-demand.md`. | ⬜ Future |
-| 14.2 | As a user I want a cover designer (spine text, back-cover photo). | — | ⬜ Future |
-| 14.3 | As Ops I want print pricing per format/page count and country. | — | ⬜ Future |
+| 14.2 | As a user I want a cover designer (spine text, back-cover photo). | - | ⬜ Future |
+| 14.3 | As Ops I want print pricing per format/page count and country. | - | ⬜ Future |
 | 14.4 | As a user I want to enter a shipping address at checkout. | Address form shown for printed bindings; countries limited to what the active provider ships to (Crimson: SE, NO). | ⬜ Future |
 | 14.5 | As a user I want to follow my printed order. | Statuses submitted → printing → shipped → delivered on My books; tracking link from the provider webhook; `order-shipped` email. | ⬜ Future |
 
-## Epic 15 — Legal, privacy & compliance
+## Epic 15 - Legal, privacy & compliance
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |
 | 15.1 | Privacy policy and terms pages (required by Meta App Review, Google verification and Stripe). | `/privacy` and `/terms` in English and Swedish, linked from every footer and listed in `sitemap.xml`: controller, data stored, legal bases, retention, processors (Azure, Resend, Stripe, Google, Meta, Google Fonts), the one cookie, rights and IMY; terms cover the service, photos, payment, the digital-content withdrawal rule, liability, ARN. | ✅ UI |
 | 15.2 | Cookie notice (only a strictly necessary session cookie; no analytics). | Banner not required for essential cookies; document in privacy policy. | ⬜ Future |
-| 15.3 | Data deletion confirmation page for Meta (`/privacy/deletion?code=`). | — | ⬜ Future |
+| 15.3 | Data deletion confirmation page for Meta (`/privacy/deletion?code=`). | - | ⬜ Future |
 | 15.4 | Instagram tokens encrypted at rest; no passwords stored in plain text; account deletion. | AES-256-GCM, scrypt, `DELETE /api/account`. | ✅ API |
 
-## Epic 16 — Accessibility & i18n
+## Epic 16 - Accessibility & i18n
 
 | ID | Story | Acceptance criteria | Status |
 | --- | --- | --- | --- |

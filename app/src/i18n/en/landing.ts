@@ -78,15 +78,15 @@ export const landing = {
     },
     {
       q: 'Is it safe?',
-      a: "Yes. If you connect, you log in on Instagram's own site and Instagram lets us read your posts — nothing more. We can't post, message or see your password. If you upload, you download your own photos from Instagram and drop the file here. We never touch your account.",
+      a: "Yes. If you connect, you log in on Instagram's own site and Instagram lets us read your posts - nothing more. We can't post, message or see your password. If you upload, you download your own photos from Instagram and drop the file here. We never touch your account.",
     },
     {
-      q: 'Connect or upload — which one?',
+      q: 'Connect or upload - which one?',
       a: 'Connect if you have a Creator or Business account: it takes seconds and brings your likes along. Upload the export if you have a personal account and want to keep it that way. It works for every account, but Instagram needs a few hours to a couple of days to prepare the file.',
     },
     {
       q: 'Do private accounts work?',
-      a: 'Yes, with the export. Connecting needs a Professional account, and Instagram makes those public — so if you want to stay private, use the export.',
+      a: 'Yes, with the export. Connecting needs a Professional account, and Instagram makes those public - so if you want to stay private, use the export.',
     },
     {
       q: 'How long does the Instagram export take?',
@@ -94,7 +94,7 @@ export const landing = {
     },
     {
       q: 'What happens to my photos?',
-      a: 'They stay in your Inbunden library for 3 months so you can make more books without importing again. Every new book extends that by 3 months. Delete them yourself anytime, or we delete them when the 3 months are up — after a reminder email. Ordered PDFs stay downloadable either way.',
+      a: 'They stay in your Inbunden library for 3 months so you can make more books without importing again. Every new book extends that by 3 months. Delete them yourself anytime, or we delete them when the 3 months are up - after a reminder email. Ordered PDFs stay downloadable either way.',
     },
     {
       q: 'What do I get right now?',

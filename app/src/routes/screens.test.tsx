@@ -65,7 +65,7 @@ describe('screens (against the in-memory test API)', () => {
     expect(await screen.findByText('Open Instagram settings')).toBeTruthy();
     fireEvent.click(screen.getByText("I've requested my export"));
     expect(await screen.findByText('Instagram is preparing your photos')).toBeTruthy();
-    fireEvent.click(screen.getByText('I have my ZIP — upload it'));
+    fireEvent.click(screen.getByText('I have my ZIP - upload it'));
     expect(await screen.findByText('Drop the ZIP here')).toBeTruthy();
     expect(router.state.location.pathname).toBe('/export/upload');
   });
@@ -85,7 +85,7 @@ describe('screens (against the in-memory test API)', () => {
     expect(screen.getByText('Choose Creator')).toBeTruthy();
     fireEvent.click(screen.getByRole('tab', { name: 'Not sure' }));
     expect(await screen.findByText('A quick way to check')).toBeTruthy();
-    fireEvent.click(screen.getByText("I see the button — it's Professional"));
+    fireEvent.click(screen.getByText("I see the button - it's Professional"));
     expect(await screen.findByText('Continue with Instagram')).toBeTruthy();
   });
 
@@ -122,10 +122,10 @@ describe('screens (against the in-memory test API)', () => {
     expect(
       screen.getByText('Have you already sent your Instagram photos to Google Photos?'),
     ).toBeTruthy();
-    fireEvent.click(screen.getByText('Not yet — show me how'));
+    fireEvent.click(screen.getByText('Not yet - show me how'));
     expect(await screen.findByText('Choose Google Photos')).toBeTruthy();
     expect(screen.getByText(/captions and likes stay on Instagram/)).toBeTruthy();
-    fireEvent.click(screen.getByText("I've started the transfer — continue"));
+    fireEvent.click(screen.getByText("I've started the transfer - continue"));
     expect(await screen.findByText('Next: sign in with Google')).toBeTruthy();
     expect(screen.getByText('Sign in with Google')).toBeTruthy();
     fireEvent.click(screen.getByText('Show the Instagram steps again'));
@@ -269,7 +269,7 @@ describe('screens (against the in-memory test API)', () => {
   it('checkout (test payment): account validation, test card → done', async () => {
     await seedLibraryAndDraft();
     const { router } = renderAt('/checkout');
-    expect(await screen.findByText('Test payment — no money is taken')).toBeTruthy();
+    expect(await screen.findByText('Test payment - no money is taken')).toBeTruthy();
     // No editable card fields in test mode.
     expect(screen.queryByPlaceholderText('Card number')).toBeNull();
     const place = await screen.findByRole('button', { name: 'Place test order' });
@@ -306,7 +306,7 @@ describe('screens (against the in-memory test API)', () => {
   it('checkout: a 100 % discount code skips payment', async () => {
     await seedLibraryAndDraft();
     const { router } = renderAt('/checkout');
-    await screen.findByText('Test payment — no money is taken');
+    await screen.findByText('Test payment - no money is taken');
     fireEvent.click(await screen.findByText('Have a discount code?'));
     fireEvent.change(screen.getByLabelText('Discount code'), { target: { value: 'nope' } });
     fireEvent.click(screen.getByRole('button', { name: 'Apply' }));
