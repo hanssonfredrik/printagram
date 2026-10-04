@@ -4,7 +4,6 @@ import {
   autoLayout,
   buildPages,
   flattenPhotoIds,
-  pdfPriceCents,
   photoSpan,
   reconcilePages,
   totalPages,
@@ -13,7 +12,7 @@ import {
 import { api } from '@/services';
 import { chosenPhotos, useDraft, visiblePhotos } from './draft';
 import { useLibrary } from './library';
-import { useConfig, useSession } from './session';
+import { useSession } from './session';
 
 export interface BookView {
   ready: boolean;
@@ -28,7 +27,6 @@ export interface BookView {
   /** Full sequence including cover, title page and back cover. */
   pages: Page[];
   total: number;
-  priceCents: number;
   dateSpan: string;
   hasLikes: boolean;
   libraryId: string | null;
@@ -42,7 +40,6 @@ export interface BookView {
 export function useBook(): BookView {
   const d = useDraft();
   const lib = useLibrary();
-  const cfg = useConfig();
   const libraries = useSession((x) => x.libraries);
   const targetId = d.libraryId ?? libraries[0]?.id ?? null;
 
@@ -87,7 +84,6 @@ export function useBook(): BookView {
       content,
       pages: buildPages(content),
       total,
-      priceCents: pdfPriceCents(cfg.pricing),
       dateSpan: photoSpan(chosen, d.lang),
       hasLikes,
       libraryId: targetId,
@@ -113,7 +109,6 @@ export function useBook(): BookView {
     lib.loading,
     lib.libraryId,
     targetId,
-    cfg.pricing,
   ]);
 }
 

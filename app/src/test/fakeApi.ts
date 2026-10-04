@@ -10,6 +10,7 @@ import type {
 import {
   addMonths,
   bookText,
+  currencyForLang,
   DEFAULT_PRICING,
   MAX_EXPORT_BYTES,
   MAX_PHOTOS_PER_BOOK,
@@ -36,6 +37,7 @@ import {
   type RegisterResult,
   type ShareInfo,
 } from '@/services/api';
+import { useLang } from '@/i18n';
 import { makeDemoPhotos } from './demoData';
 
 /** Toggles driven by the dev-only Demo bar (mirrors the design prototype's demo controls). */
@@ -662,12 +664,16 @@ export const mockApi: Api = {
   async createOrder(bookId): Promise<OrderCreateResult> {
     await sleep();
     const book = await this.getBook(bookId);
+    const currency = currencyForLang(useLang.getState().lang);
     const open = state.orders.find(
-      (o) => o.bookId === bookId && (o.status === 'created' || o.status === 'failed'),
+      (o) =>
+        o.bookId === bookId &&
+        o.currency === currency &&
+        (o.status === 'created' || o.status === 'failed'),
     );
     if (open) return { order: toOrderView(open), clientSecret: null, provider: 'fake' };
     const pages = totalPages(book.pages);
-    const subtotal = pdfPriceCents();
+    const subtotal = pdfPriceCents(DEFAULT_PRICING, currency);
     const order: Order = {
       id: uid('ord'),
       bookId,
@@ -681,7 +687,7 @@ export const mockApi: Api = {
       discountCents: 0,
       promoCode: null,
       amountCents: subtotal,
-      currency: 'eur',
+      currency,
       paymentProvider: 'fake',
       failureReason: null,
       createdAt: nowIso(),

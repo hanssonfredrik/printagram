@@ -42,11 +42,19 @@ export const config = {
   },
   get pricing(): PricingConfig {
     return {
-      baseCents: int('PRICE_BASE_CENTS', 900),
-      currency: 'eur',
-      printedFrom: {
-        softcoverCents: int('PRICE_SOFTCOVER_FROM_CENTS', 2900),
-        hardcoverCents: int('PRICE_HARDCOVER_FROM_CENTS', 4900),
+      eur: {
+        baseCents: int('PRICE_BASE_CENTS', 900),
+        printedFrom: {
+          softcoverCents: int('PRICE_SOFTCOVER_FROM_CENTS', 2900),
+          hardcoverCents: int('PRICE_HARDCOVER_FROM_CENTS', 4900),
+        },
+      },
+      sek: {
+        baseCents: int('PRICE_BASE_CENTS_SEK', 8900),
+        printedFrom: {
+          softcoverCents: int('PRICE_SOFTCOVER_FROM_CENTS_SEK', 29900),
+          hardcoverCents: int('PRICE_HARDCOVER_FROM_CENTS_SEK', 49900),
+        },
       },
     };
   },

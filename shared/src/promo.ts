@@ -1,4 +1,4 @@
-import type { PromoType, TestCard } from './types.js';
+import type { Currency, PromoType, TestCard } from './types.js';
 import { DEFAULT_LANG, type Lang } from './i18n.js';
 
 /** A discount code as stored by the API (Lookups table, kind "promo"). */
@@ -7,6 +7,8 @@ export interface PromoDefinition {
   type: PromoType;
   /** Percent (1–100) for "percent", cents for "fixed". */
   value: number;
+  /** Currency of a "fixed" amount (missing means euros); it only applies to orders in that currency. */
+  currency?: Currency;
   validFrom: string | null;
   validUntil: string | null;
   maxRedemptions: number | null;
@@ -16,7 +18,13 @@ export interface PromoDefinition {
 }
 
 export type PromoRejection =
-  'not_found' | 'inactive' | 'not_started' | 'expired' | 'used_up' | 'already_used';
+  | 'not_found'
+  | 'inactive'
+  | 'not_started'
+  | 'expired'
+  | 'used_up'
+  | 'already_used'
+  | 'wrong_currency';
 
 export const PROMO_MESSAGES: Record<PromoRejection, string> = {
   not_found: "That code doesn't exist. Check the spelling and try again.",
@@ -25,6 +33,7 @@ export const PROMO_MESSAGES: Record<PromoRejection, string> = {
   expired: 'That code has expired.',
   used_up: 'That code has been used the maximum number of times.',
   already_used: "You've already used that code.",
+  wrong_currency: "That code doesn't work for this currency.",
 };
 
 const PROMO_MESSAGES_SV: Record<PromoRejection, string> = {
@@ -34,6 +43,7 @@ const PROMO_MESSAGES_SV: Record<PromoRejection, string> = {
   expired: 'Koden har gått ut.',
   used_up: 'Koden har redan använts det högsta antalet gånger.',
   already_used: 'Du har redan använt den koden.',
+  wrong_currency: 'Koden gäller inte i den här valutan.',
 };
 
 export function promoMessage(code: PromoRejection, lang: Lang = DEFAULT_LANG): string {
@@ -52,6 +62,14 @@ export function promoRejection(p: PromoDefinition | null, now = new Date()): Pro
   if (p.validUntil && new Date(p.validUntil) < now) return 'expired';
   if (p.maxRedemptions !== null && p.redemptions >= p.maxRedemptions) return 'used_up';
   return null;
+}
+
+/** A fixed amount only fits orders in its own currency; a percentage fits any order. */
+export function promoFitsCurrency(
+  p: Pick<PromoDefinition, 'type' | 'currency'>,
+  currency: Currency,
+): boolean {
+  return p.type === 'percent' || (p.currency ?? 'eur') === currency;
 }
 
 /** Discount in cents for a subtotal, clamped to [0, subtotal] and rounded to whole cents. */

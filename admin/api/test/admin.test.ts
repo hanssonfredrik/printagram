@@ -578,6 +578,28 @@ describe.skipIf(!up)('admin API against Azurite', () => {
         ['refunded', 900, 180],
       ].sort(),
     );
+
+    // Kronor orders get their own report and never mix into the euro one.
+    const sekId = randomUUID();
+    await orders.upsert({
+      ...base,
+      orderId: sekId,
+      status: 'ready',
+      currency: 'sek',
+      subtotalCents: 8900,
+      amountCents: 8900,
+    } as never);
+    const eur = await call<Report>('reportsVat', 'GET', `reports/vat?from=${day}&to=${day}`);
+    expect(eur.body.rows.some((x) => x.orderId === sekId)).toBe(false);
+    const sek = await call<Report & { currency: string }>(
+      'reportsVat',
+      'GET',
+      `reports/vat?from=${day}&to=${day}&currency=sek`,
+    );
+    expect(sek.body.currency).toBe('sek');
+    expect(
+      sek.body.rows.filter((x) => x.orderId === sekId).map((x) => [x.grossCents, x.vatCents]),
+    ).toEqual([[8900, 1780]]);
   });
 
   it('orders: delete needs the id, paid Stripe orders need the test-mode box, and is audited', async () => {

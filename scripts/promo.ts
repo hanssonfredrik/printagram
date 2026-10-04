@@ -4,6 +4,7 @@
  *   npx tsx scripts/promo.ts list
  *   npx tsx scripts/promo.ts create SUMMER25 percent 25 [--until 2026-12-31] [--max 100] [--once]
  *   npx tsx scripts/promo.ts create FIVEOFF fixed 500            # 500 cents = €5
+ *   npx tsx scripts/promo.ts create FEMTIO fixed 5000 --currency sek   # 50 kr, Swedish site only
  *   npx tsx scripts/promo.ts disable SUMMER25
  *   npx tsx scripts/promo.ts seed                                # WELCOME100 (100 %) + TEST20 (20 %)
  *
@@ -49,7 +50,13 @@ async function main() {
       const all = await promos.list();
       if (all.length === 0) console.log('No codes.');
       for (const p of all) {
-        const v = p.type === 'percent' ? `${p.value} %` : `€${(p.value / 100).toFixed(2)}`;
+        const amount = (p.value / 100).toFixed(2);
+        const v =
+          p.type === 'percent'
+            ? `${p.value} %`
+            : p.currency === 'sek'
+              ? `${amount} kr`
+              : `€${amount}`;
         console.log(
           `${p.code.padEnd(16)} ${v.padEnd(8)} used ${p.redemptions}${p.maxRedemptions !== null ? `/${p.maxRedemptions}` : ''}` +
             `${p.perUserOnce ? ' · once per user' : ''}${p.validUntil ? ` · until ${p.validUntil.slice(0, 10)}` : ''}${p.active ? '' : ' · DISABLED'}`,
@@ -63,7 +70,11 @@ async function main() {
         throw new Error('usage: create CODE percent|fixed VALUE');
       const until = flag(args, '--until');
       const max = flag(args, '--max');
+      const currency = flag(args, '--currency') ?? 'eur';
+      if (currency !== 'eur' && currency !== 'sek')
+        throw new Error('--currency must be eur or sek');
       const p = define(code, type, Number(value), {
+        ...(type === 'fixed' ? { currency } : {}),
         validUntil: until ? new Date(`${until}T23:59:59Z`).toISOString() : null,
         maxRedemptions: max ? Number(max) : null,
         perUserOnce: args.includes('--once'),

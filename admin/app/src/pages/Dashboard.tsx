@@ -11,7 +11,17 @@ import {
   StatusBadge,
   Tile,
 } from '../components';
-import { compact, defaultRange, eur, num, pct, type Range } from '../format';
+import {
+  compact,
+  defaultRange,
+  money,
+  moneySum,
+  num,
+  pct,
+  type Currency,
+  type CurrencyCents,
+  type Range,
+} from '../format';
 import { useApi } from '../useApi';
 
 interface Overview {
@@ -26,7 +36,7 @@ interface Overview {
   };
   orders: {
     byStatus: Record<string, number>;
-    paidInRange: { count: number; stripeCents: number; fakeCents: number };
+    paidInRange: { count: number; stripeCents: CurrencyCents; fakeCents: CurrencyCents };
   };
   libraries: { active: number; photos: number; expired: number };
   visits: {
@@ -38,8 +48,8 @@ interface Overview {
     day: string;
     signups: number;
     orders: number;
-    stripeCents: number;
-    fakeCents: number;
+    stripeCents: CurrencyCents;
+    fakeCents: CurrencyCents;
     views: number;
     visitors: number;
   }[];
@@ -49,6 +59,11 @@ export function Dashboard() {
   const [range, setRange] = useState<Range>(defaultRange(30));
   const { data, error, loading } = useApi<Overview>(`stats/overview${qs({ ...range })}`);
   const paid = data?.orders.paidInRange;
+  // One revenue chart per currency that has Stripe sales (euros when there are none yet).
+  const chartCurrencies: Currency[] = paid
+    ? (['eur', 'sek'] as const).filter((c) => paid.stripeCents[c])
+    : [];
+  if (chartCurrencies.length === 0) chartCurrencies.push('eur');
 
   return (
     <>
@@ -62,8 +77,12 @@ export function Dashboard() {
           <div className="grid tiles">
             <Tile
               label="Revenue (Stripe)"
-              value={eur(paid.stripeCents)}
-              sub={paid.fakeCents ? `+ ${eur(paid.fakeCents)} test payments` : 'in range'}
+              value={moneySum(paid.stripeCents)}
+              sub={
+                paid.fakeCents.eur || paid.fakeCents.sek
+                  ? `+ ${moneySum(paid.fakeCents)} test payments`
+                  : 'in range'
+              }
             />
             <Tile label="Paid orders" value={num(paid.count)} sub="in range" />
             <Tile
@@ -99,14 +118,16 @@ export function Dashboard() {
           </div>
 
           <div className="grid two section">
-            <div className="card">
-              <h2>Revenue per day (Stripe)</h2>
-              <ColumnChart
-                label="Revenue per day from Stripe payments"
-                data={data.byDay.map((d) => ({ key: d.day, value: d.stripeCents }))}
-                format={(v) => eur(v).replace(/,00\s/, ' ')}
-              />
-            </div>
+            {chartCurrencies.map((c) => (
+              <div className="card" key={c}>
+                <h2>Revenue per day (Stripe, {c.toUpperCase()})</h2>
+                <ColumnChart
+                  label={`Revenue per day from Stripe payments in ${c.toUpperCase()}`}
+                  data={data.byDay.map((d) => ({ key: d.day, value: d.stripeCents[c] }))}
+                  format={(v) => money(v, c).replace(/,00\s/, ' ')}
+                />
+              </div>
+            ))}
             <div className="card">
               <h2>Visitors per day</h2>
               <ColumnChart

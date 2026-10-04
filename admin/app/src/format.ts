@@ -1,8 +1,20 @@
 const eurFmt = new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'EUR' });
+const sekFmt = new Intl.NumberFormat('sv-SE', { style: 'currency', currency: 'SEK' });
 const numFmt = new Intl.NumberFormat('sv-SE');
 const compactFmt = new Intl.NumberFormat('en', { notation: 'compact', maximumFractionDigits: 1 });
 
+export type Currency = 'eur' | 'sek';
+/** Cents per currency, as the API sums them. Kronor and euros are never added together. */
+export type CurrencyCents = Record<Currency, number>;
+
 export const eur = (cents: number) => eurFmt.format(cents / 100);
+export const money = (cents: number, currency: string = 'eur') =>
+  (currency === 'sek' ? sekFmt : eurFmt).format(cents / 100);
+/** "12,00 € + 89,00 kr"; only the currencies with an amount, or "0,00 €". */
+export function moneySum(m: CurrencyCents): string {
+  const parts = (['eur', 'sek'] as const).filter((c) => m[c]).map((c) => money(m[c], c));
+  return parts.length ? parts.join(' + ') : eur(0);
+}
 export const num = (n: number) => numFmt.format(n);
 export const compact = (n: number) =>
   Math.abs(n) < 10_000 ? numFmt.format(n) : compactFmt.format(n);

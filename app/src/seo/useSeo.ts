@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { fmtEuro, type Lang } from '@printagram/shared';
+import { currencyForLang, fmtMoney, pdfPriceCents, type Lang } from '@printagram/shared';
 import { messagesFor } from '@/i18n';
 import { useSession } from '@/state/session';
 import { pageDescription, pageTitle, structuredData } from './jsonld';
@@ -73,7 +73,11 @@ export function useSeo(page: { key: PageKey; lang: Lang } | null) {
       cfg,
       configLoaded: ready,
       site: SITE_URL,
-      price: fmtEuro(cfg.pricing.baseCents, lang),
+      price: fmtMoney(
+        pdfPriceCents(cfg.pricing, currencyForLang(lang)),
+        currencyForLang(lang),
+        lang,
+      ),
     });
     add('script', { type: 'application/ld+json' }, JSON.stringify(data));
   }, [page?.key, page?.lang, cfg, ready]); // eslint-disable-line react-hooks/exhaustive-deps

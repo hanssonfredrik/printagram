@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { api } from '../api';
 import { ErrorMsg, Loading, PageHead, StatusBadge } from '../components';
-import { ago, date, dateTime, eur } from '../format';
+import { ago, date, dateTime, money } from '../format';
 import { useApi } from '../useApi';
 import type { AdminUser } from './Users';
 import type { AdminOrder } from './Orders';
@@ -248,7 +248,7 @@ export function UserDetail({ me }: { me: string }) {
                           <StatusBadge status={o.status} />
                         </td>
                         <td>{o.paymentProvider}</td>
-                        <td className="num">{eur(o.amountCents)}</td>
+                        <td className="num">{money(o.amountCents, o.currency)}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -64,9 +64,14 @@ async function main() {
 
   const cfg = await call<{
     payment: { provider: string; testCards: { number: string }[] };
-    pricing: { baseCents: number };
+    pricing: { eur: { baseCents: number }; sek: { baseCents: number } };
   }>('GET', '/config');
-  assert(cfg.status === 200 && cfg.body.pricing.baseCents === 900, 'config');
+  assert(
+    cfg.status === 200 &&
+      cfg.body.pricing.eur.baseCents === 900 &&
+      cfg.body.pricing.sek.baseCents === 8900,
+    'config',
+  );
   assert(
     cfg.body.payment.provider === 'fake' && cfg.body.payment.testCards.length === 3,
     'fake provider with test cards',

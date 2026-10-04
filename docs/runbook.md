@@ -49,11 +49,12 @@ To try Stripe instead, set `PAYMENT_PROVIDER=stripe` plus `STRIPE_SECRET_KEY`, `
 npx tsx scripts/promo.ts list
 npx tsx scripts/promo.ts create SUMMER25 percent 25 --until 2026-12-31 --max 100
 npx tsx scripts/promo.ts create FIVEOFF fixed 500 --once     # 500 cents = €5, once per user
+npx tsx scripts/promo.ts create FEMTIO fixed 5000 --currency sek   # 50 kr, only on kronor orders
 npx tsx scripts/promo.ts disable SUMMER25
 npx tsx scripts/promo.ts seed          # WELCOME100 + TEST20
 ```
 
-The script uses Azurite by default. Set `STORAGE_CONNECTION_STRING` to manage codes in a real storage account.
+Percent codes work in both currencies. A fixed amount only applies to orders in its own currency (euros unless you pass `--currency sek`). The script uses Azurite by default. Set `STORAGE_CONNECTION_STRING` to manage codes in a real storage account.
 
 ### Tests
 

@@ -1,4 +1,5 @@
 import { json, libraries, orders, users, visits, type VisitRow } from '../core.js';
+import { noCents, orderCurrency } from '../lib/money.js';
 import { adminRoute } from '../lib/route.js';
 import { range } from './orders.js';
 
@@ -80,7 +81,10 @@ adminRoute('statsOverview', { methods: ['GET'], route: 'stats/overview' }, async
   const now = Date.now();
   const since = (n: number) => new Date(now - n * 86_400_000).toISOString();
   const series = new Map(
-    days(from, to).map((d) => [d, { signups: 0, orders: 0, stripeCents: 0, fakeCents: 0 }]),
+    days(from, to).map((d) => [
+      d,
+      { signups: 0, orders: 0, stripeCents: noCents(), fakeCents: noCents() },
+    ]),
   );
 
   const u = { registered: 0, anonymous: 0, admins: 0, active7: 0, active30: 0, signupsInRange: 0 };
@@ -102,7 +106,7 @@ adminRoute('statsOverview', { methods: ['GET'], route: 'stats/overview' }, async
 
   const byStatus: Record<string, number> = {};
   const payers = new Set<string>();
-  const paid = { count: 0, stripeCents: 0, fakeCents: 0 };
+  const paid = { count: 0, stripeCents: noCents(), fakeCents: noCents() };
   for await (const o of orders.scanAll()) {
     byStatus[o.status] = (byStatus[o.status] ?? 0) + 1;
     if (o.status !== 'paid' && o.status !== 'ready') continue;
@@ -111,12 +115,13 @@ adminRoute('statsOverview', { methods: ['GET'], route: 'stats/overview' }, async
     if (!s) continue;
     s.orders++;
     paid.count++;
+    const c = orderCurrency(o);
     if (o.paymentProvider === 'stripe') {
-      s.stripeCents += o.amountCents;
-      paid.stripeCents += o.amountCents;
+      s.stripeCents[c] += o.amountCents;
+      paid.stripeCents[c] += o.amountCents;
     } else {
-      s.fakeCents += o.amountCents;
-      paid.fakeCents += o.amountCents;
+      s.fakeCents[c] += o.amountCents;
+      paid.fakeCents[c] += o.amountCents;
     }
   }
 

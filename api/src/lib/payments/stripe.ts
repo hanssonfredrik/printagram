@@ -38,13 +38,13 @@ export const stripeProvider: PaymentProvider = {
     pi = await s.paymentIntents.create(
       {
         amount: order.amountCents,
-        currency: 'eur',
+        currency: order.currency,
         automatic_payment_methods: { enabled: true },
         description: `Inbunden PDF photo book - ${order.pageCount} pages`,
         receipt_email: email ?? undefined,
         metadata: { orderId: order.orderId, userId: order.userId, bookId: order.bookId },
       },
-      { idempotencyKey: `order:${order.orderId}:${order.amountCents}` },
+      { idempotencyKey: `order:${order.orderId}:${order.currency}:${order.amountCents}` },
     );
     return { ref: pi.id, clientSecret: pi.client_secret };
   },

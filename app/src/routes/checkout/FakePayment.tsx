@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { TestCard } from '@printagram/shared';
-import { fmtEuro } from '@printagram/shared';
+import { fmtMoney, type Currency } from '@printagram/shared';
 import { Banner, Button } from '@/components/ui';
 import { useLang, useT } from '@/i18n';
 import s from './checkout.module.css';
@@ -13,12 +13,14 @@ import s from './checkout.module.css';
 export function FakePayment({
   cards,
   amountCents,
+  currency,
   processing,
   onPay,
   accountForm,
 }: {
   cards: TestCard[];
   amountCents: number;
+  currency: Currency;
   processing: boolean;
   onPay: (card: string) => void;
   accountForm: React.ReactNode;
@@ -60,7 +62,7 @@ export function FakePayment({
         {processing ? t.checkout.processing : t.checkout.fake.place}
       </Button>
       <p className="tiny muted center pretty">
-        {t.checkout.fake.liveCost(fmtEuro(amountCents, lang))}
+        {t.checkout.fake.liveCost(fmtMoney(amountCents, currency, lang))}
       </p>
     </div>
   );

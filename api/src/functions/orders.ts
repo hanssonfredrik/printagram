@@ -1,11 +1,14 @@
 import {
+  currencyForLang,
   discountCents,
   normalizePromoCode,
   pdfPriceCents,
   totalPages,
   normalizeLang,
   promoMessage,
+  promoFitsCurrency,
   promoRejection,
+  type Currency,
 } from '@printagram/shared';
 import {
   blobProperties,
@@ -63,9 +66,9 @@ async function coverThumb(o: OrderRow): Promise<string | null> {
 }
 
 /** Price for a book at its current content, before any discount. */
-function subtotalFor(book: BookRow): { pages: number; subtotalCents: number } {
+function subtotalFor(book: BookRow, currency: Currency): { pages: number; subtotalCents: number } {
   const pages = totalPages(bookPages(book));
-  return { pages, subtotalCents: pdfPriceCents(config.pricing) };
+  return { pages, subtotalCents: pdfPriceCents(config.pricing, currency) };
 }
 
 /** Recomputes the amount after a (possibly removed) discount and syncs the provider side. */
@@ -99,8 +102,9 @@ async function reprice(
 route(
   'ordersCreate',
   { methods: ['POST'], route: 'orders', auth: 'required' },
-  async ({ req, user }) => {
+  async ({ req, user, lang }) => {
     const provider = paymentProvider();
+    const currency = currencyForLang(lang);
     const body = await readJson<{ bookId?: unknown }>(req);
     const bookId = String(body.bookId ?? '');
     const book = await books.get(user.userId, bookId);
@@ -114,6 +118,7 @@ route(
           o.bookId === bookId &&
           (o.status === 'created' || o.status === 'failed') &&
           o.contentHash === contentHash &&
+          o.currency === currency &&
           (o.paymentProvider ?? 'fake') === provider.name,
       )
       .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0];
@@ -128,7 +133,7 @@ route(
       });
     }
 
-    const { pages, subtotalCents } = subtotalFor(book);
+    const { pages, subtotalCents } = subtotalFor(book, currency);
     const row: OrderRow = {
       orderId: newId(),
       userId: user.userId,
@@ -150,7 +155,7 @@ route(
       discountCents: 0,
       promoCode: null,
       amountCents: subtotalCents,
-      currency: 'eur',
+      currency,
       status: 'created',
       paymentProvider: provider.name,
       failureReason: null,
@@ -274,6 +279,7 @@ route(
       (await lookups.get('promo_use', `${code}:${user.userId}`))
     )
       rejection = 'already_used';
+    if (!rejection && !promoFitsCurrency(promo!, o.currency)) rejection = 'wrong_currency';
     if (rejection) {
       return json({
         order: orderView(o, await coverThumb(o)),

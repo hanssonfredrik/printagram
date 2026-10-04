@@ -10,6 +10,7 @@ import {
 import type {
   AuthLevel,
   BookFormat,
+  Currency,
   BookStatus,
   ImportJobStatus,
   LibraryStatus,
@@ -140,7 +141,8 @@ export interface OrderRow {
   discountCents: number;
   promoCode: string | null;
   amountCents: number;
-  currency: 'eur';
+  /** Fixed when the order is created, from the site language (currencyForLang). */
+  currency: Currency;
   status: OrderStatus;
   paymentProvider: 'fake' | 'stripe';
   failureReason: string | null;

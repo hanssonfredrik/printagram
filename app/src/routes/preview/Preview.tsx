@@ -6,7 +6,6 @@ import {
   LANGS,
   aspectOf,
   effectivePpi,
-  fmtEuro,
   effectiveFullBleed,
   fullBleedApplies,
   MAX_TEXT_LENGTH,
@@ -33,6 +32,7 @@ import { PageRenderer } from '@/components/PageRenderer';
 import { api } from '@/services';
 import { useDraft } from '@/state/draft';
 import { saveCurrentDraft, useBook } from '@/state/useBook';
+import { useMoney, usePriceList } from '@/state/price';
 import { Arrange } from './Arrange';
 import {
   insertTextPage,
@@ -52,6 +52,8 @@ export function Preview() {
   const book = useBook();
   const t = useT();
   const lang = useLang((x) => x.lang);
+  const money = useMoney();
+  const prices = usePriceList();
   const [saving, setSaving] = useState(false);
   const [saveErr, setSaveErr] = useState<string | null>(null);
   const [view, setView] = useState<View>('pages');
@@ -455,7 +457,7 @@ export function Preview() {
             d.format === 'square' ? t.preview.square : t.preview.portrait,
           )}
         </div>
-        <div className="tiny muted">{t.preview.pdfPrice(fmtEuro(book.priceCents, lang))}</div>
+        <div className="tiny muted">{t.preview.pdfPrice(money(prices.baseCents))}</div>
       </WizardBar>
     </div>
   );

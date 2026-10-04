@@ -7,7 +7,7 @@ import {
   useElements,
   useStripe,
 } from '@stripe/react-stripe-js';
-import { fmtEuro, isStripeTestKey } from '@printagram/shared';
+import { fmtMoney, isStripeTestKey, type Currency } from '@printagram/shared';
 import { Button } from '@/components/ui';
 import { useLang, useT } from '@/i18n';
 import { StripeTestCards } from './StripeTestCards';
@@ -23,6 +23,7 @@ export interface StripeBoxProps {
   publishableKey: string;
   clientSecret: string;
   amountCents: number;
+  currency: Currency;
   orderId: string;
   email: string;
   beforePay: () => Promise<boolean>;
@@ -77,6 +78,7 @@ export default function StripeBox(props: StripeBoxProps) {
 
 function Inner({
   amountCents,
+  currency,
   orderId,
   email,
   beforePay,
@@ -169,7 +171,9 @@ function Inner({
         disabled={!ready || processing}
         style={{ opacity: processing ? 0.7 : 1 }}
       >
-        {processing ? t.checkout.processing : t.checkout.stripe.pay(fmtEuro(amountCents, lang))}
+        {processing
+          ? t.checkout.processing
+          : t.checkout.stripe.pay(fmtMoney(amountCents, currency, lang))}
       </Button>
     </div>
   );

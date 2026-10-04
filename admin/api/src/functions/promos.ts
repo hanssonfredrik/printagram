@@ -27,7 +27,7 @@ adminRoute('promosList', { methods: ['GET'], route: 'promos' }, async () => {
   return json({ items: all });
 });
 
-/** POST promos { code, type: percent|fixed, value, validFrom?, validUntil?, maxRedemptions?, perUserOnce? } */
+/** POST promos { code, type: percent|fixed, value, currency? (fixed: eur|sek), validFrom?, validUntil?, maxRedemptions?, perUserOnce? } */
 adminRoute('promosCreate', { methods: ['POST'], route: 'promos' }, async ({ req, note }) => {
   const b = await readJson<Record<string, unknown>>(req);
   const code = normalizePromoCode(String(b.code ?? ''));
@@ -42,11 +42,15 @@ adminRoute('promosCreate', { methods: ['POST'], route: 'promos' }, async ({ req,
       'INVALID_FIELD',
       type === 'percent' ? 'Percent must be 1–100.' : 'Amount is in cents and must be ≥ 1.',
     );
+  const currency = b.currency ?? 'eur';
+  if (type === 'fixed' && currency !== 'eur' && currency !== 'sek')
+    throw badRequest('INVALID_FIELD', 'Currency must be eur or sek.');
   if (await promos.get(code)) throw conflict('EXISTS', `${code} already exists.`);
   const p: PromoDefinition = {
     code,
     type,
     value,
+    ...(type === 'fixed' ? { currency: currency as 'eur' | 'sek' } : {}),
     validFrom: isoOrNull(b.validFrom, 'Valid from'),
     validUntil: isoOrNull(b.validUntil, 'Valid until', true),
     maxRedemptions: maxOrNull(b.maxRedemptions),
@@ -55,7 +59,7 @@ adminRoute('promosCreate', { methods: ['POST'], route: 'promos' }, async ({ req,
     active: true,
   };
   await promos.upsert(p);
-  note(`created ${code} (${type} ${value})`, code);
+  note(`created ${code} (${type} ${value}${type === 'fixed' ? ` ${currency}` : ''})`, code);
   return json(p, 201);
 });
 

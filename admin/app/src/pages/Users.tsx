@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { qs } from '../api';
 import { ErrorMsg, Loading, PageHead, Pager } from '../components';
-import { ago, date, eur } from '../format';
+import { ago, date, moneySum, type CurrencyCents } from '../format';
 import { useApi, useQueryState } from '../useApi';
 
 export interface AdminUser {
@@ -22,7 +22,7 @@ interface UserList {
   total: number;
   offset: number;
   limit: number;
-  items: (AdminUser & { paidOrders: number; paidCents: number })[];
+  items: (AdminUser & { paidOrders: number; paidCents: CurrencyCents })[];
 }
 
 const TYPES = ['registered', 'anonymous', 'admin', 'all'] as const;
@@ -102,7 +102,7 @@ export function Users() {
                     <td>{date(u.createdAt)}</td>
                     <td title={u.lastSeenAt}>{ago(u.lastSeenAt)}</td>
                     <td className="num">{u.paidOrders}</td>
-                    <td className="num">{eur(u.paidCents)}</td>
+                    <td className="num">{moneySum(u.paidCents)}</td>
                   </tr>
                 ))}
               </tbody>

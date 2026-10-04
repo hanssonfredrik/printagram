@@ -448,6 +448,61 @@ describe.skipIf(!up)('API routes against Azurite', () => {
     expect(again.body.rejected?.code).toBe('already_used');
   });
 
+  it('currency: Swedish pays in kronor, a euro order is not reused, fixed codes keep their currency', async () => {
+    const { promos } = await import('../src/lib/tables.js');
+    const suffix = randomUUID().slice(0, 8).toUpperCase();
+    await promos.upsert({
+      code: `EUR${suffix}`,
+      type: 'fixed',
+      value: 200,
+      validFrom: null,
+      validUntil: null,
+      maxRedemptions: null,
+      redemptions: 0,
+      perUserOnce: false,
+      active: true,
+    });
+
+    const headers: Record<string, string> = { 'x-lang': 'en' };
+    const call = client(headers);
+    const { libraryId, photoIds } = await userWithPhotos(call, 1);
+    const book = await bookWith(call, libraryId, photoIds);
+    type CurrencyOrder = { order: { id: string; amountCents: number; currency: string } };
+
+    const eur = await call<CurrencyOrder>('ordersCreate', 'POST', 'orders', { bookId: book.id });
+    expect(eur.body.order).toMatchObject({ currency: 'eur', amountCents: 900 });
+
+    headers['x-lang'] = 'sv';
+    const sek = await call<CurrencyOrder>('ordersCreate', 'POST', 'orders', { bookId: book.id });
+    expect(sek.body.order).toMatchObject({ currency: 'sek', amountCents: 8900 });
+    expect(sek.body.order.id).not.toBe(eur.body.order.id);
+    const sekAgain = await call<CurrencyOrder>('ordersCreate', 'POST', 'orders', {
+      bookId: book.id,
+    });
+    expect(sekAgain.body.order.id).toBe(sek.body.order.id);
+
+    const id = sek.body.order.id;
+    const refused = await call<{ rejected?: { code: string; reason: string } }>(
+      'ordersPromo',
+      'POST',
+      `orders/${id}/promo`,
+      { code: `EUR${suffix}` },
+      { id },
+    );
+    expect(refused.body.rejected?.code).toBe('wrong_currency');
+    expect(refused.body.rejected?.reason).toBe('Koden gäller inte i den här valutan.');
+
+    const eurId = eur.body.order.id;
+    const applied = await call<CurrencyOrder>(
+      'ordersPromo',
+      'POST',
+      `orders/${eurId}/promo`,
+      { code: `EUR${suffix}` },
+      { id: eurId },
+    );
+    expect(applied.body.order.amountCents).toBe(700);
+  });
+
   it('languages: X-Lang is remembered, Swedish books keep their language into the PDF', async () => {
     const call = client({ 'x-lang': 'sv' });
     const { libraryId, photoIds } = await userWithPhotos(call, 1);

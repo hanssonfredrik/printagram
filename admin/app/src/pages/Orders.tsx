@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { api, qs } from '../api';
 import { ErrorMsg, Loading, PageHead, Pager, RangePicker, StatusBadge, Tile } from '../components';
-import { bytes, dateTime, defaultRange, eur, num } from '../format';
+import { bytes, dateTime, defaultRange, money, moneySum, num, type CurrencyCents } from '../format';
 import { useApi, useQueryState } from '../useApi';
 
 export interface AdminOrder {
@@ -36,7 +36,12 @@ interface OrderList {
   total: number;
   offset: number;
   limit: number;
-  totals: { count: number; amountCents: number; paidCount: number; paidCents: number };
+  totals: {
+    count: number;
+    amountCents: CurrencyCents;
+    paidCount: number;
+    paidCents: CurrencyCents;
+  };
   items: AdminOrder[];
 }
 
@@ -106,7 +111,7 @@ export function Orders() {
             <Tile
               label="Paid or ready"
               value={num(data.totals.paidCount)}
-              sub={eur(data.totals.paidCents)}
+              sub={moneySum(data.totals.paidCents)}
             />
           </div>
           <div className="card section">
@@ -138,7 +143,7 @@ export function Orders() {
                       </td>
                       <td>{o.paymentProvider}</td>
                       <td>{o.promoCode ?? ''}</td>
-                      <td className="num">{eur(o.amountCents)}</td>
+                      <td className="num">{money(o.amountCents, o.currency)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -254,15 +259,15 @@ export function OrderDetail() {
             <h2>Payment</h2>
             <dl className="kv">
               <dt>Subtotal</dt>
-              <dd>{eur(o.subtotalCents)}</dd>
+              <dd>{money(o.subtotalCents, o.currency)}</dd>
               <dt>Discount</dt>
               <dd>
-                {eur(o.discountCents)}
+                {money(o.discountCents, o.currency)}
                 {o.promoCode ? ` (${o.promoCode})` : ''}
               </dd>
               <dt>Amount</dt>
               <dd>
-                <b>{eur(o.amountCents)}</b> incl. VAT
+                <b>{money(o.amountCents, o.currency)}</b> incl. VAT
               </dd>
               <dt>Provider</dt>
               <dd>{o.paymentProvider === 'fake' ? 'Test payments (no money taken)' : 'Stripe'}</dd>

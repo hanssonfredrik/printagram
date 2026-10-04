@@ -107,7 +107,9 @@ After the first deploy with these changes:
 4. **One host only:** `www.inbunden.com` is on the Static Web App and `inbunden.se` forwards at Loopia. Both redirect to inbunden.com. The Free plan's 2 custom domains are now both used, so any further domains go through Loopia forwards.
 5. **Profiles:** once Inbunden has an Instagram or other public profile, add the URLs as `sameAs` on the Organization in `app/src/seo/jsonld.ts`.
 
-**Prices in the static HTML** come from the live `/api/config` at build time. If you change prices with app settings, redeploy (or re-run the workflow) so the prerendered pages match.
+**Prices in the static HTML** come from the live `/api/config` at build time. If you change prices with app settings, redeploy (or re-run the workflow) so the prerendered pages match. English pages show euros and the Swedish `/sv/...` pages show kronor, each with its own Product offer.
+
+**Currency follows the language.** The Swedish site (`/sv`, or Swedish picked in the language menu) charges in kronor: 89 kr for the PDF, printed books from 299 kr and 499 kr. Everyone else pays in euros. An order keeps the currency it was created in. If someone switches language in checkout, they get a new order in the other currency. The SEK prices are the `PRICE_*_SEK` settings (in öre), and the code defaults match these prices, so you don't need to set anything.
 
 ---
 
@@ -163,7 +165,8 @@ Stripe runs only when `PAYMENT_PROVIDER=stripe` **and** all three keys are set. 
    - URL: `https://inbunden.com/api/stripe/webhook` (or the `*.azurestaticapps.net` host before the domain works).
    - Events: `payment_intent.succeeded`, `payment_intent.payment_failed`, `payment_intent.canceled`, `charge.refunded`.
    - Copy the **Signing secret** `whsec_…`.
-3. **Settings → Payment methods → Payment method domains**: add every domain the site runs on (the `azurestaticapps.net` host and each custom domain). Apple Pay and Google Pay only show up on registered domains.
+3. **Settings → Payments → Payment methods**: turn on **Cards**, **Apple Pay** (under Wallets) and **Klarna**, and turn the rest off. Checkout offers whatever is on here. Klarna only shows when the currency matches the customer's country, which is why the Swedish site charges in SEK.
+   **Settings → Payment method domains**: add every domain the site runs on (the `azurestaticapps.net` host and each custom domain). Apple Pay and Google Pay only show up on registered domains.
 4. Switch the provider:
    ```powershell
    az staticwebapp appsettings set -n <swa name> -g printagram-rg --setting-names PAYMENT_PROVIDER=stripe STRIPE_SECRET_KEY=<sk_test_…> STRIPE_PUBLISHABLE_KEY=<pk_test_…> STRIPE_WEBHOOK_SECRET=<whsec_…>

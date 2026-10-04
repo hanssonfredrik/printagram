@@ -10,6 +10,7 @@ import {
   users,
 } from '../core.js';
 import { adminRoute } from '../lib/route.js';
+import { noCents, orderCurrency, parseCurrency } from '../lib/money.js';
 import { getVatRatePct } from '../lib/settings.js';
 import { addTo, emptyTotals, splitVat, type VatTotals } from '../lib/vat.js';
 import { orderView, type OrderLike } from '../lib/views.js';
@@ -61,12 +62,13 @@ adminRoute('ordersList', { methods: ['GET'], route: 'orders' }, async ({ req }) 
   all.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const limit = Math.min(500, Math.max(1, Number(req.query.get('limit') ?? 100) || 100));
   const offset = Math.max(0, Number(req.query.get('offset') ?? 0) || 0);
-  const totals = { count: all.length, amountCents: 0, paidCount: 0, paidCents: 0 };
+  const totals = { count: all.length, amountCents: noCents(), paidCount: 0, paidCents: noCents() };
   for (const o of all) {
-    totals.amountCents += o.amountCents;
+    const c = orderCurrency(o);
+    totals.amountCents[c] += o.amountCents;
     if (o.status === 'paid' || o.status === 'ready') {
       totals.paidCount++;
-      totals.paidCents += o.amountCents;
+      totals.paidCents[c] += o.amountCents;
     }
   }
   return json({
@@ -127,13 +129,15 @@ adminRoute(
 );
 
 /**
- * GET reports/vat?from=&to=&provider=stripe|fake|all
+ * GET reports/vat?from=&to=&provider=stripe|fake|all&currency=eur|sek
+ * One currency per report: kronor (Swedish site) and euros are never added up.
  * Sales = orders paid (paidAt) in the period with status paid/ready. Refunded orders paid in the
  * period are listed apart: refunds are not dated in our data, so check them against Stripe.
  */
 adminRoute('reportsVat', { methods: ['GET'], route: 'reports/vat' }, async ({ req }) => {
   const { from, to } = range(req.query);
   const provider = req.query.get('provider') ?? 'stripe';
+  const currency = parseCurrency(req.query.get('currency'));
   const rate = await getVatRatePct();
   const byUser = await emails();
   const sales = emptyTotals();
@@ -156,6 +160,7 @@ adminRoute('reportsVat', { methods: ['GET'], route: 'reports/vat' }, async ({ re
 
   for await (const o of orders.scanAll()) {
     if (provider !== 'all' && o.paymentProvider !== provider) continue;
+    if (orderCurrency(o) !== currency) continue;
     if (!inRange(o.paidAt, from, to)) continue;
     if (o.status !== 'paid' && o.status !== 'ready' && o.status !== 'refunded') continue;
     const s = splitVat(o.amountCents, rate);
@@ -186,7 +191,7 @@ adminRoute('reportsVat', { methods: ['GET'], route: 'reports/vat' }, async ({ re
     to,
     provider,
     ratePct: rate,
-    currency: 'eur',
+    currency,
     sales,
     refunded,
     byMonth: [...months]

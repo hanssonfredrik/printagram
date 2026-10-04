@@ -5,6 +5,7 @@ import {
   MAX_EXPORT_BYTES,
   MAX_PHOTOS_PER_BOOK,
   MAX_PHOTOS_PER_LIBRARY,
+  normalizePricing,
 } from '@printagram/shared';
 import { api } from '@/services';
 import { ApiClientError } from '@/services/api';
@@ -49,7 +50,7 @@ export const useSession = create<SessionState>((set, get) => ({
     try {
       const [config, me] = await Promise.all([api.getConfig(), api.me()]);
       set({
-        config,
+        config: { ...config, pricing: normalizePricing(config.pricing) },
         user: me?.user ?? null,
         libraries: me?.libraries ?? [],
         ready: true,

@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router';
 import type { Photo } from '@printagram/shared';
-import { fmtEuro, monthKey, monthShort, parseMonthKey } from '@printagram/shared';
+import { monthKey, monthShort, parseMonthKey } from '@printagram/shared';
 import {
   Button,
   Chip,
@@ -13,6 +13,7 @@ import {
 } from '@/components/ui';
 import { chosenPhotos, useDraft, visiblePhotos } from '@/state/draft';
 import { useBook } from '@/state/useBook';
+import { useMoney, usePriceList } from '@/state/price';
 import { useLibrary } from '@/state/library';
 import { useConfig, useSession } from '@/state/session';
 import { useLang, useT } from '@/i18n';
@@ -21,6 +22,8 @@ import s from './select.module.css';
 export function Select() {
   const t = useT();
   const lang = useLang((x) => x.lang);
+  const money = useMoney();
+  const prices = usePriceList();
   const nav = useNavigate();
   const cfg = useConfig();
   const d = useDraft();
@@ -344,7 +347,7 @@ export function Select() {
             <div className="tiny muted">
               {overLimit
                 ? t.select.maxPhotos(cfg.limits.maxPhotosPerBook)
-                : t.select.pagesPrice(total, fmtEuro(book.priceCents, lang))}
+                : t.select.pagesPrice(total, money(prices.baseCents))}
             </div>
           </>
         )}

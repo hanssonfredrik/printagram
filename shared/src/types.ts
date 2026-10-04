@@ -114,7 +114,7 @@ export interface Order {
   promoCode: string | null;
   /** What the customer pays: subtotal − discount (never below 0). */
   amountCents: number;
-  currency: 'eur';
+  currency: Currency;
   paymentProvider: PaymentProviderName;
   /** Last payment failure shown to the user (e.g. card declined); cleared on success. */
   failureReason: string | null;
@@ -135,12 +135,16 @@ export interface UserInfo {
   lang: Lang;
 }
 
-export interface PricingConfig {
+export type Currency = 'eur' | 'sek';
+
+export interface PriceList {
   baseCents: number;
-  currency: 'eur';
   /** "From" prices shown for printed books (not orderable yet). */
   printedFrom: { softcoverCents: number; hardcoverCents: number };
 }
+
+/** One price list per currency; the site language picks which one applies (currencyForLang). */
+export type PricingConfig = Record<Currency, PriceList>;
 
 export interface AppConfig {
   connectEnabled: boolean;

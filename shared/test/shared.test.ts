@@ -12,7 +12,10 @@ import {
   bookText,
   captionParts,
   fmtDate,
-  fmtEuro,
+  fmtMoney,
+  currencyForLang,
+  normalizePricing,
+  promoFitsCurrency,
   fmtSpan,
   isDefaultTitle,
   langFromAcceptLanguage,
@@ -74,17 +77,35 @@ describe('pricing', () => {
     expect(totalPages([{ template: '1-margin', photoIds: ['a'] }])).toBe(4);
   });
 
-  it('prices a PDF at a flat €9 whatever its size', () => {
+  it('prices a PDF at a flat €9 or 89 kr whatever its size', () => {
     expect(pdfPriceCents()).toBe(900);
-    expect(pdfPriceCents(DEFAULT_PRICING)).toBe(900);
-    expect(pdfPriceCents({ ...DEFAULT_PRICING, baseCents: 1200 })).toBe(1200);
+    expect(pdfPriceCents(DEFAULT_PRICING, 'eur')).toBe(900);
+    expect(pdfPriceCents(DEFAULT_PRICING, 'sek')).toBe(8900);
+    expect(
+      pdfPriceCents({ ...DEFAULT_PRICING, eur: { ...DEFAULT_PRICING.eur, baseCents: 1200 } }),
+    ).toBe(1200);
   });
 
-  it('formats euros like the design', () => {
-    expect(fmtEuro(900)).toBe('€9');
-    expect(fmtEuro(915)).toBe('€9,15');
-    expect(fmtEuro(15)).toBe('€0,15');
-    expect(fmtEuro(1200)).toBe('€12');
+  it('falls back to the default prices for an old single-currency config', () => {
+    expect(normalizePricing({ baseCents: 900, currency: 'eur' })).toBe(DEFAULT_PRICING);
+    expect(normalizePricing(undefined)).toBe(DEFAULT_PRICING);
+    const custom = { ...DEFAULT_PRICING, sek: { ...DEFAULT_PRICING.sek, baseCents: 9900 } };
+    expect(normalizePricing(custom)).toBe(custom);
+  });
+
+  it('picks kronor for Swedish and euros for everyone else', () => {
+    expect(currencyForLang('sv')).toBe('sek');
+    expect(currencyForLang('en')).toBe('eur');
+  });
+
+  it('formats money like the design', () => {
+    expect(fmtMoney(900, 'eur')).toBe('€9');
+    expect(fmtMoney(915, 'eur')).toBe('€9,15');
+    expect(fmtMoney(15, 'eur')).toBe('€0,15');
+    expect(fmtMoney(1200, 'eur')).toBe('€12');
+    expect(fmtMoney(8900, 'sek', 'sv')).toBe('89\u{a0}kr');
+    expect(fmtMoney(7120, 'sek', 'sv')).toBe('71,20\u{a0}kr');
+    expect(fmtMoney(8900, 'sek', 'en')).toBe('SEK\u{a0}89');
   });
 });
 
@@ -292,6 +313,12 @@ describe('discount codes', () => {
     expect(discountCents(900, { type: 'fixed', value: 1500 })).toBe(900);
     expect(discountCents(900, { type: 'percent', value: 100 })).toBe(900);
   });
+  it('applies fixed amounts only in their own currency', () => {
+    expect(promoFitsCurrency({ type: 'percent' }, 'sek')).toBe(true);
+    expect(promoFitsCurrency({ type: 'fixed' }, 'eur')).toBe(true);
+    expect(promoFitsCurrency({ type: 'fixed' }, 'sek')).toBe(false);
+    expect(promoFitsCurrency({ type: 'fixed', currency: 'sek' }, 'sek')).toBe(true);
+  });
   it('checks validity rules', () => {
     const now = new Date('2026-06-01T00:00:00Z');
     expect(promoRejection(null, now)).toBe('not_found');
@@ -355,8 +382,8 @@ describe('languages', () => {
     expect(bookText('sv').madeWith).toBe('Skapad med Inbunden');
     expect(templateLabel('4-grid', 'sv')).toBe('Rutnät med fyra');
     expect(templateLabel('4-grid')).toBe('Grid of four');
-    expect(fmtEuro(900, 'sv')).toBe('9\u{a0}€');
-    expect(fmtEuro(915, 'sv')).toBe('9,15\u{a0}€');
+    expect(fmtMoney(900, 'eur', 'sv')).toBe('9\u{a0}€');
+    expect(fmtMoney(915, 'eur', 'sv')).toBe('9,15\u{a0}€');
     expect(promoMessage('expired', 'sv')).toBe('Koden har gått ut.');
     const pages = buildPages([{ template: '1-margin', photoIds: ['a'] }]);
     expect(pageLabel(pages[0]!, pages.length, 'sv')).toBe('Omslag');

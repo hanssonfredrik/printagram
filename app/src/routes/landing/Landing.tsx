@@ -1,10 +1,10 @@
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router';
-import { fmtEuro, photoSpan } from '@printagram/shared';
+import { photoSpan } from '@printagram/shared';
 import { Button, Card } from '@/components/ui';
 import { PageLink } from '@/components/PageLink';
 import { PageRenderer } from '@/components/PageRenderer';
-import { useConfig } from '@/state/session';
+import { useMoney, usePriceList } from '@/state/price';
 import { useDraft } from '@/state/draft';
 import { useLang, useT } from '@/i18n';
 import { fillPrice } from '@/seo/jsonld';
@@ -16,13 +16,14 @@ export function Landing() {
   const t = useT();
   const tl = t.landing;
   const lang = useLang((x) => x.lang);
-  const cfg = useConfig();
   const setAdding = useDraft((d) => d.setAdding);
   const start = () => {
     setAdding(false);
     nav('/start');
   };
-  const price = fmtEuro(cfg.pricing.baseCents, lang);
+  const money = useMoney();
+  const prices = usePriceList();
+  const price = money(prices.baseCents);
   const samples = useMemo(() => {
     const photos = samplePhotos(tl.samples);
     return {
@@ -141,7 +142,7 @@ export function Landing() {
           <Card bordered gap={6} className={s.priceCard}>
             <div className="semibold">{tl.pricing.softcover.title}</div>
             <div className={s.price}>
-              {tl.pricing.from(fmtEuro(cfg.pricing.printedFrom.softcoverCents, lang))}
+              {tl.pricing.from(money(prices.printedFrom.softcoverCents))}
             </div>
             <div className="muted">{tl.pricing.softcover.text}</div>
             <div className={`${s.priceNote} muted`}>{tl.pricing.comingSoon}</div>
@@ -149,7 +150,7 @@ export function Landing() {
           <Card bordered gap={6} className={s.priceCard}>
             <div className="semibold">{tl.pricing.hardcover.title}</div>
             <div className={s.price}>
-              {tl.pricing.from(fmtEuro(cfg.pricing.printedFrom.hardcoverCents, lang))}
+              {tl.pricing.from(money(prices.printedFrom.hardcoverCents))}
             </div>
             <div className="muted">{tl.pricing.hardcover.text}</div>
             <div className={`${s.priceNote} muted`}>{tl.pricing.comingSoon}</div>

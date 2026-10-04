@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router';
 import { qs } from '../api';
 import { ErrorMsg, Loading, PageHead, Tile } from '../components';
-import { download, eur, num, toCsv } from '../format';
+import { download, money, num, toCsv } from '../format';
 import { useApi } from '../useApi';
 
 interface Totals {
@@ -16,6 +16,7 @@ interface VatReport {
   from: string;
   to: string;
   provider: string;
+  currency: 'eur' | 'sek';
   ratePct: number;
   sales: Totals;
   refunded: Totals;
@@ -72,17 +73,19 @@ export function Vat() {
   const [month, setMonth] = useState(now.getUTCMonth() + 1);
   const [quarter, setQuarter] = useState(Math.floor(now.getUTCMonth() / 3) + 1);
   const [provider, setProvider] = useState('stripe');
+  const [currency, setCurrency] = useState<'eur' | 'sek'>('eur');
   const period = periodRange(kind, year, kind === 'quarter' ? quarter : month);
   const { data, error, loading } = useApi<VatReport>(
-    `reports/vat${qs({ from: period.from, to: period.to, provider })}`,
+    `reports/vat${qs({ from: period.from, to: period.to, provider, currency })}`,
   );
   const years = Array.from({ length: 4 }, (_, i) => now.getUTCFullYear() - i);
 
   function exportCsv() {
     if (!data) return;
     const e = (c: number) => (c / 100).toFixed(2);
+    const cur = data.currency.toUpperCase();
     download(
-      `inbunden-vat-${period.label}-${provider}.csv`,
+      `inbunden-vat-${period.label}-${provider}-${data.currency}.csv`,
       toCsv([
         [
           'Paid at (UTC)',
@@ -91,11 +94,11 @@ export function Vat() {
           'Status',
           'Provider',
           'Promo',
-          'Subtotal EUR',
-          'Discount EUR',
-          'Gross EUR',
-          `VAT ${data.ratePct}% EUR`,
-          'Net EUR',
+          `Subtotal ${cur}`,
+          `Discount ${cur}`,
+          `Gross ${cur}`,
+          `VAT ${data.ratePct}% ${cur}`,
+          `Net ${cur}`,
           'Stripe PaymentIntent',
         ],
         ...data.rows.map((r) => [
@@ -205,6 +208,18 @@ export function Vat() {
           <option value="fake">Test payments</option>
           <option value="all">All</option>
         </select>
+        <div className="seg" role="group" aria-label="Currency">
+          {(['eur', 'sek'] as const).map((c) => (
+            <button
+              key={c}
+              type="button"
+              className={currency === c ? 'on' : ''}
+              onClick={() => setCurrency(c)}
+            >
+              {c.toUpperCase()}
+            </button>
+          ))}
+        </div>
         <span className="muted">
           {period.from} – {period.to}
         </span>
@@ -216,15 +231,18 @@ export function Vat() {
           <div className="grid tiles">
             <Tile
               label="Sales incl. VAT"
-              value={eur(data.sales.grossCents)}
+              value={money(data.sales.grossCents, data.currency)}
               sub={`${num(data.sales.count)} orders`}
             />
-            <Tile label={`Output VAT (${data.ratePct} %)`} value={eur(data.sales.vatCents)} />
-            <Tile label="Net sales" value={eur(data.sales.netCents)} />
+            <Tile
+              label={`Output VAT (${data.ratePct} %)`}
+              value={money(data.sales.vatCents, data.currency)}
+            />
+            <Tile label="Net sales" value={money(data.sales.netCents, data.currency)} />
             <Tile
               label="Refunded"
-              value={eur(data.refunded.grossCents)}
-              sub={`${num(data.refunded.count)} orders · VAT ${eur(data.refunded.vatCents)}`}
+              value={money(data.refunded.grossCents, data.currency)}
+              sub={`${num(data.refunded.count)} orders · VAT ${money(data.refunded.vatCents, data.currency)}`}
             />
           </div>
 
@@ -246,9 +264,9 @@ export function Vat() {
                     <tr key={m.month}>
                       <td>{m.month}</td>
                       <td className="num">{num(m.count)}</td>
-                      <td className="num">{eur(m.grossCents)}</td>
-                      <td className="num">{eur(m.vatCents)}</td>
-                      <td className="num">{eur(m.netCents)}</td>
+                      <td className="num">{money(m.grossCents, data.currency)}</td>
+                      <td className="num">{money(m.vatCents, data.currency)}</td>
+                      <td className="num">{money(m.netCents, data.currency)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -256,9 +274,9 @@ export function Vat() {
                   <tr>
                     <td>Total</td>
                     <td className="num">{num(data.sales.count)}</td>
-                    <td className="num">{eur(data.sales.grossCents)}</td>
-                    <td className="num">{eur(data.sales.vatCents)}</td>
-                    <td className="num">{eur(data.sales.netCents)}</td>
+                    <td className="num">{money(data.sales.grossCents, data.currency)}</td>
+                    <td className="num">{money(data.sales.vatCents, data.currency)}</td>
+                    <td className="num">{money(data.sales.netCents, data.currency)}</td>
                   </tr>
                 </tfoot>
               </table>
@@ -270,8 +288,9 @@ export function Vat() {
             per order. The rate is set under <Link to="/settings">Settings</Link>. Orders are
             counted on the payment date. Refunded orders paid in this period are shown apart because
             refund dates are not stored here; check them against Stripe. Customer country is not
-            recorded, so sales to other EU countries (OSS) cannot be split out yet. Confirm the rate
-            and treatment with your accountant.
+            recorded, so sales to other EU countries (OSS) cannot be split out yet. Each currency is
+            reported on its own: SEK orders come from the Swedish site, EUR orders from the English
+            one. Confirm the rate and treatment with your accountant.
           </div>
         </>
       ) : null}

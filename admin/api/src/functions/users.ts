@@ -14,6 +14,7 @@ import {
   users,
   type UserRow,
 } from '../core.js';
+import { noCents, orderCurrency, type CurrencyCents } from '../lib/money.js';
 import { adminRoute } from '../lib/route.js';
 import { bookView, libraryView, orderView, userView } from '../lib/views.js';
 
@@ -37,24 +38,25 @@ adminRoute('usersList', { methods: ['GET'], route: 'users' }, async ({ req }) =>
   const type = req.query.get('type') ?? 'registered';
   const sort = req.query.get('sort') === 'seen' ? 'lastSeenAt' : 'createdAt';
 
-  const stats = new Map<string, { orders: number; paidCents: number }>();
+  const stats = new Map<string, { orders: number; paidCents: CurrencyCents }>();
   for await (const o of orders.scanAll()) {
-    const s = stats.get(o.userId) ?? { orders: 0, paidCents: 0 };
+    const s = stats.get(o.userId) ?? { orders: 0, paidCents: noCents() };
     if (PAID.has(o.status)) {
       s.orders++;
-      s.paidCents += o.amountCents;
+      s.paidCents[orderCurrency(o)] += o.amountCents;
     }
     stats.set(o.userId, s);
   }
 
-  const out: (ReturnType<typeof userView> & { paidOrders: number; paidCents: number })[] = [];
+  const out: (ReturnType<typeof userView> & { paidOrders: number; paidCents: CurrencyCents })[] =
+    [];
   for await (const u of users.scanAll()) {
     if (type === 'registered' && !u.email) continue;
     if (type === 'anonymous' && u.email) continue;
     if (type === 'admin' && u.isAdmin !== true) continue;
     if (q && !(u.email ?? '').includes(q) && !u.userId.includes(q)) continue;
     const s = stats.get(u.userId);
-    out.push({ ...userView(u), paidOrders: s?.orders ?? 0, paidCents: s?.paidCents ?? 0 });
+    out.push({ ...userView(u), paidOrders: s?.orders ?? 0, paidCents: s?.paidCents ?? noCents() });
   }
   out.sort((a, b) => (b[sort] ?? '').localeCompare(a[sort] ?? ''));
   return json(page(out, req));

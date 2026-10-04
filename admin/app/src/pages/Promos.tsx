@@ -1,13 +1,15 @@
 import { useState, type FormEvent } from 'react';
 import { api } from '../api';
 import { ErrorMsg, Loading, PageHead } from '../components';
-import { date, eur } from '../format';
+import { date, money } from '../format';
 import { useApi } from '../useApi';
 
 interface Promo {
   code: string;
   type: 'percent' | 'fixed';
   value: number;
+  /** Currency of a fixed amount; missing means euros. */
+  currency?: 'eur' | 'sek';
   validFrom: string | null;
   validUntil: string | null;
   maxRedemptions: number | null;
@@ -20,6 +22,7 @@ const blank = {
   code: '',
   type: 'percent',
   value: '',
+  currency: 'eur',
   validUntil: '',
   maxRedemptions: '',
   perUserOnce: false,
@@ -58,6 +61,7 @@ export function Promos() {
             code: form.code,
             type: form.type,
             value,
+            currency: form.type === 'fixed' ? form.currency : undefined,
             validUntil: form.validUntil || null,
             maxRedemptions: form.maxRedemptions || null,
             perUserOnce: form.perUserOnce,
@@ -93,7 +97,7 @@ export function Promos() {
                 {data.items.map((p) => (
                   <tr key={p.code}>
                     <td className="mono">{p.code}</td>
-                    <td>{p.type === 'percent' ? `${p.value} %` : eur(p.value)}</td>
+                    <td>{p.type === 'percent' ? `${p.value} %` : money(p.value, p.currency)}</td>
                     <td>
                       {p.redemptions}
                       {p.maxRedemptions !== null ? ` / ${p.maxRedemptions}` : ''}
@@ -154,11 +158,25 @@ export function Promos() {
             Type
             <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })}>
               <option value="percent">Percent</option>
-              <option value="fixed">Fixed amount (€)</option>
+              <option value="fixed">Fixed amount</option>
             </select>
           </label>
+          {form.type === 'fixed' ? (
+            <label className="field">
+              Currency
+              <select
+                value={form.currency}
+                onChange={(e) => setForm({ ...form, currency: e.target.value })}
+              >
+                <option value="eur">€ (English site)</option>
+                <option value="sek">kr (Swedish site)</option>
+              </select>
+            </label>
+          ) : null}
           <label className="field">
-            {form.type === 'percent' ? 'Percent (1–100)' : 'Amount in €'}
+            {form.type === 'percent'
+              ? 'Percent (1–100)'
+              : `Amount in ${form.currency === 'sek' ? 'kr' : '€'}`}
             <input
               required
               type="number"

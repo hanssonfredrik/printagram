@@ -100,21 +100,24 @@ describe('structured data', () => {
     expect(() => JSON.parse(JSON.stringify(data))).not.toThrow();
   });
 
-  it('adds the product offer only with real payments, at the configured price', () => {
-    const data = structuredData({
-      key: 'landing',
-      lang: 'sv',
-      t: messagesFor('sv'),
-      cfg: cfg('stripe'),
-      configLoaded: true,
-      site: SITE,
-      price: '9 €',
-    });
-    const product = graph(data).find((n) => n['@type'] === 'Product')!;
-    expect(product.offers).toMatchObject({
-      price: (DEFAULT_PRICING.baseCents / 100).toFixed(2),
+  it('adds the product offer only with real payments, in the page language currency', () => {
+    const offer = (lang: 'en' | 'sv') =>
+      graph(
+        structuredData({
+          key: 'landing',
+          lang,
+          t: messagesFor(lang),
+          cfg: cfg('stripe'),
+          configLoaded: true,
+          site: SITE,
+          price: lang === 'sv' ? '89 kr' : '€9',
+        }),
+      ).find((n) => n['@type'] === 'Product')!.offers;
+    expect(offer('en')).toMatchObject({
+      price: (DEFAULT_PRICING.eur.baseCents / 100).toFixed(2),
       priceCurrency: 'EUR',
     });
+    expect(offer('sv')).toMatchObject({ price: '89.00', priceCurrency: 'SEK' });
   });
 
   it('leaves the offer out while Stripe runs with test keys', () => {

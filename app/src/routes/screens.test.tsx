@@ -53,6 +53,13 @@ describe('screens (against the in-memory test API)', () => {
     expect(screen.getByText('Is it safe?')).toBeTruthy();
   });
 
+  it('shows Swedish visitors prices in kronor', async () => {
+    renderAt('/sv');
+    expect(await screen.findByText('PDF 89 kr')).toBeTruthy();
+    expect(screen.getByText('från 299 kr')).toBeTruthy();
+    expect(screen.getByText('från 499 kr')).toBeTruthy();
+  });
+
   it('landing → choose source → export guide → waiting → upload', async () => {
     const { router } = renderAt('/');
     fireEvent.click((await screen.findAllByText('Start your book'))[0]!);

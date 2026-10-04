@@ -1,4 +1,10 @@
-import { paymentsAreTest, type AppConfig, type Lang } from '@printagram/shared';
+import {
+  currencyForLang,
+  paymentsAreTest,
+  pdfPriceCents,
+  type AppConfig,
+  type Lang,
+} from '@printagram/shared';
 import type { Messages } from '@/i18n';
 import { absoluteUrl, GUIDE_KEYS, PAGES, pathFor, type PageKey } from './routes';
 
@@ -94,8 +100,8 @@ export function structuredData(opts: {
         brand: { '@id': orgId },
         offers: {
           '@type': 'Offer',
-          price: (cfg.pricing.baseCents / 100).toFixed(2),
-          priceCurrency: cfg.pricing.currency.toUpperCase(),
+          price: (pdfPriceCents(cfg.pricing, currencyForLang(lang)) / 100).toFixed(2),
+          priceCurrency: currencyForLang(lang).toUpperCase(),
           availability: 'https://schema.org/InStock',
           url: home,
           seller: { '@id': orgId },
