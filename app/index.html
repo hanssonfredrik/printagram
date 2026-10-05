@@ -8,29 +8,42 @@
     <meta name="msvalidate.01" content="171CC14FCE520059AF71A1352D5AD3B8" />
     <meta
       name="description"
-      content="Inbunden turns your Instagram posts into a print-ready photo book. Pick the photos, we lay out the pages."
+      content="Turn your Instagram posts into a photo book. Pick the photos, we lay out the pages and you download a print-ready PDF for one flat price."
     />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Inbunden" />
-    <meta property="og:title" content="Inbunden: your Instagram as a real book" />
+    <meta
+      property="og:title"
+      content="Inbunden: a photo book from your Instagram, as a print-ready PDF"
+    />
     <meta
       property="og:description"
-      content="Pick the photos, we lay out the pages. A print-ready PDF of your Instagram, ready in minutes."
+      content="Turn your Instagram posts into a photo book. Pick the photos, we lay out the pages and you download a print-ready PDF for one flat price."
     />
     <meta property="og:image" content="%OG_IMAGE%" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
     <meta name="twitter:card" content="summary_large_image" />
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <!-- Self-hosted fonts (src/styles/fonts.css): the two the first screen needs load early. -->
     <link
-      href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Albert+Sans:wght@400;500;600&display=swap"
-      rel="stylesheet"
+      rel="preload"
+      href="/fonts/web/Lora-normal-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
     />
-    <title>Inbunden: your Instagram as a real book</title>
+    <link
+      rel="preload"
+      href="/fonts/web/AlbertSans-normal-latin.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <title>Inbunden: a photo book from your Instagram, as a print-ready PDF</title>
   </head>
   <body>
     <div id="root"></div>

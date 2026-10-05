@@ -5,9 +5,9 @@ export const seo = {
   locale: 'en_GB',
   pages: {
     landing: {
-      title: 'Inbunden: your Instagram as a real book',
+      title: 'Inbunden: a photo book from your Instagram, as a print-ready PDF',
       description:
-        'Inbunden turns your Instagram posts into a print-ready photo book. Pick the photos, we lay out the pages, you download a PDF for one flat price.',
+        'Turn your Instagram posts into a photo book. Pick the photos, we lay out the pages and you download a print-ready PDF for one flat price.',
     },
     about: {
       title: 'About Inbunden',
@@ -15,7 +15,7 @@ export const seo = {
         'Inbunden is a photo book service from Sweden that turns your Instagram posts into a print-ready book. Who is behind it and how your photos are handled.',
     },
     guides: {
-      title: 'Guides: photo books from Instagram',
+      title: 'Photo book guides: from Instagram to print',
       description:
         'Step-by-step guides to making a photo book from your Instagram: downloading your Instagram data, choosing photos and printing the finished PDF.',
     },
@@ -37,4 +37,6 @@ export const seo = {
       'A photo book made from your Instagram posts, laid out automatically and delivered as a print-ready PDF with bleed and an sRGB output intent. One flat price, whatever the number of pages.',
   },
   breadcrumbHome: 'Inbunden',
+  imageAlt:
+    'The Inbunden start page with a sample photo book and a phone showing Instagram photos.',
 };

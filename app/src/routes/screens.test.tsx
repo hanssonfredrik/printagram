@@ -64,7 +64,7 @@ describe('screens (against the in-memory test API)', () => {
     const { router } = renderAt('/');
     fireEvent.click((await screen.findAllByText('Start your book'))[0]!);
     expect(await screen.findByText('Bring in your photos')).toBeTruthy();
-    expect(screen.getByText('Connect Instagram', { selector: 'div' })).toBeTruthy();
+    expect(await screen.findByText('Connect Instagram', { selector: 'div' })).toBeTruthy();
     fireEvent.click(screen.getByText('Show me how'));
     expect(await screen.findByText('Get your photos from Instagram')).toBeTruthy();
     expect(screen.getByText('Choose Posts only')).toBeTruthy();

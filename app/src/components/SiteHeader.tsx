@@ -28,7 +28,7 @@ export function SiteHeader({
   const nav = useNavigate();
   const location = useLocation();
   const user = useSession((x) => x.user);
-  const ready = useSession((x) => x.ready);
+  const configLoaded = useSession((x) => x.configLoaded);
   const testMode = useSession((x) => paymentsAreTest(x.config.payment));
   const setAdding = useDraft((d) => d.setAdding);
   // The menu belongs to the page it was opened on, so navigating closes it.
@@ -107,7 +107,7 @@ export function SiteHeader({
         <img src="/logo.svg" alt="" width={28} height={28} className={s.mark} />
         {t.common.brand}
       </PageLink>
-      {ready && testMode && (
+      {configLoaded && testMode && (
         <span className={s.testPill} title={t.landing.testModeTitle}>
           {t.landing.testMode}
         </span>

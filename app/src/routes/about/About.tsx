@@ -1,12 +1,18 @@
 import { useNavigate } from 'react-router';
 import { Button } from '@/components/ui';
+import { Rich } from '@/components/Rich';
+import { UpdatedDate } from '@/components/UpdatedDate';
 import { useT } from '@/i18n';
+import { fillPrice } from '@/seo/jsonld';
+import { useMoney, usePriceList } from '@/state/price';
 
 /** Static About page: what the name means, what the service does, privacy, who is behind it. */
 export function About() {
   const nav = useNavigate();
   const t = useT();
   const ta = t.about;
+  const money = useMoney();
+  const price = money(usePriceList().baseCents);
 
   return (
     <div className="screen">
@@ -18,7 +24,8 @@ export function About() {
           <h1 className="h1" style={{ fontSize: 40, marginBottom: 8 }}>
             {ta.title}
           </h1>
-          <p className="muted pretty">{ta.lead}</p>
+          <p className="muted pretty">{fillPrice(ta.lead, price)}</p>
+          <UpdatedDate page="about" label={ta.updated} style={{ marginTop: 6 }} />
         </div>
 
         <section className="stack stack-8">
@@ -27,7 +34,7 @@ export function About() {
             {ta.facts.map((f) => (
               <div key={f.label} className="facts__row">
                 <dt className="muted">{f.label}</dt>
-                <dd>{f.value}</dd>
+                <dd>{fillPrice(f.value, price)}</dd>
               </div>
             ))}
           </dl>
@@ -38,7 +45,7 @@ export function About() {
             <h2 className="h3">{sec.title}</h2>
             {sec.paragraphs.map((p) => (
               <p key={p.slice(0, 24)} className="pretty" style={{ lineHeight: 1.6 }}>
-                {p}
+                <Rich text={p} />
               </p>
             ))}
           </section>

@@ -5,9 +5,9 @@ export const seo: Messages['seo'] = {
   locale: 'sv_SE',
   pages: {
     landing: {
-      title: 'Inbunden: ditt Instagram som en riktig bok',
+      title: 'Inbunden: fotobok från ditt Instagram, som tryckfärdig PDF',
       description:
-        'Inbunden gör dina Instagram-inlägg till en tryckfärdig fotobok. Välj bilderna, vi gör layouten och du laddar ner en PDF till ett fast pris.',
+        'Gör en fotobok av dina Instagram-inlägg. Välj bilderna, vi gör layouten och du laddar ner en tryckfärdig PDF till ett fast pris.',
     },
     about: {
       title: 'Om Inbunden',
@@ -15,7 +15,7 @@ export const seo: Messages['seo'] = {
         'Inbunden är en svensk fotobokstjänst som gör dina Instagram-inlägg till en tryckfärdig bok. Vem som står bakom och hur dina bilder hanteras.',
     },
     guides: {
-      title: 'Guider: fotobok från Instagram',
+      title: 'Guider för fotobok: från Instagram till tryck',
       description:
         'Steg-för-steg-guider för att göra en fotobok av ditt Instagram: ladda ner din Instagram-data, välj bilder och skriv ut den färdiga PDF:en.',
     },
@@ -37,4 +37,5 @@ export const seo: Messages['seo'] = {
       'En fotobok av dina Instagram-inlägg, med automatisk layout, levererad som tryckfärdig PDF med utfall och sRGB-profil. Ett fast pris, oavsett antal sidor.',
   },
   breadcrumbHome: 'Inbunden',
+  imageAlt: 'Startsidan för Inbunden med en exempelfotobok och en mobil med Instagram-bilder.',
 };

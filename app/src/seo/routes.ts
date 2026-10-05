@@ -9,53 +9,116 @@ import type { Lang } from '@printagram/shared';
 /** Public origin. VITE_SITE_URL overrides it (vite.config.ts); PR previews still point here. */
 export const DEFAULT_SITE_URL = 'https://inbunden.com';
 
-export type PageKey =
-  | 'landing'
-  | 'about'
-  | 'privacy'
-  | 'terms'
-  | 'guides'
+export type PageKey = 'landing' | 'about' | 'privacy' | 'terms' | 'guides' | GuideKey;
+
+/** In the order the guides index lists them. */
+export type GuideKey =
   | 'guideInstagramBook'
   | 'guideInstagramExport'
-  | 'guidePrint';
-
-export type GuideKey = 'guideInstagramBook' | 'guideInstagramExport' | 'guidePrint';
+  | 'guideExportProblems'
+  | 'guidePrint'
+  | 'guidePrintPhotos'
+  | 'guideYearBook'
+  | 'guideGift'
+  | 'guideCompare';
 
 export interface PublicPage {
   paths: Record<Lang, string>;
   /** sitemap.xml priority. */
   priority: number;
-  /** Last real content change (YYYY-MM-DD): sitemap lastmod and the guides' dateModified. */
-  updated?: string;
+  /** Last real content change (YYYY-MM-DD): sitemap lastmod, dateModified and the visible date. */
+  updated: string;
   /** First publication (YYYY-MM-DD), for the guides' Article markup. */
   published?: string;
 }
 
 export const PAGES: Record<PageKey, PublicPage> = {
-  landing: { paths: { en: '/', sv: '/sv' }, priority: 1 },
-  about: { paths: { en: '/about', sv: '/sv/om' }, priority: 0.6 },
-  guides: { paths: { en: '/guides', sv: '/sv/guider' }, priority: 0.7 },
+  landing: { paths: { en: '/', sv: '/sv' }, priority: 1, updated: '2026-10-05' },
+  about: { paths: { en: '/about', sv: '/sv/om' }, priority: 0.6, updated: '2026-10-05' },
+  guides: { paths: { en: '/guides', sv: '/sv/guider' }, priority: 0.7, updated: '2026-10-05' },
   guideInstagramBook: {
     paths: { en: '/guides/instagram-photo-book', sv: '/sv/guider/fotobok-av-instagram' },
     priority: 0.8,
     published: '2026-09-30',
-    updated: '2026-09-30',
+    updated: '2026-10-05',
   },
   guideInstagramExport: {
     paths: { en: '/guides/download-instagram-data', sv: '/sv/guider/ladda-ner-instagram-data' },
     priority: 0.8,
     published: '2026-09-30',
-    updated: '2026-09-30',
+    updated: '2026-10-05',
+  },
+  guideExportProblems: {
+    paths: {
+      en: '/guides/instagram-export-problems',
+      sv: '/sv/guider/problem-med-instagram-export',
+    },
+    priority: 0.6,
+    published: '2026-10-05',
+    updated: '2026-10-05',
   },
   guidePrint: {
     paths: { en: '/guides/print-your-photo-book', sv: '/sv/guider/skriv-ut-din-fotobok' },
     priority: 0.7,
     published: '2026-09-30',
-    updated: '2026-09-30',
+    updated: '2026-10-05',
   },
-  privacy: { paths: { en: '/privacy', sv: '/sv/integritet' }, priority: 0.3 },
-  terms: { paths: { en: '/terms', sv: '/sv/villkor' }, priority: 0.3 },
+  guidePrintPhotos: {
+    paths: { en: '/guides/print-instagram-photos', sv: '/sv/guider/skriva-ut-instagrambilder' },
+    priority: 0.7,
+    published: '2026-10-05',
+    updated: '2026-10-05',
+  },
+  guideYearBook: {
+    paths: { en: '/guides/yearly-photo-book', sv: '/sv/guider/arsbok-fotobok' },
+    priority: 0.7,
+    published: '2026-10-05',
+    updated: '2026-10-05',
+  },
+  guideGift: {
+    paths: { en: '/guides/photo-book-gift', sv: '/sv/guider/fotobok-som-present' },
+    priority: 0.7,
+    published: '2026-10-05',
+    updated: '2026-10-05',
+  },
+  guideCompare: {
+    paths: {
+      en: '/guides/instagram-photo-book-services-compared',
+      sv: '/sv/guider/jamfor-fotobokstjanster-for-instagram',
+    },
+    priority: 0.8,
+    published: '2026-10-05',
+    updated: '2026-10-05',
+  },
+  privacy: {
+    paths: { en: '/privacy', sv: '/sv/integritet' },
+    priority: 0.3,
+    updated: '2026-10-05',
+  },
+  terms: { paths: { en: '/terms', sv: '/sv/villkor' }, priority: 0.3, updated: '2026-10-02' },
 };
+
+/**
+ * App routes (router.tsx, under SessionGate) as Static Web Apps route patterns. They are served
+ * the noindexed SPA shell; every other unknown URL gets a real 404 (scripts/prerender.ts).
+ */
+export const APP_ROUTES = [
+  '/start',
+  '/connect',
+  '/google',
+  '/export',
+  '/export/*',
+  '/select',
+  '/preview',
+  '/checkout',
+  '/done',
+  '/done/*',
+  '/signin',
+  '/r/*',
+  '/reset/*',
+  '/books',
+  '/s/*',
+] as const;
 
 export const PAGE_KEYS = Object.keys(PAGES) as PageKey[];
 export const GUIDE_KEYS = PAGE_KEYS.filter(
@@ -85,6 +148,11 @@ export function allPublicPaths(): { key: PageKey; lang: Lang; path: string }[] {
   );
 }
 
+/** The share image per language: a screenshot of that landing page (scripts/prerender.ts). */
+export function ogImagePath(lang: Lang): string {
+  return `/og-image-${lang}.jpg`;
+}
+
 export function absoluteUrl(site: string, path: string): string {
   const base = site.replace(/\/$/, '');
   return path === '/' ? `${base}/` : `${base}${path}`;
@@ -109,7 +177,7 @@ export function sitemapXml(site: string): string {
       return [
         '  <url>',
         `    <loc>${absoluteUrl(site, pathFor(key, lang))}</loc>`,
-        ...(page.updated ? [`    <lastmod>${page.updated}</lastmod>`] : []),
+        `    <lastmod>${page.updated}</lastmod>`,
         `    <priority>${page.priority.toFixed(1)}</priority>`,
         links,
         '  </url>',

@@ -17,6 +17,7 @@ export const common: Messages['common'] = {
     skip: 'Hoppa till innehållet',
   },
   footer: {
+    otherLanguage: 'In English',
     guides: 'Guider',
     about: 'Om Inbunden',
     privacy: 'Integritet',

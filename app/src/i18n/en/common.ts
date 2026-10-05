@@ -17,6 +17,8 @@ export const common = {
     skip: 'Skip to content',
   },
   footer: {
+    /** Link to the same page in the other language, written in that language. */
+    otherLanguage: 'På svenska',
     guides: 'Guides',
     about: 'About',
     privacy: 'Privacy',

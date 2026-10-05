@@ -15,12 +15,49 @@
     ]
   },
   "routes": [
-    { "route": "/.auth/*", "statusCode": 404 },
-    { "route": "/api/*", "allowedRoles": ["anonymous"] },
-    { "route": "/assets/*", "headers": { "Cache-Control": "public, max-age=31536000, immutable" } }
+    {
+      "route": "/.auth/*",
+      "statusCode": 404
+    },
+    {
+      "route": "/api/*",
+      "allowedRoles": ["anonymous"]
+    },
+    {
+      "route": "/assets/*",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "route": "/fonts/*",
+      "headers": {
+        "Cache-Control": "public, max-age=604800"
+      }
+    },
+    {
+      "route": "/samples/*",
+      "headers": {
+        "Cache-Control": "public, max-age=604800"
+      }
+    },
+    {
+      "route": "/*.{png,jpg,svg,ico,webmanifest}",
+      "headers": {
+        "Cache-Control": "public, max-age=86400"
+      }
+    }
   ],
   "responseOverrides": {
-    "404": { "rewrite": "/app-shell.html", "statusCode": 200 }
+    "404": {
+      "rewrite": "/app-shell.html",
+      "statusCode": 200
+    }
+  },
+  "mimeTypes": {
+    ".webmanifest": "application/manifest+json",
+    ".txt": "text/plain; charset=utf-8",
+    ".xml": "application/xml; charset=utf-8"
   },
   "globalHeaders": {
     "X-Content-Type-Options": "nosniff",

@@ -3,7 +3,7 @@ import { defineConfig } from 'vitest/config';
 import { loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { fileURLToPath } from 'node:url';
-import { DEFAULT_SITE_URL, robotsTxt, sitemapXml } from './src/seo/routes';
+import { DEFAULT_SITE_URL, ogImagePath, robotsTxt, sitemapXml } from './src/seo/routes';
 
 /**
  * Search/social metadata that needs the public origin (VITE_SITE_URL, default https://inbunden.com):
@@ -16,7 +16,7 @@ function seo(siteUrl: string): Plugin {
   return {
     name: 'printagram-seo',
     transformIndexHtml(html) {
-      return html.replaceAll('%OG_IMAGE%', `${site}/og-image.jpg`);
+      return html.replaceAll('%OG_IMAGE%', `${site}${ogImagePath('en')}`);
     },
     generateBundle() {
       this.emitFile({ type: 'asset', fileName: 'robots.txt', source: robotsTxt(site) });

@@ -1,6 +1,6 @@
 /** Privacy policy and terms of use. Keep in step with what the app actually does. */
 export const legal = {
-  updated: 'Last updated 2 October 2026',
+  updated: (date: string) => `Last updated ${date}`,
   contact: 'hello@inbunden.com',
   privacy: {
     title: 'Privacy policy',
@@ -55,7 +55,7 @@ export const legal = {
           'Google (Google Ireland Limited) runs Google Analytics for us as our processor, if you accept it.',
           'Stripe handles card payments when card payments are active. Card details go directly to Stripe and never reach us.',
           'Google receives your sign-in when you use Google Photos import, and shares only the photos you pick. Instagram (Meta) is involved only if you connect it or use its export.',
-          'The site loads its fonts from Google Fonts, which means your browser contacts Google’s servers and Google sees your IP address.',
+          'The site’s own fonts are served from our server. Only the payment form at checkout loads a font from Google Fonts, which means your browser contacts Google’s servers there and Google sees your IP address.',
           'Some of these providers are based in the United States. Transfers are covered by the EU–US Data Privacy Framework or the EU standard contractual clauses.',
         ],
       },

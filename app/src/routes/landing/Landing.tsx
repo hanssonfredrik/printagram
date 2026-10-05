@@ -4,10 +4,13 @@ import { photoSpan } from '@printagram/shared';
 import { Button, Card } from '@/components/ui';
 import { PageLink } from '@/components/PageLink';
 import { PageRenderer } from '@/components/PageRenderer';
+import { Rich } from '@/components/Rich';
 import { useMoney, usePriceList } from '@/state/price';
 import { useDraft } from '@/state/draft';
 import { useLang, useT } from '@/i18n';
 import { fillPrice } from '@/seo/jsonld';
+import { forFlags } from '@/seo/text';
+import { useConfig } from '@/state/session';
 import { samplePhotos, sampleSpreads } from './samples';
 import s from './landing.module.css';
 
@@ -23,6 +26,7 @@ export function Landing() {
   };
   const money = useMoney();
   const prices = usePriceList();
+  const cfg = useConfig();
   const price = money(prices.baseCents);
   const samples = useMemo(() => {
     const photos = samplePhotos(tl.samples);
@@ -73,7 +77,7 @@ export function Landing() {
           <div className={s.phone}>
             <div className={s.phoneScreen}>
               {samples.phoneTiles.map((p, i) => (
-                <img key={i} src={p.thumbUrl} alt="" />
+                <img key={i} src={p.thumbUrl} alt="" width={120} height={120} decoding="async" />
               ))}
             </div>
           </div>
@@ -88,10 +92,12 @@ export function Landing() {
           {tl.how.steps.map(({ title, text }, i) => (
             <Card key={title} gap={8}>
               <div className="num">{i + 1}</div>
-              <div className="semibold" style={{ fontSize: 18 }}>
+              <h3 className={s.cardTitle} style={{ fontSize: 18 }}>
                 {title}
-              </div>
-              <p className="muted">{text}</p>
+              </h3>
+              <p className="muted">
+                <Rich text={text} />
+              </p>
             </Card>
           ))}
         </div>
@@ -132,7 +138,7 @@ export function Landing() {
         </p>
         <div className="grid-auto grid-auto--260">
           <Card primary gap={6} className={s.priceCard}>
-            <div className="semibold">{tl.pricing.pdf.title}</div>
+            <h3 className={s.cardTitle}>{tl.pricing.pdf.title}</h3>
             <div className={s.price}>{price}</div>
             <div className="muted">{tl.pricing.pdf.text}</div>
             <div className={s.priceNote} style={{ color: 'var(--primary)', fontWeight: 500 }}>
@@ -140,7 +146,7 @@ export function Landing() {
             </div>
           </Card>
           <Card bordered gap={6} className={s.priceCard}>
-            <div className="semibold">{tl.pricing.softcover.title}</div>
+            <h3 className={s.cardTitle}>{tl.pricing.softcover.title}</h3>
             <div className={s.price}>
               {tl.pricing.from(money(prices.printedFrom.softcoverCents))}
             </div>
@@ -148,7 +154,7 @@ export function Landing() {
             <div className={`${s.priceNote} muted`}>{tl.pricing.comingSoon}</div>
           </Card>
           <Card bordered gap={6} className={s.priceCard}>
-            <div className="semibold">{tl.pricing.hardcover.title}</div>
+            <h3 className={s.cardTitle}>{tl.pricing.hardcover.title}</h3>
             <div className={s.price}>
               {tl.pricing.from(money(prices.printedFrom.hardcoverCents))}
             </div>
@@ -163,10 +169,12 @@ export function Landing() {
           {tl.faqTitle}
         </h2>
         <div className="stack">
-          {tl.faq.map((f) => (
+          {forFlags(tl.faq, cfg).map((f) => (
             <div key={f.q} className={s.faq}>
-              <div className={s.faqQ}>{f.q}</div>
-              <p className="muted">{fillPrice(f.a, price)}</p>
+              <h3 className={s.faqQ}>{f.q}</h3>
+              <p className="muted">
+                <Rich text={fillPrice(f.a, price)} />
+              </p>
             </div>
           ))}
         </div>

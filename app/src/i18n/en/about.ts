@@ -1,7 +1,8 @@
 /** About page: the name, what the service does, how photos are handled, who is behind it. */
 export const about = {
   title: 'About Inbunden',
-  lead: 'Photo books from your Instagram, made in Sweden.',
+  /** `{price}` is the PDF price from the config, as on the landing page. */
+  lead: 'Inbunden is a web service from Sweden that turns your Instagram posts into a photo book. You pick the photos, we lay out the pages and you download a print‑ready PDF for {price}.',
   sections: [
     {
       title: 'The name',
@@ -14,6 +15,7 @@ export const about = {
       title: 'What Inbunden does',
       paragraphs: [
         'You pick the posts (a year, a trip, a first year) and Inbunden lays out the pages. You get a print-ready PDF in minutes, to print wherever you like or keep as it is. Printed books are on the way.',
+        'New to this? Start with [how to make a photo book from your Instagram](guideInstagramBook), or see [how Inbunden compares](guideCompare) with other photo book services.',
       ],
     },
     {
@@ -34,7 +36,7 @@ export const about = {
   facts: [
     { label: 'What', value: 'Photo books from Instagram and Google Photos, as a print‑ready PDF' },
     { label: 'Company', value: 'Venueve AB, Sweden' },
-    { label: 'Price', value: 'One flat price per book, no subscription' },
+    { label: 'Price', value: '{price} per book, whatever the number of pages. No subscription.' },
     { label: 'Languages', value: 'English and Swedish' },
     { label: 'Photos kept', value: '3 months, then deleted after a reminder' },
     { label: 'Contact', value: 'hello@inbunden.com' },
@@ -43,4 +45,5 @@ export const about = {
   contactText: 'Questions, ideas or something that went wrong? Write to',
   contactEmail: 'hello@inbunden.com',
   start: 'Start your book',
+  updated: (date: string) => `Updated ${date}`,
 };

@@ -1,3 +1,4 @@
+import { useSyncExternalStore } from 'react';
 import { useT } from '@/i18n';
 import { analyticsAvailable, useConsent } from '@/services/analytics';
 import { PageLink } from './PageLink';
@@ -12,9 +13,10 @@ import s from './consentBanner.module.css';
  */
 export function ConsentBanner() {
   const t = useT();
+  const mounted = useMounted();
   const analytics = useConsent((c) => c.analytics);
   const set = useConsent((c) => c.set);
-  if (analytics !== null || !analyticsAvailable()) return null;
+  if (!mounted || analytics !== null || !analyticsAvailable()) return null;
   return (
     <section className={s.banner} role="region" aria-label={t.common.consent.label}>
       <p className={s.text}>
@@ -38,8 +40,9 @@ export function ConsentBanner() {
 /** Footer link that reopens the banner (only where analytics exists). */
 export function CookieSettingsLink({ className }: { className?: string }) {
   const t = useT();
+  const mounted = useMounted();
   const reset = useConsent((c) => c.reset);
-  if (!analyticsAvailable()) return null;
+  if (!mounted || !analyticsAvailable()) return null;
   return (
     <>
       {' · '}
@@ -47,5 +50,19 @@ export function CookieSettingsLink({ className }: { className?: string }) {
         {t.common.footer.cookies}
       </button>
     </>
+  );
+}
+
+const noSubscribe = () => () => {};
+
+/**
+ * False while React hydrates prerendered HTML, so browser-only UI (it depends on the host and the
+ * browser) is left out of the first render, the same as in the static HTML. True otherwise.
+ */
+function useMounted(): boolean {
+  return useSyncExternalStore(
+    noSubscribe,
+    () => true,
+    () => false,
   );
 }

@@ -1,3 +1,4 @@
+import { UpdatedDate } from '@/components/UpdatedDate';
 import { useT } from '@/i18n';
 
 /** Privacy policy (`/privacy`) and terms of use (`/terms`), rendered from the `legal` dictionary. */
@@ -16,9 +17,7 @@ export function LegalPage({ doc }: { doc: 'privacy' | 'terms' }) {
             {d.title}
           </h1>
           <p className="muted pretty">{d.lead}</p>
-          <p className="tiny muted" style={{ marginTop: 6 }}>
-            {t.legal.updated}
-          </p>
+          <UpdatedDate page={doc} label={t.legal.updated} style={{ marginTop: 6 }} />
         </div>
 
         {d.sections.map((sec) => (

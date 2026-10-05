@@ -1,10 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { DEFAULT_PRICING, type AppConfig } from '@printagram/shared';
+import {
+  DEFAULT_BLEED_MM,
+  DEFAULT_PRICING,
+  MAX_EXPORT_BYTES,
+  MAX_PHOTOS_PER_BOOK,
+  PAGE_SIZES_MM,
+  type AppConfig,
+} from '@printagram/shared';
 import { messagesFor } from '@/i18n';
 import { structuredData } from './jsonld';
+import { forFlags, LINK_MARKUP, plainText } from './text';
 import {
   allPublicPaths,
   alternates,
+  APP_ROUTES,
   GUIDE_KEYS,
   PAGE_KEYS,
   pageAt,
@@ -152,5 +161,84 @@ describe('structured data', () => {
     expect(article.dateModified).toBe(PAGES.guidePrint.updated);
     const crumbs = graph(data).find((n) => n['@type'] === 'BreadcrumbList')!;
     expect(JSON.stringify(crumbs)).toContain('https://inbunden.com/sv/guider');
+  });
+});
+
+describe('public copy', () => {
+  /** Every string in the public-page dictionaries, flattened. */
+  const strings = (lang: 'en' | 'sv') => {
+    const t = messagesFor(lang);
+    const out: string[] = [];
+    const walk = (v: unknown) => {
+      if (typeof v === 'string') out.push(v);
+      else if (Array.isArray(v)) v.forEach(walk);
+      else if (v && typeof v === 'object') Object.values(v).forEach(walk);
+    };
+    walk([t.landing, t.about, t.guides, t.seo, t.legal]);
+    return out;
+  };
+
+  it('dates every page, so the sitemap has a lastmod for each URL', () => {
+    for (const key of PAGE_KEYS) expect(PAGES[key].updated).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(sitemapXml(SITE).match(/<lastmod>/g)).toHaveLength(PAGE_KEYS.length * 2);
+  });
+
+  it('only links to pages that exist', () => {
+    for (const lang of ['en', 'sv'] as const) {
+      for (const s of strings(lang)) {
+        for (const m of s.matchAll(LINK_MARKUP)) expect(PAGE_KEYS).toContain(m[2]);
+      }
+    }
+    expect(plainText('See [the guide](guidePrint).')).toBe('See the guide.');
+  });
+
+  it('has no em dashes or spaced en dashes (house style)', () => {
+    for (const lang of ['en', 'sv'] as const) {
+      for (const s of strings(lang)) {
+        expect(s, s).not.toMatch(/—| – /);
+      }
+    }
+  });
+
+  it('states the same limits and sizes as the code', () => {
+    const all = [...strings('en'), ...strings('sv')].join('\n');
+    for (const m of all.matchAll(/(\d+) mm (?:of )?(?:bleed|utfall)/g)) {
+      expect(Number(m[1])).toBe(DEFAULT_BLEED_MM);
+    }
+    for (const m of all.matchAll(/up to (\d+) photos|upp till (\d+) bilder/g)) {
+      expect(Number(m[1] ?? m[2])).toBe(MAX_PHOTOS_PER_BOOK);
+    }
+    for (const m of all.matchAll(/(\d+) GB/g)) {
+      expect(Number(m[1])).toBe(MAX_EXPORT_BYTES / 1024 ** 3);
+    }
+    const cm = (f: 'square' | 'portrait') =>
+      `${PAGE_SIZES_MM[f].width / 10} × ${PAGE_SIZES_MM[f].height / 10} cm`;
+    expect(all).toContain(cm('square'));
+    expect(all).toContain(cm('portrait'));
+    for (const m of all.matchAll(/21 × (\d+) cm/g)) {
+      expect([cm('square'), cm('portrait')]).toContain(`21 × ${m[1]} cm`);
+    }
+  });
+
+  it('shows feature-dependent copy only while the flag matches', () => {
+    const faq = messagesFor('en').landing.faq;
+    const off = forFlags(faq, { connectEnabled: false, googlePhotosEnabled: false });
+    const on = forFlags(faq, { connectEnabled: true, googlePhotosEnabled: true });
+    expect(off.filter((f) => f.q.includes('connect my Instagram'))).toHaveLength(1);
+    expect(on.filter((f) => f.q.includes('connect my Instagram'))).toHaveLength(1);
+    expect(off.some((f) => f.q.includes('Google Photos'))).toBe(false);
+    expect(on.some((f) => f.q.includes('Google Photos'))).toBe(true);
+  });
+});
+
+describe('app routes', () => {
+  it('serves the app shell for every route under SessionGate', async () => {
+    const { router } = await import('@/router');
+    const gate = router.routes[0]!.children!.find((r) => !r.children?.some((c) => c.path === '*'))!;
+    const covered = (path: string) =>
+      APP_ROUTES.some((route) =>
+        route.endsWith('/*') ? path.startsWith(route.slice(0, -1)) : path === route,
+      );
+    for (const r of gate.children!) expect(covered(`/${r.path!}`), r.path).toBe(true);
   });
 });

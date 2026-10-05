@@ -2,8 +2,16 @@ import { useEffect } from 'react';
 import { currencyForLang, fmtMoney, pdfPriceCents, type Lang } from '@printagram/shared';
 import { messagesFor } from '@/i18n';
 import { useSession } from '@/state/session';
-import { pageDescription, pageTitle, structuredData } from './jsonld';
-import { absoluteUrl, alternates, DEFAULT_SITE_URL, pathFor, type PageKey } from './routes';
+import { isGuide, pageDescription, pageTitle, structuredData } from './jsonld';
+import {
+  absoluteUrl,
+  alternates,
+  DEFAULT_SITE_URL,
+  ogImagePath,
+  PAGES,
+  pathFor,
+  type PageKey,
+} from './routes';
 
 export const SITE_URL = (import.meta.env.VITE_SITE_URL || DEFAULT_SITE_URL).replace(/\/$/, '');
 
@@ -36,7 +44,7 @@ function add(tag: 'link' | 'script' | 'meta', attrs: Record<string, string>, tex
  */
 export function useSeo(page: { key: PageKey; lang: Lang } | null) {
   const cfg = useSession((s) => s.config);
-  const ready = useSession((s) => s.ready);
+  const configLoaded = useSession((s) => s.configLoaded);
 
   useEffect(() => {
     document.head.querySelectorAll(`[${OWNED}]`).forEach((el) => el.remove());
@@ -50,13 +58,23 @@ export function useSeo(page: { key: PageKey; lang: Lang } | null) {
     const description = pageDescription(key, t);
     const url = absoluteUrl(SITE_URL, pathFor(key, lang));
 
+    const image = absoluteUrl(SITE_URL, ogImagePath(lang));
+    const guide = isGuide(key);
+
     document.title = title;
     document.documentElement.lang = lang;
     meta('name', 'description', description);
+    meta('property', 'og:type', guide ? 'article' : 'website');
     meta('property', 'og:title', title);
     meta('property', 'og:description', description);
-    meta('property', 'og:url', url);
-    meta('property', 'og:locale', t.seo.locale);
+    meta('property', 'og:image', image);
+    meta('property', 'og:image:alt', t.seo.imageAlt);
+    add('meta', { property: 'og:url', content: url });
+    add('meta', { property: 'og:locale', content: t.seo.locale });
+    if (guide) {
+      add('meta', { property: 'article:published_time', content: PAGES[key].published ?? '' });
+      add('meta', { property: 'article:modified_time', content: PAGES[key].updated });
+    }
     add('meta', { name: 'robots', content: 'index, follow, max-image-preview:large' });
     add('meta', {
       property: 'og:locale:alternate',
@@ -71,7 +89,7 @@ export function useSeo(page: { key: PageKey; lang: Lang } | null) {
       lang,
       t,
       cfg,
-      configLoaded: ready,
+      configLoaded,
       site: SITE_URL,
       price: fmtMoney(
         pdfPriceCents(cfg.pricing, currencyForLang(lang)),
@@ -80,5 +98,5 @@ export function useSeo(page: { key: PageKey; lang: Lang } | null) {
       ),
     });
     add('script', { type: 'application/ld+json' }, JSON.stringify(data));
-  }, [page?.key, page?.lang, cfg, ready]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [page?.key, page?.lang, cfg, configLoaded]); // eslint-disable-line react-hooks/exhaustive-deps
 }

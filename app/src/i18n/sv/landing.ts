@@ -18,7 +18,7 @@ export const landing: Messages['landing'] = {
     steps: [
       {
         title: 'Hämta dina bilder',
-        text: 'Be Instagram om en kopia av dina inlägg och ladda upp ZIP-filen du får via mejl. Eller skicka inläggen till Google Foto och välj dem där.',
+        text: 'Be Instagram om en [kopia av dina inlägg](guideInstagramExport) och ladda upp ZIP-filen du får via mejl. Eller skicka inläggen till Google Foto och välj dem där.',
       },
       {
         title: 'Välj',
@@ -26,7 +26,7 @@ export const landing: Messages['landing'] = {
       },
       {
         title: 'Skriv ut',
-        text: 'Förhandsgranska varje sida och ladda sedan ner din tryckfärdiga PDF.',
+        text: 'Förhandsgranska varje sida, ladda ner din tryckfärdiga PDF och [skriv ut den](guidePrint) var du vill.',
       },
     ],
   },
@@ -64,17 +64,21 @@ export const landing: Messages['landing'] = {
     },
     softcover: {
       title: 'Häftad bok',
-      text: 'Tryckt och levererad hem till dig.',
+      text: 'Din bok tryckt med mjuka pärmar.',
     },
     hardcover: {
       title: 'Inbunden bok',
-      text: 'Linneklädd, sidor som ligger platt.',
+      text: 'Din bok tryckt med hårda pärmar.',
     },
   },
   faqTitle: 'Frågor',
-  guidesTeaser: 'Mer om att exportera från Instagram och trycka PDF:en:',
+  guidesTeaser: 'Mer om att exportera från Instagram, trycka PDF:en och välja fotobokstjänst:',
   guidesLink: 'läs guiderna',
   faq: [
+    {
+      q: 'Vad är Inbunden?',
+      a: 'En svensk webbtjänst som gör dina Instagram-inlägg till en fotobok. Du väljer bilderna, vi gör layouten och du laddar ner en tryckfärdig PDF för {price}. Du kan trycka den på vilket tryckeri som helst eller spara den som den är.',
+    },
     {
       q: 'Vad kostar det?',
       a: '{price} per bok för den tryckfärdiga PDF:en, oavsett antal bilder eller sidor. Ingen prenumeration. Tryckta häftade och inbundna böcker kommer snart.',
@@ -86,6 +90,12 @@ export const landing: Messages['landing'] = {
     {
       q: 'Kan jag ansluta mitt Instagram direkt?',
       a: 'Inte än. Vi väntar på att Instagram ska godkänna Inbunden. Använd exporten så länge. Den funkar för alla konton, men Instagram behöver några timmar till ett par dagar för att ta fram filen.',
+      when: 'noConnect',
+    },
+    {
+      q: 'Kan jag ansluta mitt Instagram direkt?',
+      a: 'Ja, om du har ett kreatörs- eller företagskonto. Du loggar in på Instagrams egen sida och vi ser aldrig ditt lösenord. Personliga konton använder exporten, som funkar för alla konton.',
+      when: 'connect',
     },
     {
       q: 'Fungerar privata konton?',
@@ -93,7 +103,7 @@ export const landing: Messages['landing'] = {
     },
     {
       q: 'Hur lång tid tar exporten från Instagram?',
-      a: 'Oftast några timmar, ibland en dag eller två. Instagram mejlar dig en nedladdningslänk när den är klar. Vi skickar dig en returlänk så att du kan fortsätta där du slutade.',
+      a: 'Oftast några timmar, ibland en dag eller två. Instagram mejlar dig en nedladdningslänk när den är klar. Vi skickar dig en returlänk så att du kan fortsätta där du slutade. Guiden om att [ladda ner din Instagram-data](guideInstagramExport) visar varje steg, och [vad du gör när exporten krånglar](guideExportProblems).',
     },
     {
       q: 'Vad händer med mina bilder?',
@@ -109,15 +119,20 @@ export const landing: Messages['landing'] = {
     },
     {
       q: 'Var kan jag trycka den?',
-      a: 'På valfritt tryckeri eller hos en fotobokstjänst på nätet som tar emot PDF-filer. Vår utskriftsguide går igenom vad du ska be om: format, utfall, papper och bindning.',
+      a: 'På valfritt tryckeri eller hos en fotobokstjänst på nätet som tar emot PDF-filer. Vår [utskriftsguide](guidePrint) går igenom vad du ska be om: format, utfall, papper och bindning.',
     },
     {
       q: 'Kan jag använda Google Foto?',
-      a: 'Ja. Instagram kan skicka en kopia av dina inlägg till Google Foto, och sedan väljer du dem i Googles egen bildväljare. Du kan också välja andra bilder du har där. Vi ser bara de bilder du väljer.',
+      a: 'Ja. Instagram kan skicka en kopia av dina inlägg till Google Foto, och sedan väljer du dem i Googles egen bildväljare. Du kan också välja andra bilder du har där. Vi ser bara de bilder du väljer. Bildtexter och gillningar följer inte med den vägen, och datumet kan bli dagen för överföringen.',
+      when: 'googlePhotos',
     },
     {
       q: 'Kan jag ändra layouten?',
       a: 'Ja. Vi gör layouten åt dig, sedan kan du välja layout för varje sida (en, två, tre eller fyra bilder, eller utfallande), dra bilder mellan sidor, lägga till textsidor och välja omslag, titel, format och bildtexter. Förhandsvisningen är exakt det som trycks.',
+    },
+    {
+      q: 'Vad skiljer Inbunden från andra fotobokstjänster?',
+      a: 'De flesta tjänster trycker och skickar boken, och du gör den i deras redigerare. Inbunden gör boken av dina Instagram-inlägg och ger dig PDF:en, så du väljer själv var den ska tryckas. Se [hur tjänsterna skiljer sig](guideCompare).',
     },
   ],
 };

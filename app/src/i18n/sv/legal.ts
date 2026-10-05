@@ -1,7 +1,7 @@
 import type { Messages } from '../en';
 
 export const legal: Messages['legal'] = {
-  updated: 'Senast uppdaterad 2 oktober 2026',
+  updated: (date: string) => `Senast uppdaterad ${date}`,
   contact: 'hello@inbunden.com',
   privacy: {
     title: 'Integritetspolicy',
@@ -56,7 +56,7 @@ export const legal: Messages['legal'] = {
           'Google (Google Ireland Limited) driver Google Analytics åt oss som personuppgiftsbiträde, om du godkänner det.',
           'Stripe hanterar kortbetalningar när kortbetalning är aktiverad. Kortuppgifterna går direkt till Stripe och når aldrig oss.',
           'Google får din inloggning när du använder import från Google Foto och delar bara bilderna du väljer. Instagram (Meta) är inblandat bara om du ansluter det eller använder dess export.',
-          'Webbplatsen hämtar sina typsnitt från Google Fonts, vilket innebär att din webbläsare kontaktar Googles servrar och att Google ser din IP-adress.',
+          'Webbplatsens egna typsnitt hämtas från vår server. Bara betalformuläret i kassan hämtar ett typsnitt från Google Fonts, vilket innebär att din webbläsare kontaktar Googles servrar där och att Google ser din IP-adress.',
           'Några av leverantörerna finns i USA. Överföringarna omfattas av EU–US Data Privacy Framework eller EU:s standardavtalsklausuler.',
         ],
       },

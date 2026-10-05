@@ -65,7 +65,7 @@ Until step 4 is finished with live keys, the site takes **test payments only**. 
 | 1. `inbunden.com` on the Static Web App | ✅ Serves the app with its own certificate; `http://` redirects to `https://` |
 | 2. Redirects | ✅ `www.inbunden.com` and the generated `green-glacier-0dadae803.5.azurestaticapps.net` host 301 to `https://inbunden.com/` (`inbunden.com` is the default domain). `inbunden.se` and `www.inbunden.se` 301 there via Loopia. Path and query are kept everywhere |
 | 4. App settings and CORS | ✅ `APP_BASE_URL=https://inbunden.com`, `GOOGLE_REDIRECT_URI=https://inbunden.com/api/google/callback`; blob CORS allows `https://inbunden.com` (and the azurestaticapps.net host) |
-| 5. `SITE_URL` | ✅ Set. Prerendered public pages in English and Swedish, per-page canonical and hreflang, `sitemap.xml` (16 URLs), `llms.txt` |
+| 5. `SITE_URL` | ✅ Set. Prerendered public pages in English and Swedish, per-page canonical and hreflang, `sitemap.xml` (26 URLs), `llms.txt`, `llms-full.txt` |
 | 6. Google redirect URI | ✅ Assumed done together with step 4. Confirm with the Google Photos check in step 7 |
 
 **Domains:** `inbunden.com` and `www.inbunden.com` are custom domains on the Static Web App. `inbunden.se` and `www.inbunden.se` are 301 forwards at Loopia, so they never serve the app and need no CORS entry. With `inbunden.com` set as the default domain, Azure also redirects the generated `green-glacier-0dadae803.5.azurestaticapps.net` host. Anything that calls that host directly now gets a `301`.
@@ -97,7 +97,9 @@ Until step 4 is finished with live keys, the site takes **test payments only**. 
 
 ### 2a. Search engines and AI search
 
-The public pages (landing, about, guides, privacy, terms; English at `/`, Swedish at `/sv/...`) are listed in `app/src/seo/routes.ts`. The deploy workflow prerenders them to static HTML (`scripts/prerender.ts`), so crawlers that don't run JavaScript, such as GPTBot, ClaudeBot and PerplexityBot, see the full text, and the build writes `robots.txt`, `sitemap.xml` and `llms.txt`. App screens (`/books`, `/start`, …) and unknown URLs get the SPA shell with `noindex`.
+The public pages (landing, about, guides, privacy, terms; English at `/`, Swedish at `/sv/...`) are listed in `app/src/seo/routes.ts`. The deploy workflow prerenders them to static HTML (`scripts/prerender.ts`), so crawlers that don't run JavaScript, such as GPTBot, ClaudeBot and PerplexityBot, see the full text. The build also writes `robots.txt`, `sitemap.xml`, `llms.txt`, `llms-full.txt` (every public page as Markdown) and one share image per language (`og-image-en.jpg`, `og-image-sv.jpg`, a screenshot of that landing page). The browser hydrates the static HTML instead of redrawing it.
+
+App screens (`APP_ROUTES` in `app/src/seo/routes.ts`: `/books`, `/start`, …) get the SPA shell with `noindex`. Every other unknown URL gets a real **404** status with the not-found page (`404.html`), so Search Console shows no soft 404s. A new app route must be added to `APP_ROUTES`, or it will 404 when opened directly; a test checks this against the router.
 
 After the first deploy with these changes:
 
@@ -105,7 +107,12 @@ After the first deploy with these changes:
 2. **Bing Webmaster Tools** (feeds ChatGPT search and Copilot): sign in at bing.com/webmasters → **Import from Google Search Console** → submit the sitemap there too.
 3. **Rich results:** run `https://inbunden.com/` and one guide through search.google.com/test/rich-results and validator.schema.org. Expect Organization, WebSite, FAQPage, Article and BreadcrumbList. The Product offer only appears once `PAYMENT_PROVIDER` is `stripe`.
 4. **One host only:** `www.inbunden.com` is on the Static Web App and `inbunden.se` forwards at Loopia. Both redirect to inbunden.com. The Free plan's 2 custom domains are now both used, so any further domains go through Loopia forwards.
-5. **Profiles:** once Inbunden has an Instagram or other public profile, add the URLs as `sameAs` on the Organization in `app/src/seo/jsonld.ts`.
+5. **Profiles:** once Inbunden has an Instagram or other public profile, add the URLs to `SAME_AS` in `app/src/seo/jsonld.ts`.
+6. **After this deploy, check:** `curl -I https://inbunden.com/nope` gives 404, `/start` and `/books` load the app, `/about/` still shows the About page (the local emulator differs from Azure here), and `/llms-full.txt` and `/favicon.ico` return 200.
+
+**Copy that depends on feature flags** (Instagram connect, Google Photos) is chosen from the live `/api/config` at build time, like prices. When you switch `FEATURE_CONNECT_ENABLED` or Google Photos on or off, redeploy so the static pages and their FAQ markup match.
+
+**The comparison guide** (`/guides/instagram-photo-book-services-compared`) states other services' prices and features as checked on 5 October 2026. Recheck them every few months and update `updated` for `guideCompare` in `app/src/seo/routes.ts`.
 
 **Prices in the static HTML** come from the live `/api/config` at build time. If you change prices with app settings, redeploy (or re-run the workflow) so the prerendered pages match. English pages show euros and the Swedish `/sv/...` pages show kronor, each with its own Product offer.
 

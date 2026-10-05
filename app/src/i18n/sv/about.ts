@@ -2,7 +2,7 @@ import type { Messages } from '../en';
 
 export const about: Messages['about'] = {
   title: 'Om Inbunden',
-  lead: 'Fotoböcker från ditt Instagram, gjorda i Sverige.',
+  lead: 'Inbunden är en svensk webbtjänst som gör dina Instagram-inlägg till en fotobok. Du väljer bilderna, vi gör layouten och du laddar ner en tryckfärdig PDF för {price}.',
   sections: [
     {
       title: 'Namnet',
@@ -15,6 +15,7 @@ export const about: Messages['about'] = {
       title: 'Vad Inbunden gör',
       paragraphs: [
         'Du väljer inläggen (ett år, en resa, ett första år) och Inbunden lägger ut sidorna. Du får en tryckfärdig PDF på några minuter, att trycka var du vill eller spara som den är. Tryckta böcker är på väg.',
+        'Ny på det här? Börja med [hur du gör en fotobok av ditt Instagram](guideInstagramBook), eller se [hur Inbunden skiljer sig](guideCompare) från andra fotobokstjänster.',
       ],
     },
     {
@@ -35,7 +36,7 @@ export const about: Messages['about'] = {
   facts: [
     { label: 'Vad', value: 'Fotoböcker från Instagram och Google Foto, som tryckfärdig PDF' },
     { label: 'Företag', value: 'Venueve AB, Sverige' },
-    { label: 'Pris', value: 'Ett fast pris per bok, ingen prenumeration' },
+    { label: 'Pris', value: '{price} per bok, oavsett antal sidor. Ingen prenumeration.' },
     { label: 'Språk', value: 'Svenska och engelska' },
     { label: 'Bilder sparas', value: '3 månader, sedan raderas de efter en påminnelse' },
     { label: 'Kontakt', value: 'hello@inbunden.com' },
@@ -44,4 +45,5 @@ export const about: Messages['about'] = {
   contactText: 'Frågor, idéer eller något som gick fel? Skriv till',
   contactEmail: 'hello@inbunden.com',
   start: 'Skapa din bok',
+  updated: (date: string) => `Uppdaterad ${date}`,
 };

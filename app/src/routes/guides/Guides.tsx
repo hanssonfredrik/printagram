@@ -1,21 +1,15 @@
 import { useNavigate } from 'react-router';
-import type { Lang } from '@printagram/shared';
 import { Button, Card } from '@/components/ui';
 import { PageLink } from '@/components/PageLink';
-import { useLang, useT } from '@/i18n';
+import { Rich } from '@/components/Rich';
+import { UpdatedDate } from '@/components/UpdatedDate';
+import { useT } from '@/i18n';
 import { useDraft } from '@/state/draft';
+import { useConfig } from '@/state/session';
 import type { GuideSection } from '@/i18n/en/guides';
-import { GUIDE_KEYS, PAGES, type GuideKey } from '@/seo/routes';
+import { GUIDE_KEYS, type GuideKey } from '@/seo/routes';
+import { featureOn, forFlags } from '@/seo/text';
 import s from './guides.module.css';
-
-function fmtDay(iso: string, lang: Lang): string {
-  return new Date(`${iso}T12:00:00Z`).toLocaleDateString(lang === 'sv' ? 'sv-SE' : 'en-GB', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-    timeZone: 'UTC',
-  });
-}
 
 /** /guides: the list of guides. */
 export function GuidesIndex() {
@@ -29,6 +23,7 @@ export function GuidesIndex() {
             {tg.index.title}
           </h1>
           <p className={`muted pretty ${s.lead}`}>{tg.index.lead}</p>
+          <UpdatedDate page="guides" label={tg.index.updated} />
         </div>
         <div className="stack stack-16">
           {GUIDE_KEYS.map((key) => (
@@ -54,9 +49,8 @@ export function GuidesIndex() {
 /** One guide: answer-first lead, sections, FAQ, related guides and a way into the app. */
 export function GuidePage({ guide }: { guide: GuideKey }) {
   const t = useT();
-  const lang = useLang((l) => l.lang);
+  const cfg = useConfig();
   const g = t.guides.items[guide];
-  const updated = PAGES[guide].updated;
 
   return (
     <div className="screen">
@@ -65,18 +59,18 @@ export function GuidePage({ guide }: { guide: GuideKey }) {
           <PageLink page="landing">{t.seo.breadcrumbHome}</PageLink>
           <span aria-hidden="true"> / </span>
           <PageLink page="guides">{t.guides.breadcrumb}</PageLink>
+          <span aria-hidden="true"> / </span>
+          <span aria-current="page">{g.title}</span>
         </nav>
 
         <header className="stack stack-12">
           <h1 className="h1" style={{ fontSize: 'clamp(32px, 4.5vw, 44px)' }}>
             {g.title}
           </h1>
-          {updated && (
-            <p className="tiny muted">
-              <time dateTime={updated}>{t.guides.updated(fmtDay(updated, lang))}</time>
-            </p>
-          )}
-          <p className={`pretty ${s.lead}`}>{g.lead}</p>
+          <UpdatedDate page={guide} label={t.guides.updated} />
+          <p className={`pretty ${s.lead}`}>
+            <Rich text={g.lead} />
+          </p>
         </header>
 
         {g.sections.map((sec) => (
@@ -86,10 +80,12 @@ export function GuidePage({ guide }: { guide: GuideKey }) {
         <section className="stack stack-8">
           <h2 className="h3">{t.guides.faqTitle}</h2>
           <div>
-            {g.faq.map((f) => (
+            {forFlags(g.faq, cfg).map((f) => (
               <div key={f.q} className={s.faq}>
                 <h3 className={s.faqQ}>{f.q}</h3>
-                <p className="muted pretty">{f.a}</p>
+                <p className="muted pretty">
+                  <Rich text={f.a} />
+                </p>
               </div>
             ))}
           </div>
@@ -114,6 +110,10 @@ export function GuidePage({ guide }: { guide: GuideKey }) {
 
 function Section({ sec }: { sec: GuideSection }) {
   const t = useT();
+  const cfg = useConfig();
+  const bullets = sec.bullets
+    ?.map((b) => (typeof b === 'string' ? { text: b, when: undefined } : b))
+    .filter((b) => featureOn(b.when, cfg));
   const steps =
     sec.steps ?? (sec.exportSteps ? t.exportFlow.guide.steps[sec.exportSteps] : undefined);
   return (
@@ -121,15 +121,53 @@ function Section({ sec }: { sec: GuideSection }) {
       <h2 className="h3">{sec.title}</h2>
       {sec.paragraphs?.map((p) => (
         <p key={p.slice(0, 32)} className={`pretty ${s.body}`}>
-          {p}
+          <Rich text={p} />
         </p>
       ))}
-      {sec.bullets && (
+      {bullets && (
         <ul className={s.bullets}>
-          {sec.bullets.map((b) => (
-            <li key={b.slice(0, 32)}>{b}</li>
+          {bullets.map((b) => (
+            <li key={b.text.slice(0, 32)}>
+              <Rich text={b.text} />
+            </li>
           ))}
         </ul>
+      )}
+      {sec.table && (
+        <div className={s.tableWrap}>
+          <table className={s.table}>
+            <caption>{sec.table.caption}</caption>
+            <thead>
+              <tr>
+                {sec.table.head.map((h) => (
+                  <th key={h} scope="col">
+                    {h}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {sec.table.rows.map((row) => (
+                <tr key={row[0]}>
+                  {row.map((cell, i) =>
+                    i === 0 ? (
+                      <th key={i} scope="row">
+                        {cell}
+                      </th>
+                    ) : (
+                      <td key={i}>{cell}</td>
+                    ),
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {sec.table.note && (
+            <p className={`tiny muted pretty ${s.tableNote}`}>
+              <Rich text={sec.table.note} />
+            </p>
+          )}
+        </div>
       )}
       {steps && (
         <ol className={s.steps}>
@@ -140,7 +178,9 @@ function Section({ sec }: { sec: GuideSection }) {
               </span>
               <div className="stack stack-4">
                 <div className="semibold">{st.title}</div>
-                <p className={`muted pretty ${s.body}`}>{st.text}</p>
+                <p className={`muted pretty ${s.body}`}>
+                  <Rich text={st.text} />
+                </p>
               </div>
             </li>
           ))}

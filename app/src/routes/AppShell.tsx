@@ -1,16 +1,18 @@
 import { useEffect, useLayoutEffect } from 'react';
-import { Outlet, useLocation } from 'react-router';
+import { Link, Outlet, useLocation } from 'react-router';
+import type { Lang } from '@printagram/shared';
 import { ConsentBanner, CookieSettingsLink } from '@/components/ConsentBanner';
 import { LanguageSelect } from '@/components/ui';
 import { PageLink } from '@/components/PageLink';
 import { SiteHeader } from '@/components/SiteHeader';
 import { useLang, useT } from '@/i18n';
 import { useSession } from '@/state/session';
-import { pageAt } from '@/seo/routes';
+import { pageAt, pathFor, type PageKey } from '@/seo/routes';
 import { useSeo } from '@/seo/useSeo';
 
-function SiteFooter() {
+function SiteFooter({ page }: { page?: { key: PageKey; lang: Lang } | null }) {
   const t = useT();
+  const other: Lang | null = page ? (page.lang === 'en' ? 'sv' : 'en') : null;
   return (
     <footer className="site-footer">
       <div className="site-footer__inner">
@@ -32,6 +34,19 @@ function SiteFooter() {
             {t.common.footer.terms}
           </PageLink>
           <CookieSettingsLink className="site-footer__link site-footer__button" /> · Venueve AB
+          {page && other && (
+            <>
+              {' · '}
+              <Link
+                to={pathFor(page.key, other)}
+                hrefLang={other}
+                lang={other}
+                className="site-footer__link"
+              >
+                {t.common.footer.otherLanguage}
+              </Link>
+            </>
+          )}
         </span>
         <LanguageSelect />
       </div>
@@ -84,7 +99,7 @@ export function PublicLayout() {
       <main id="main">
         <Outlet />
       </main>
-      <SiteFooter />
+      <SiteFooter page={page} />
     </>
   );
 }
@@ -92,6 +107,8 @@ export function PublicLayout() {
 /** App screens: wait for the session (user, config) before rendering. */
 export function SessionGate() {
   const ready = useSession((s) => s.ready);
+  // Drops the last public page's canonical, hreflang and JSON-LD after client-side navigation.
+  useSeo(null);
   if (!ready) return null;
   return (
     <>

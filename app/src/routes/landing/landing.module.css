@@ -61,6 +61,7 @@
 
 .phoneScreen > img {
   width: 100%;
+  height: auto;
   aspect-ratio: 1;
   object-fit: cover;
   display: block;
@@ -128,6 +129,17 @@
 }
 
 .faqQ {
+  font-family: var(--font-sans);
+  font-size: 1em;
   font-weight: 600;
+  letter-spacing: 0;
   margin-bottom: 4px;
+}
+
+/* Card headings (steps, price cards): h3 for the outline, styled like the body text. */
+.cardTitle {
+  font-family: var(--font-sans);
+  font-size: 1em;
+  font-weight: 600;
+  letter-spacing: 0;
 }

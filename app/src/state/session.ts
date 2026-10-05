@@ -13,6 +13,8 @@ import { errorText, getT } from '@/i18n';
 
 interface SessionState {
   ready: boolean;
+  /** True once `config` is the real one: from /api/config or embedded in prerendered HTML. */
+  configLoaded: boolean;
   user: UserInfo | null;
   config: AppConfig;
   libraries: LibrarySummary[];
@@ -39,10 +41,30 @@ const FALLBACK_CONFIG: AppConfig = {
   print: { bleedMm: 4 },
 };
 
+export const CONFIG_SCRIPT_ID = 'inbunden-config';
+
+/**
+ * The /api/config the prerender used, embedded in the static HTML (scripts/prerender.ts), so the
+ * first render matches the prerendered page and React can hydrate it.
+ */
+function embeddedConfig(): AppConfig | null {
+  try {
+    const el = typeof document === 'undefined' ? null : document.getElementById(CONFIG_SCRIPT_ID);
+    if (!el?.textContent) return null;
+    const config = JSON.parse(el.textContent) as AppConfig;
+    return { ...FALLBACK_CONFIG, ...config, pricing: normalizePricing(config.pricing) };
+  } catch {
+    return null;
+  }
+}
+
+const EMBEDDED = embeddedConfig();
+
 export const useSession = create<SessionState>((set, get) => ({
   ready: false,
+  configLoaded: EMBEDDED !== null,
   user: null,
-  config: FALLBACK_CONFIG,
+  config: EMBEDDED ?? FALLBACK_CONFIG,
   libraries: [],
   error: null,
 
@@ -51,6 +73,7 @@ export const useSession = create<SessionState>((set, get) => ({
       const [config, me] = await Promise.all([api.getConfig(), api.me()]);
       set({
         config: { ...config, pricing: normalizePricing(config.pricing) },
+        configLoaded: true,
         user: me?.user ?? null,
         libraries: me?.libraries ?? [],
         ready: true,
