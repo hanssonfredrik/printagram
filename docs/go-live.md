@@ -2,17 +2,17 @@
 
 These steps need your accounts, your money or your decisions, so they aren't automated. Do them in this order. Each section says what you need first, the exact steps, and how to check it worked.
 
-| # | Step | Needs | Rough time | Status (checked 30 Sep 2026) |
+| # | Step | Needs | Rough time | Status (checked 5 Oct 2026) |
 | --- | --- | --- | --- | --- |
 | 1 | [Provision Azure and deploy](#1-provision-azure-and-deploy) | Azure subscription, GitHub repo admin | 30 min | ✅ Done |
 | 2 | [Custom domain: inbunden.com](#2-custom-domain-inbundencom) | A domain you own | 30 min + DNS wait | ✅ Done. Update the `CRON_URL` secret (step 2, *Still open*) |
 | 3 | [Email with Resend, and receiving mail](#3-email-with-resend-and-receiving-mail) | Resend account, DNS access | 30 min + DNS wait | ✅ Done (send a test mail to confirm) |
-| 4 | [Real payments with Stripe](#4-real-payments-with-stripe) | Stripe account (company details, bank account) | 1 h + Stripe verification | 🟡 Stripe live on the site in **test mode**; live keys left |
+| 4 | [Real payments with Stripe](#4-real-payments-with-stripe) | Stripe account (company details, bank account) | 1 h + Stripe verification | ✅ Live: real payments with live keys |
 | 5 | [Instagram connect (Meta App Review)](#5-instagram-connect-meta-app-review) | Meta developer account, business verification, privacy policy | days to weeks | ⬜ |
-| 6 | [Google Photos import](#6-google-photos-import-google-oauth-verification) | Google Cloud project | 15 min, verification days | 🟡 Works in Testing mode; verification left |
+| 6 | [Google Photos import](#6-google-photos-import-google-oauth-verification) | Google Cloud project | 15 min, verification days | ✅ Live: verified, open to everyone |
 | 7 | [Meta transfer destination](#7-meta-transfer-destination-future-the-real-fix-for-private-accounts) | Company registration, Meta business verification | weeks | ⬜ Future |
 
-Until step 4 is finished with live keys, the site takes **test payments only**. It runs Stripe with test keys (`pk_test_…`): the "Test mode" pill in the header and the "Stripe test mode" box with test cards on Checkout make that visible.
+The site takes **real payments**. Stripe runs with live keys (`pk_live_…`), so the "Test mode" pill and the test-card box on Checkout are gone, and the landing page's structured data includes the PDF offer (€9, and 89 kr on the Swedish pages).
 
 > **Redeploying overwrites every app setting.** `infra/deploy.ps1` passes *all* settings to Bicep. If you rerun it without, say, `-StripeSecretKey`, the Stripe key is set back to empty. Either always pass every parameter you use (keep the full command in a password manager), or change single settings with `az staticwebapp appsettings set` (shown in each step).
 
@@ -147,7 +147,7 @@ Without Resend, emails are only written to the Functions log. That covers return
 
 ## 4. Real payments with Stripe
 
-**Status: 🟡 test mode done** (checked 30 Sep 2026). The Inbunden Stripe account is set up and production runs `PAYMENT_PROVIDER=stripe` with test keys. `/api/config` returns a `pk_test_…` key, and all three Stripe settings are present. Steps 0–5 are done; **steps 6–7 (live keys) are left**. Before switching, run through the checks in step 5 on inbunden.com once the Stripe test-card box is deployed.
+**Status: ✅ live** (checked 5 Oct 2026). Production runs `PAYMENT_PROVIDER=stripe` with live keys, and `/api/config` returns a `pk_live_…` key. Steps 0–6 are done. Step 7 (test codes off, one real purchase and refund) is still worth doing if you haven't. The steps below stay as a reference, for example if you ever rotate the keys.
 
 Stripe runs only when `PAYMENT_PROVIDER=stripe` **and** all three keys are set. It never switches on by itself because keys exist.
 
@@ -231,6 +231,8 @@ Until this is approved, the "Connect Instagram" card shows "coming soon" and eve
 
 ## 6. Google Photos import (Google OAuth verification)
 
+**Status: ✅ live** (checked 5 Oct 2026). The Google OAuth client is verified for the Picker scope and the consent screen is in production, so anyone can sign in without the warning screen or the 100-user cap. The steps below stay as a reference.
+
 The third source card. It works for every Instagram account, private ones included: the user has Instagram transfer their posts to Google Photos (Accounts Center → Transfer a copy of your information), then picks them in Google's Picker and Inbunden copies the selection. Captions and likes do not come along; dates are what Google Photos knows. The flag is on by default; the card stays hidden until the client ID and secret are set. Step-by-step console instructions: `docs/google-oauth-setup.md`.
 
 **You need:**
@@ -273,5 +275,5 @@ Becoming a destination in Meta's "Transfer a copy of your information" tool woul
 - [ ] Live Stripe purchase and refund tested; test promo codes disabled.
 - [ ] `SITE_URL` variable set; the link preview shows the card image.
 - [x] Privacy policy and terms pages exist (`/privacy`, `/terms`). They name Venueve AB as the operator; add its organisation number before launch.
-- [ ] Google OAuth client verified for the Picker scope before `FEATURE_GOOGLE_PHOTOS_ENABLED` goes on (section 6).
+- [x] Google OAuth client verified for the Picker scope, and Google Photos import is live (section 6).
 - [ ] Optional: Application Insights attached to the Static Web App (Monitoring) if you want server logs. It isn't provisioned by default, to keep the cost at €0.
