@@ -45,7 +45,7 @@ afterEach(() => cleanup());
 describe('screens (against the in-memory test API)', () => {
   it('renders the landing page with pricing and FAQ', async () => {
     renderAt('/');
-    expect(await screen.findByText('Your Instagram, as a real book.')).toBeTruthy();
+    expect(await screen.findByText('Your Instagram as a photo book.')).toBeTruthy();
     expect(screen.getByText('PDF €9')).toBeTruthy();
     expect(
       screen.getByText('One price for the PDF, however many photos and pages your book has.'),
@@ -173,7 +173,7 @@ describe('screens (against the in-memory test API)', () => {
 
   it('about: the footer links to the About page with the name and the company', async () => {
     const { router } = renderAt('/');
-    expect(await screen.findByText('Your Instagram, as a real book.')).toBeTruthy();
+    expect(await screen.findByText('Your Instagram as a photo book.')).toBeTruthy();
     const footer = screen.getByRole('contentinfo');
     fireEvent.click(within(footer).getByRole('link', { name: 'About' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/about'));
@@ -191,7 +191,7 @@ describe('screens (against the in-memory test API)', () => {
 
   it('legal: footer links open the privacy policy and terms in both languages', async () => {
     const { router } = renderAt('/');
-    expect(await screen.findByText('Your Instagram, as a real book.')).toBeTruthy();
+    expect(await screen.findByText('Your Instagram as a photo book.')).toBeTruthy();
     fireEvent.click(within(screen.getByRole('contentinfo')).getByRole('link', { name: 'Privacy' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/privacy'));
     expect(await screen.findByRole('heading', { name: 'Privacy policy' })).toBeTruthy();
@@ -463,13 +463,13 @@ describe('languages', () => {
 
   it('public pages take the language from the URL; the picker goes to the twin page', async () => {
     const { router } = renderAt('/sv');
-    expect(await screen.findByText('Ditt Instagram som en riktig bok.')).toBeTruthy();
+    expect(await screen.findByText('Ditt Instagram som fotobok.')).toBeTruthy();
     expect(document.documentElement.lang).toBe('sv');
 
     const picker = screen.getAllByRole('combobox', { name: 'Språk' })[0]!;
     fireEvent.change(picker, { target: { value: 'en' } });
     await waitFor(() => expect(router.state.location.pathname).toBe('/'));
-    expect(await screen.findByText('Your Instagram, as a real book.')).toBeTruthy();
+    expect(await screen.findByText('Your Instagram as a photo book.')).toBeTruthy();
     expect(document.documentElement.lang).toBe('en');
     expect(localStorage.getItem('printagram.lang')).toContain('"lang":"en"');
   });

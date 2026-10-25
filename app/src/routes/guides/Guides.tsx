@@ -6,6 +6,8 @@ import { UpdatedDate } from '@/components/UpdatedDate';
 import { useT } from '@/i18n';
 import { useDraft } from '@/state/draft';
 import { useConfig } from '@/state/session';
+import { useMoney, usePriceList } from '@/state/price';
+import { fillPrice } from '@/seo/jsonld';
 import type { GuideSection } from '@/i18n/en/guides';
 import { GUIDE_KEYS, type GuideKey } from '@/seo/routes';
 import { featureOn, forFlags } from '@/seo/text';
@@ -69,7 +71,7 @@ export function GuidePage({ guide }: { guide: GuideKey }) {
           </h1>
           <UpdatedDate page={guide} label={t.guides.updated} />
           <p className={`pretty ${s.lead}`}>
-            <Rich text={g.lead} />
+            <Text text={g.lead} />
           </p>
         </header>
 
@@ -84,7 +86,7 @@ export function GuidePage({ guide }: { guide: GuideKey }) {
               <div key={f.q} className={s.faq}>
                 <h3 className={s.faqQ}>{f.q}</h3>
                 <p className="muted pretty">
-                  <Rich text={f.a} />
+                  <Text text={f.a} />
                 </p>
               </div>
             ))}
@@ -121,14 +123,14 @@ function Section({ sec }: { sec: GuideSection }) {
       <h2 className="h3">{sec.title}</h2>
       {sec.paragraphs?.map((p) => (
         <p key={p.slice(0, 32)} className={`pretty ${s.body}`}>
-          <Rich text={p} />
+          <Text text={p} />
         </p>
       ))}
       {bullets && (
         <ul className={s.bullets}>
           {bullets.map((b) => (
             <li key={b.text.slice(0, 32)}>
-              <Rich text={b.text} />
+              <Text text={b.text} />
             </li>
           ))}
         </ul>
@@ -155,7 +157,9 @@ function Section({ sec }: { sec: GuideSection }) {
                         {cell}
                       </th>
                     ) : (
-                      <td key={i}>{cell}</td>
+                      <td key={i}>
+                        <Text text={cell} />
+                      </td>
                     ),
                   )}
                 </tr>
@@ -164,7 +168,7 @@ function Section({ sec }: { sec: GuideSection }) {
           </table>
           {sec.table.note && (
             <p className={`tiny muted pretty ${s.tableNote}`}>
-              <Rich text={sec.table.note} />
+              <Text text={sec.table.note} />
             </p>
           )}
         </div>
@@ -179,7 +183,7 @@ function Section({ sec }: { sec: GuideSection }) {
               <div className="stack stack-4">
                 <div className="semibold">{st.title}</div>
                 <p className={`muted pretty ${s.body}`}>
-                  <Rich text={st.text} />
+                  <Text text={st.text} />
                 </p>
               </div>
             </li>
@@ -188,6 +192,13 @@ function Section({ sec }: { sec: GuideSection }) {
       )}
     </section>
   );
+}
+
+/** Guide copy: `[text](pageKey)` links, and `{price}` as the PDF price in the page's currency. */
+function Text({ text }: { text: string }) {
+  const money = useMoney();
+  const price = money(usePriceList().baseCents);
+  return <Rich text={fillPrice(text, price)} />;
 }
 
 function StartCta() {

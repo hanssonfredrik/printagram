@@ -70,6 +70,11 @@ jobs:
           npm install --omit=dev --workspaces=false --no-package-lock --no-audit --no-fund --ignore-scripts
           ls -la dist && du -sh node_modules
 
+      # The sitemap as it is live before this deploy, so IndexNow only gets new or changed URLs.
+      - name: Save the live sitemap
+        if: github.event_name == 'push'
+        run: curl -sf "${{ vars.SITE_URL || 'https://inbunden.com' }}/sitemap.xml" -o /tmp/old-sitemap.xml || true
+
       - name: Deploy
         uses: Azure/static-web-apps-deploy@v1
         with:
@@ -81,6 +86,11 @@ jobs:
           output_location: ''
           skip_app_build: true
           skip_api_build: true
+
+      - name: Notify IndexNow
+        if: github.event_name == 'push'
+        continue-on-error: true
+        run: node scripts/indexnow.mjs /tmp/old-sitemap.xml app/dist/sitemap.xml
 
   close_pull_request:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'

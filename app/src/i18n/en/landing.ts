@@ -8,7 +8,7 @@ export const landing = {
   testMode: 'Test mode',
   testModeTitle: 'Payments are in test mode. No money is taken.',
   hero: {
-    title: 'Your Instagram, as a real book.',
+    title: 'Your Instagram as a photo book.',
     lead: 'Inbunden turns your Instagram posts into a print‑ready photo book. Pick the photos from a year, a trip or a first year. We lay out the pages and you get a PDF to keep. Printed books are coming soon.',
     price: (price: string) => `PDF ${price}`,
     noPassword:

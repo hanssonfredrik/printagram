@@ -428,6 +428,131 @@ export const guides: Messages['guides'] = {
         },
       ],
     },
+    guideSaveInstagram: {
+      title: 'Så sparar du dina Instagram-bilder innan du raderar kontot',
+      description:
+        'Ladda ner en kopia av dina Instagram-bilder, bildtexter och datum innan du raderar eller inaktiverar kontot, och vad du kan göra med filerna sedan.',
+      lead: 'Innan du raderar Instagram laddar du ner din data under Kontocenter → Din information och dina behörigheter → Exportera din information. Välj hela perioden, JSON och högsta mediekvalitet, och vänta på mejlet med nedladdningslänken. Spara ZIP-filen på ett säkert ställe. När kontot är raderat kan Instagram inte skicka en ny kopia.',
+      sections: [
+        {
+          title: 'Radera eller inaktivera?',
+          paragraphs: [
+            'Inaktiverar du kontot göms profilen tills du loggar in igen. Inläggen finns kvar hos Instagram och kommer tillbaka när du gör det. Raderar du kontot försvinner det och allt i det för gott. Instagram ger dig 30 dagar att ångra dig efter att du har begärt radering, sedan raderas kontot.',
+            'Ladda ner din data först, vilket du än väljer. Det är gratis och tar ett par minuter att begära.',
+          ],
+        },
+        {
+          title: 'Vad du ska ta med',
+          bullets: [
+            'Allt: låt all information vara ibockad om du också vill ha meddelanden, kommentarer, stories och följare. Filen blir stor, men det är den enda fullständiga kopian du får.',
+            'Bara bilderna: bocka bara i Inlägg. Filen blir mycket mindre, och det är allt du behöver för en fotobok.',
+            'Hela perioden, JSON och högsta mediekvalitet, oavsett vad du tar med. JSON håller ihop datum och bildtext med varje bild.',
+          ],
+        },
+        {
+          title: 'Begär exporten i mobilen',
+          paragraphs: [
+            'Stegen nedan väljer bara Inlägg, vilket räcker för en fotobok. Vill du ha en fullständig kopia hoppar du över steg 5 och låter allt vara ibockat.',
+          ],
+          exportSteps: 'mobile',
+        },
+        {
+          title: 'Ladda ner den i tid',
+          paragraphs: [
+            'Instagram mejlar dig när exporten är klar, oftast inom några timmar, ibland en dag eller två. Nedladdningslänken fungerar bara i fyra dagar. Vänta tills du har ZIP-filen på din egen enhet innan du raderar kontot.',
+            'Gick något fel? Se [problem med Instagram-exporten och hur du löser dem](guideExportProblems).',
+          ],
+        },
+        {
+          title: 'Spara den säkert',
+          bullets: [
+            'Lägg ZIP-filen på två ställen, till exempel datorn och en molntjänst eller en extern hårddisk.',
+            'Du behöver inte packa upp eller sortera den. ZIP-filen är originalet, och verktyg som Inbunden läser den som den är.',
+            'Instagram sparar kopior av dina bilder med högst 1080 pixlars bredd. Har du kvar originalen i mobilen eller kameran, spara dem också. De blir skarpare i tryck.',
+          ],
+        },
+        {
+          title: 'Gör en bok av arkivet',
+          paragraphs: [
+            'En ZIP-fil på en hårddisk glöms lätt bort. Vill du se bilderna igen kan du ladda upp exporten till Inbunden, välja de år du vill ha och ladda ner en tryckfärdig PDF för {price}. Du kan göra boken långt efter att kontot är borta, så länge du har ZIP-filen. Se [så gör du en fotobok av ditt Instagram](guideInstagramBook).',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Kan jag få tillbaka mina bilder efter att jag har raderat Instagram?',
+          a: 'Bara under de 30 dagarna innan raderingen går igenom, genom att logga in igen. Sedan är kontot och bilderna borta, så ladda ner din data innan du raderar.',
+        },
+        {
+          q: 'Följer bildtexter och datum med i exporten?',
+          a: 'Ja. I JSON-format har varje inlägg sitt datum och sin bildtext. Stories, kommentarer och meddelanden följer bara med om du väljer dem.',
+        },
+        {
+          q: 'Är Inbunden en säkerhetskopia av mitt Instagram?',
+          a: 'Nej. Inbunden sparar dina bilder i 3 månader så att du kan göra böcker, sedan raderas de. Spara ZIP-filen själv.',
+        },
+      ],
+    },
+    guideChristmas: {
+      title: 'En fotobok från ditt Instagram i julklapp',
+      description:
+        'Gör en fotobok av året på Instagram i julklapp: när du ska börja, hur du hinner före tryckeriernas sista dag och vad du gör om du är sent ute.',
+      lead: 'En fotobok av årets Instagram-bilder är en personlig julklapp, och bilderna är redan valda och daterade. Börja senast i slutet av november om du vill ha en tryckt bok. Begär Instagram-exporten först, den tar några timmar till en dag eller två. Själva boken gör du på under en timme, och resten av tiden går till tryckningen.',
+      sections: [
+        {
+          title: 'När du ska börja',
+          steps: [
+            {
+              title: 'Slutet av november: begär Instagram-exporten',
+              text: 'Det tar två minuter att begära och några timmar till en dag eller två innan den kommer. Se [så laddar du ner din Instagram-data](guideInstagramExport).',
+            },
+            {
+              title: 'Början av december: gör boken',
+              text: 'Välj årets inlägg, kolla layouten och lägg till en textsida med en hälsning efter omslaget. Oftast under en timme.',
+            },
+            {
+              title: 'Första halvan av december: beställ tryckningen',
+              text: 'Fotobokstjänster på nätet har egna sista beställningsdagar före jul, ofta i mitten av december, och de har mycket att göra. Ett tryckeri i närheten kan ofta trycka på några dagar. Kolla sista dagen innan du börjar, inte efteråt.',
+            },
+          ],
+        },
+        {
+          title: 'Idéer till boken',
+          bullets: [
+            'Familjens år till mor- och farföräldrar, med datum och bildtexter under bilderna.',
+            'Ert år tillsammans till en partner, med en textsida för varje årstid.',
+            'Ett barns år, månad för månad, till resten av släkten.',
+            'Årets bästa resa, som en tunn bok med stora bilder.',
+          ],
+        },
+        {
+          title: 'Sent ute? Ge PDF:en',
+          paragraphs: [
+            'PDF:en går att ladda ner så fort du har betalat, även på julafton. Skriv ut en sida som kort, lägg den under granen och tryck hela boken efter helgerna när tryckerierna har lugnat ner sig. [Presentguiden](guideGift) har fler idéer.',
+          ],
+        },
+        {
+          title: 'Vad det kostar',
+          paragraphs: [
+            'PDF:en kostar {price} oavsett antal sidor, så ett år med 300 bilder kostar lika mycket som en resa med 30. Tryckningen betalar du till det tryckeri du väljer, och priset beror på format, sidor och bindning. [Utskriftsguiden](guidePrint) går igenom vad du ska be om.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'När är sista dagen att göra en fotobok i julklapp?',
+          a: 'För en tryckt bok beror det på tryckeriet. Fotobokstjänster på nätet slutar ofta ta emot julbeställningar i mitten av december. Själva PDF:en kan du göra och ladda ner vilken dag som helst, även på julafton.',
+        },
+        {
+          q: 'Kan jag göra en fotobok av någon annans Instagram?',
+          a: 'Bara med deras export, eftersom Instagram bara låter dig ladda ner ditt eget konto. En bok med dina egna bilder av personen fungerar lika bra och behåller överraskningen.',
+        },
+        {
+          q: 'Hur många bilder ska en fotobok i julklapp ha?',
+          a: 'Någonstans mellan 40 och 150 bilder ger en bok som känns fyllig utan att bli tung. En bok rymmer upp till 999 bilder.',
+        },
+      ],
+    },
     guideCompare: {
       title: 'Fotobokstjänster för Instagram-bilder jämförda',
       description:
@@ -450,7 +575,7 @@ export const guides: Messages['guides'] = {
               [
                 'Inbunden',
                 'Ladda upp Instagrams dataexport (alla konton, även privata)',
-                '89 kr för PDF:en, oavsett antal sidor',
+                '{price} för PDF:en, oavsett antal sidor',
                 'Tryckfärdig PDF med layout från dina inlägg',
               ],
               [
@@ -494,6 +619,13 @@ export const guides: Messages['guides'] = {
           },
         },
         {
+          title: 'Så har vi jämfört',
+          paragraphs: [
+            'Vi gör Inbunden, så läs det här som en jämförelse skriven av en av tjänsterna i den. Den 5 oktober 2026 kollade vi tre saker på varje tjänsts egen webbplats: hur Instagram-bilderna kommer in, ordinarie lägsta pris för en bok utan kampanjkoder och vad du får. Tjänsterna säljer olika format och sidantal, så de lägsta priserna är startpunkter och inte en jämförelse av likvärdiga böcker.',
+            'Har vi fel eller är något inaktuellt? Mejla hello@inbunden.com så rättar vi det.',
+          ],
+        },
+        {
           title: 'När Inbunden passar dig',
           bullets: [
             'Dina bilder finns på Instagram och du vill ha dem i datumordning, med bildtexter, utan att placera varje bild för hand.',
@@ -524,7 +656,7 @@ export const guides: Messages['guides'] = {
         },
         {
           q: 'Vad är billigaste sättet att göra en fotobok av Instagram?',
-          a: 'De billigaste tryckta böckerna börjar på ungefär 99 kr för en liten häftad bok. PDF:en från Inbunden kostar 89 kr oavsett antal sidor, och tryckningen betalar du till det tryckeri du väljer.',
+          a: 'De billigaste tryckta böckerna börjar på ungefär 99 kr för en liten häftad bok. PDF:en från Inbunden kostar {price} oavsett antal sidor, och tryckningen betalar du till det tryckeri du väljer.',
         },
         {
           q: 'Kan jag få min fotobok som PDF?',

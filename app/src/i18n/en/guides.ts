@@ -3,7 +3,7 @@ import type { Faq, Feature } from '@/seo/text';
 
 /**
  * Guide pages (/guides/...): long-form how-tos. Facts must match the product. Text may contain
- * `[text](pageKey)` links to other public pages.
+ * `[text](pageKey)` links to other public pages, and `{price}` for the PDF price.
  */
 
 export interface GuideSection {
@@ -469,6 +469,131 @@ export const guides: GuidesMessages = {
         },
       ],
     },
+    guideSaveInstagram: {
+      title: 'How to save your Instagram photos before you delete your account',
+      description:
+        'Download a full copy of your Instagram photos, captions and dates before you delete or deactivate your account, and what to do with the files afterwards.',
+      lead: 'Before you delete Instagram, download your data in Accounts Center → Your information and permissions → Export your information. Choose All time, JSON and the highest media quality, then wait for the email with the download link. Keep the ZIP somewhere safe. Once the account is deleted, Instagram can’t send you another copy.',
+      sections: [
+        {
+          title: 'Delete or deactivate?',
+          paragraphs: [
+            'Deactivating hides your profile until you log in again. Your posts stay with Instagram and come back when you return. Deleting removes the account and everything in it for good. Instagram gives you 30 days to change your mind after you ask to delete, then the deletion goes through.',
+            'Either way, download your data first. It is free and takes a couple of minutes to request.',
+          ],
+        },
+        {
+          title: 'What to include',
+          bullets: [
+            'Everything: keep all the information ticked if you also want your messages, comments, stories and followers. The file gets large, but it is the only complete copy you will have.',
+            'Only your photos: tick just Posts. The file is much smaller, and it is all you need for a photo book.',
+            'All time, JSON and the highest media quality, whatever you include. JSON keeps the dates and captions next to each photo.',
+          ],
+        },
+        {
+          title: 'Request the export on your phone',
+          paragraphs: [
+            'These steps pick Posts only, which is enough for a photo book. For a full copy, skip step 5 and keep everything ticked.',
+          ],
+          exportSteps: 'mobile',
+        },
+        {
+          title: 'Download it in time',
+          paragraphs: [
+            'Instagram emails you when the export is ready, usually within a few hours, sometimes a day or two. The download link only works for four days. Wait until you have the ZIP on your own device before you delete the account.',
+            'Something went wrong? See [Instagram export problems and how to fix them](guideExportProblems).',
+          ],
+        },
+        {
+          title: 'Keep it safe',
+          bullets: [
+            'Store the ZIP in two places, for example your computer and a cloud drive or an external disk.',
+            'You don’t need to unpack or sort it. The ZIP is the original, and tools like Inbunden read it as it is.',
+            'Instagram keeps copies of your photos at up to 1080 pixels wide. If you still have the originals on your phone or camera, keep those too. They print sharper.',
+          ],
+        },
+        {
+          title: 'Turn the archive into a book',
+          paragraphs: [
+            'A ZIP on a hard drive is easy to forget. If you want to look at the photos again, upload the export to Inbunden, pick the years you want and download a print-ready PDF for {price}. You can make the book long after the account is gone, as long as you have the ZIP. See [how to make a photo book from your Instagram](guideInstagramBook).',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Can I get my photos back after deleting Instagram?',
+          a: 'Only within the 30 days before the deletion goes through, by logging in again. After that the account and its photos are gone, so download your data before you delete.',
+        },
+        {
+          q: 'Does the export include my captions and dates?',
+          a: 'Yes. In JSON format every post comes with its date and caption. Stories, comments and messages are only included if you choose them.',
+        },
+        {
+          q: 'Is Inbunden a backup of my Instagram?',
+          a: 'No. Inbunden keeps your photos for 3 months so you can make books, then deletes them. Keep the ZIP yourself.',
+        },
+      ],
+    },
+    guideChristmas: {
+      title: 'A Christmas photo book from your Instagram',
+      description:
+        'Make a photo book of your year on Instagram as a Christmas present: when to start, how to plan around print deadlines and what to do if you are late.',
+      lead: 'A photo book of the year from your Instagram makes a personal Christmas present, and the photos are already chosen and dated. Start by the end of November if you want a printed book. Request your Instagram export first, since that takes a few hours to a day or two. Making the book takes under an hour, and printing takes the rest of the time.',
+      sections: [
+        {
+          title: 'When to start',
+          steps: [
+            {
+              title: 'End of November: request the Instagram export',
+              text: 'It takes two minutes to request and a few hours to a day or two to arrive. See [how to download your Instagram data](guideInstagramExport).',
+            },
+            {
+              title: 'Early December: make the book',
+              text: 'Pick the year’s posts, check the layout and add a text page with a greeting after the cover. Usually under an hour.',
+            },
+            {
+              title: 'First half of December: order the print',
+              text: 'Online photo book printers set their own Christmas deadlines, often in mid-December, and they get busy. A local print shop can often print in a few days. Check the deadline before you start, not after.',
+            },
+          ],
+        },
+        {
+          title: 'Ideas for the book',
+          bullets: [
+            'The family’s year for grandparents, with dates and captions under the photos.',
+            'Your year together for a partner, with a text page for each season.',
+            'A child’s year, month by month, for the rest of the family.',
+            'The best trip of the year, as a thin book with large photos.',
+          ],
+        },
+        {
+          title: 'Late? Give the PDF',
+          paragraphs: [
+            'The PDF is ready to download as soon as you have paid, even on Christmas Eve. Print one page as a card, put it under the tree, and print the whole book after the holidays when the print shops are quiet. The [gift guide](guideGift) has more ideas.',
+          ],
+        },
+        {
+          title: 'What it costs',
+          paragraphs: [
+            'The PDF costs {price} whatever the number of pages, so a year with 300 photos costs the same as a trip with 30. Printing is paid to the print shop you choose and depends on size, pages and binding. The [printing guide](guidePrint) lists what to ask for.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'When is the last day to make a Christmas photo book?',
+          a: 'For a printed book, it depends on the print shop. Online printers often stop taking Christmas orders in mid-December. The PDF itself can be made and downloaded any day, including Christmas Eve.',
+        },
+        {
+          q: 'Can I make a photo book from someone else’s Instagram?',
+          a: 'Only with their export, since Instagram only lets you download your own account. A book of your own photos of them works just as well and keeps the surprise.',
+        },
+        {
+          q: 'How many photos should a Christmas photo book have?',
+          a: 'Somewhere between 40 and 150 photos gives a book that feels full without getting heavy. A book can hold up to 999.',
+        },
+      ],
+    },
     guideCompare: {
       title: 'Photo book services for Instagram photos compared',
       description:
@@ -491,7 +616,7 @@ export const guides: GuidesMessages = {
               [
                 'Inbunden',
                 'Upload Instagram’s data export (any account, private ones too)',
-                '€9 / 89 kr for the PDF, any number of pages',
+                '{price} for the PDF, any number of pages',
                 'Print-ready PDF, laid out from your posts',
               ],
               [
@@ -535,6 +660,13 @@ export const guides: GuidesMessages = {
           },
         },
         {
+          title: 'How we compared',
+          paragraphs: [
+            'We make Inbunden, so read this as a comparison written by one of the services in it. On 5 October 2026 we checked each service’s own website for three things: how you get Instagram photos in, the cheapest regular book price without campaign codes, and what you get. The services sell different sizes and page counts, so the cheapest prices are starting points, not a like-for-like comparison.',
+            'Found something wrong or out of date? Email hello@inbunden.com and we’ll fix it.',
+          ],
+        },
+        {
           title: 'When Inbunden suits you',
           bullets: [
             'Your photos are on Instagram and you want them in date order, with captions, without placing every photo by hand.',
@@ -565,7 +697,7 @@ export const guides: GuidesMessages = {
         },
         {
           q: 'What is the cheapest way to make a photo book from Instagram?',
-          a: 'The cheapest printed books start at around 99 kr for a small softcover. Inbunden’s PDF costs €9 / 89 kr whatever the number of pages, and you pay the print shop of your choice for printing.',
+          a: 'The cheapest printed books start at around 99 kr for a small softcover. Inbunden’s PDF costs {price} whatever the number of pages, and you pay the print shop of your choice for printing.',
         },
         {
           q: 'Can I get a PDF of my photo book?',

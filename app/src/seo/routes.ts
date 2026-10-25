@@ -16,10 +16,12 @@ export type GuideKey =
   | 'guideInstagramBook'
   | 'guideInstagramExport'
   | 'guideExportProblems'
+  | 'guideSaveInstagram'
   | 'guidePrint'
   | 'guidePrintPhotos'
   | 'guideYearBook'
   | 'guideGift'
+  | 'guideChristmas'
   | 'guideCompare';
 
 export interface PublicPage {
@@ -33,9 +35,9 @@ export interface PublicPage {
 }
 
 export const PAGES: Record<PageKey, PublicPage> = {
-  landing: { paths: { en: '/', sv: '/sv' }, priority: 1, updated: '2026-10-05' },
+  landing: { paths: { en: '/', sv: '/sv' }, priority: 1, updated: '2026-10-25' },
   about: { paths: { en: '/about', sv: '/sv/om' }, priority: 0.6, updated: '2026-10-05' },
-  guides: { paths: { en: '/guides', sv: '/sv/guider' }, priority: 0.7, updated: '2026-10-05' },
+  guides: { paths: { en: '/guides', sv: '/sv/guider' }, priority: 0.7, updated: '2026-10-25' },
   guideInstagramBook: {
     paths: { en: '/guides/instagram-photo-book', sv: '/sv/guider/fotobok-av-instagram' },
     priority: 0.8,
@@ -56,6 +58,15 @@ export const PAGES: Record<PageKey, PublicPage> = {
     priority: 0.6,
     published: '2026-10-05',
     updated: '2026-10-05',
+  },
+  guideSaveInstagram: {
+    paths: {
+      en: '/guides/save-instagram-photos-before-deleting',
+      sv: '/sv/guider/spara-instagrambilder-innan-du-raderar',
+    },
+    priority: 0.7,
+    published: '2026-10-25',
+    updated: '2026-10-25',
   },
   guidePrint: {
     paths: { en: '/guides/print-your-photo-book', sv: '/sv/guider/skriv-ut-din-fotobok' },
@@ -81,6 +92,12 @@ export const PAGES: Record<PageKey, PublicPage> = {
     published: '2026-10-05',
     updated: '2026-10-05',
   },
+  guideChristmas: {
+    paths: { en: '/guides/christmas-photo-book', sv: '/sv/guider/fotobok-julklapp' },
+    priority: 0.8,
+    published: '2026-10-25',
+    updated: '2026-10-25',
+  },
   guideCompare: {
     paths: {
       en: '/guides/instagram-photo-book-services-compared',
@@ -88,7 +105,7 @@ export const PAGES: Record<PageKey, PublicPage> = {
     },
     priority: 0.8,
     published: '2026-10-05',
-    updated: '2026-10-05',
+    updated: '2026-10-25',
   },
   privacy: {
     paths: { en: '/privacy', sv: '/sv/integritet' },

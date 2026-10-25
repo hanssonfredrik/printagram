@@ -112,6 +112,10 @@ After the first deploy with these changes:
 
 **Copy that depends on feature flags** (Instagram connect, Google Photos) is chosen from the live `/api/config` at build time, like prices. When you switch `FEATURE_CONNECT_ENABLED` or Google Photos on or off, redeploy so the static pages and their FAQ markup match.
 
+**IndexNow:** every push to `main` sends the new or changed sitemap URLs to IndexNow after the deploy (`scripts/indexnow.mjs`, key file `app/public/fc6c3d2ba6d779d7831a9b2680ac6cf4.txt`). Bing picks it up without any setup. Its log line is in the "Notify IndexNow" step.
+
+**The Christmas guide** (`/guides/christmas-photo-book`) talks about print deadlines in mid-December. Check it still reads right each autumn and bump its `updated` date.
+
 **The comparison guide** (`/guides/instagram-photo-book-services-compared`) states other services' prices and features as checked on 5 October 2026. Recheck them every few months and update `updated` for `guideCompare` in `app/src/seo/routes.ts`.
 
 **Prices in the static HTML** come from the live `/api/config` at build time. If you change prices with app settings, redeploy (or re-run the workflow) so the prerendered pages match. English pages show euros and the Swedish `/sv/...` pages show kronor, each with its own Product offer.

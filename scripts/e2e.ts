@@ -45,7 +45,7 @@ async function main() {
   const ok = (s: string) => console.log(`✓ ${s}`);
 
   await page.goto(APP + '/');
-  await page.getByText('Your Instagram, as a real book.').waitFor();
+  await page.getByText('Your Instagram as a photo book.').waitFor();
   await shot(page, '01-landing');
   ok('landing');
 
@@ -176,7 +176,7 @@ async function main() {
   // Phone width
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(APP + '/');
-  await page.getByText('Your Instagram, as a real book.').waitFor();
+  await page.getByText('Your Instagram as a photo book.').waitFor();
   await shot(page, '13-landing-phone');
   await page.goto(APP + '/select');
   await page.getByText('Choose your photos').waitFor();
@@ -222,13 +222,13 @@ async function main() {
     const p3 = await ctx3.newPage();
     p3.on('pageerror', (e) => errors.push(`pageerror: ${e.message}`));
     await p3.goto(APP + '/');
-    await p3.getByText('Ditt Instagram som en riktig bok.').waitFor();
+    await p3.getByText('Ditt Instagram som fotobok.').waitFor();
     assert((await p3.getAttribute('html', 'lang')) === 'sv', 'html lang is sv');
     await shot(p3, '15-landing-swedish');
     await p3.getByRole('combobox', { name: 'Språk' }).first().selectOption('en');
-    await p3.getByText('Your Instagram, as a real book.').waitFor();
+    await p3.getByText('Your Instagram as a photo book.').waitFor();
     await p3.reload();
-    await p3.getByText('Your Instagram, as a real book.').waitFor();
+    await p3.getByText('Your Instagram as a photo book.').waitFor();
     await ctx3.close();
     ok('Swedish browser gets Swedish; the language choice is remembered');
   }

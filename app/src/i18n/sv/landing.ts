@@ -7,7 +7,7 @@ export const landing: Messages['landing'] = {
   testMode: 'Testläge',
   testModeTitle: 'Betalningarna är i testläge. Inga pengar dras.',
   hero: {
-    title: 'Ditt Instagram som en riktig bok.',
+    title: 'Ditt Instagram som fotobok.',
     lead: 'Inbunden gör dina Instagram-inlägg till en tryckfärdig fotobok. Välj bilderna från ett år, en resa eller ett första år. Vi gör layouten och du får en PDF att spara. Tryckta böcker kommer snart.',
     price: (price: string) => `PDF ${price}`,
     noPassword:
