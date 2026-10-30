@@ -17,7 +17,7 @@ export function ChooseSource() {
 
   return (
     <div className="screen screen--bar">
-      <ScreenHeader title={tc.title}>
+      <ScreenHeader title={tc.title} wide>
         {adding && (
           <Banner tone="info" tight>
             <div className="row gap-10">
@@ -31,10 +31,12 @@ export function ChooseSource() {
         <FlowProgress screen="choose" />
       </ScreenHeader>
 
-      <div className="container container--narrow stack stack-20" style={{ paddingTop: 8 }}>
-        <p className="muted pretty">{tc.intro}</p>
+      <div className="container stack stack-20" style={{ paddingTop: 8 }}>
+        <p className="muted pretty" style={{ maxWidth: 'var(--max-narrow)' }}>
+          {tc.intro}
+        </p>
 
-        <div className="grid-auto grid-auto--300" style={{ alignItems: 'stretch' }}>
+        <div className="grid-auto grid-auto--260" style={{ alignItems: 'stretch' }}>
           {cfg.googlePhotosEnabled && (
             <Card bordered radius="xl">
               <div className="row gap-8">
