@@ -42,6 +42,10 @@ function requireConnect() {
     );
 }
 
+function tokenExpired(lib: LibraryRow): boolean {
+  return !!lib.igTokenExpiresAt && new Date(lib.igTokenExpiresAt) <= new Date();
+}
+
 async function igLibrary(userId: string): Promise<LibraryRow | null> {
   return (
     (await libraries.list(userId)).find(
@@ -74,19 +78,28 @@ route(
     const state = await verifyState<{ sub: string }>(stateRaw);
     if (!state || !user || state.sub !== user.userId) return back('error=expired');
     if (error || !code) {
-      // Instagram returns access_denied both for "Cancel" and for personal accounts that cannot use the API.
       const reason = req.query.get('error_reason') ?? '';
-      return back(reason === 'user_denied' ? 'error=denied' : 'error=personal');
+      return back(
+        reason === 'user_denied' || error === 'access_denied' ? 'error=denied' : 'error=unknown',
+      );
     }
     try {
-      const short = await ig.exchangeCode(code);
-      const long = await ig.longLivedToken(short.access_token);
-      const profile = await ig.me(long.access_token);
-      // Only professional accounts can use this API. Instagram normally refuses personal ones
-      // before we get here; this catches the case where it does not.
-      const kind = (profile.account_type ?? '').toUpperCase();
-      if (kind && kind !== 'BUSINESS' && kind !== 'MEDIA_CREATOR') return back('error=personal');
-      const expiresAt = new Date(Date.now() + long.expires_in * 1000).toISOString();
+      const token = await ig.exchangeCode(code);
+      const accounts = await ig.instagramAccounts(token.access_token);
+      // No Instagram account shared: the person had no business portfolio with one in it, or
+      // unticked it in the Meta window.
+      const account = accounts[0];
+      if (!account) return back('error=noaccount');
+      if (accounts.length > 1)
+        console.warn(
+          `instagram callback: ${accounts.length} accounts shared, using @${account.username}`,
+        );
+      const system = await ig.systemUser(token.access_token).catch(() => null);
+      // Never keep access longer than TOKEN_MAX_DAYS, even when Meta's token would last for ever.
+      const maxMs = ig.TOKEN_MAX_DAYS * 86_400_000;
+      const lifeMs = token.expires_in ? Math.min(token.expires_in * 1000, maxMs) : maxMs;
+      const expiresAt = new Date(Date.now() + lifeMs).toISOString();
+      const profile = { user_id: account.id, username: account.username };
 
       let lib = await igLibrary(user.userId);
       if (lib && lib.igUserId && lib.igUserId !== profile.user_id) {
@@ -99,7 +112,7 @@ route(
         igUserId: profile.user_id,
         igUsername: profile.username,
         sourceLabel: `@${profile.username}`,
-        igTokenEnc: encrypt(long.access_token),
+        igTokenEnc: encrypt(token.access_token),
         igTokenExpiresAt: expiresAt,
         igTokenInvalid: false,
         igConnected: true,
@@ -109,6 +122,10 @@ route(
         userId: user.userId,
         value: lib.libraryId,
       });
+      // Meta's deauthorize and deletion callbacks name a user id; which id that is for a
+      // system-user token is not documented, so the system user is mapped too.
+      if (system?.id)
+        await lookups.upsert('ig_user', system.id, { userId: user.userId, value: lib.libraryId });
       return back(`connected=1&library=${lib.libraryId}`);
     } catch (e) {
       console.error('instagram callback failed', e);
@@ -122,7 +139,7 @@ route(
   { methods: ['GET'], route: 'instagram/status', auth: 'required' },
   async ({ user }) => {
     const lib = await igLibrary(user.userId);
-    const connected = !!lib?.igConnected && !lib.igTokenInvalid;
+    const connected = !!lib?.igConnected && !lib.igTokenInvalid && !tokenExpired(lib);
     return json({
       connected,
       username: lib?.igUsername ?? null,
@@ -161,7 +178,7 @@ route(
       requireGoogleImport(lib);
     } else {
       requireConnect();
-      if (!lib.igTokenEnc || lib.igTokenInvalid)
+      if (!lib.igTokenEnc || lib.igTokenInvalid || tokenExpired(lib))
         throw conflict('NOT_CONNECTED', 'Connect your Instagram account first.');
     }
     const running = (await importJobs.list(user.userId)).find(
@@ -252,7 +269,8 @@ route(
     const google = lib.source === 'googlephotos';
     if (!google) {
       requireConnect();
-      if (!lib.igTokenEnc) throw conflict('NOT_CONNECTED', 'Connect your Instagram account first.');
+      if (!lib.igTokenEnc || !lib.igUserId)
+        throw conflict('NOT_CONNECTED', 'Connect your Instagram account first.');
     }
     // Set when Instagram rejects the token, so the client can say "connect again" rather than
     // "something went wrong".
@@ -291,7 +309,8 @@ route(
       : [];
     let cursor = job.cursor;
     let pageExhausted = false;
-    // Meta's reference marks `caption` as Facebook Login only; these counts show what we really get.
+    // Meta's reference marks `caption` as "Facebook Login only"; these counts show what Unified
+    // Login really gives.
     let withCaption = 0;
     let withLikes = 0;
 
@@ -299,7 +318,7 @@ route(
       while (Date.now() - started < IMPORT_BUDGET_MS) {
         if (pending.length === 0) {
           if (pageExhausted) break;
-          const page = await ig.mediaPage(token, cursor, job.since);
+          const page = await ig.mediaPage(token, lib.igUserId!, cursor, job.since);
           const items = flatten(page.data).filter((it) => !job.since || it.timestamp > job.since);
           if (job.total === null)
             job.total = items.length; // best effort; grows as pages arrive
@@ -399,7 +418,7 @@ route(
         lastError: msg,
         leaseUntil: null,
       });
-      if (/OAuthException|Invalid OAuth|access token/i.test(msg)) {
+      if (ig.isTokenError(msg)) {
         tokenInvalid = true;
         await libraries.merge(user.userId, lib.libraryId, { igTokenInvalid: true });
       }

@@ -176,7 +176,7 @@ export interface ApiError {
   error: { code: string; message: string };
 }
 
-export type ConnectError = 'personal' | 'denied' | 'expired' | 'unknown';
+export type ConnectError = 'personal' | 'denied' | 'expired' | 'noaccount' | 'unknown';
 
 export type GoogleError = 'denied' | 'expired' | 'unknown';
 

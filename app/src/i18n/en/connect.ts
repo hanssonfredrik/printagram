@@ -2,7 +2,7 @@
 export const connect = {
   title: 'Connect your Instagram',
   intro:
-    "You'll log in on instagram.com and allow Inbunden to read your posts. Instagram only lets Creator and Business accounts connect, so first a quick check.",
+    'Meta, the company behind Instagram, opens a window where you log in with your Instagram account and allow Inbunden to read your posts. Only Creator and Business accounts can connect, so first a quick check.',
   acctQuestion: 'What kind of account do you have?',
   acct: {
     pro: 'Creator or Business',
@@ -11,14 +11,14 @@ export const connect = {
   },
   askFor: {
     title: 'What Inbunden will ask for',
-    profile: 'Your username and profile picture',
+    profile: 'Your Instagram username',
     posts: 'Your posts: photos, captions, dates and likes',
     readOnly:
       'Read‑only. No posting, no messages, no followers. Disconnect any time. Access also ends by itself after 60 days.',
   },
   continue: 'Continue with Instagram',
   opensWindow:
-    "You'll be sent to instagram.com to log in, then straight back here. We never see your password.",
+    "In Meta's window you log in with Instagram, pick your business portfolio and your account, and allow access. Then you come straight back here. We never see your password.",
   switchFirst: {
     title: 'Switch to a Professional account first',
     text: 'Free, about two minutes, reversible, and nobody is notified. One thing changes: a private account becomes public, and pending follow requests are accepted. Prefer to stay private? Use the export instead. It works for every account.',
@@ -58,8 +58,8 @@ export const connect = {
   seeButton: 'I see the button (Creator or Business)',
   noButton: 'No button (personal account)',
   waiting: {
-    title: 'Sending you to Instagram…',
-    text: "You're on your way to instagram.com. Log in there and tap Allow, and you'll come back here by yourself.",
+    title: 'Sending you to Meta…',
+    text: "Log in with your Instagram account, choose your business portfolio and your account, and tap Continue. You'll come back here by yourself.",
     reopen: 'Nothing happened? Try again',
   },
   errors: {
@@ -69,15 +69,19 @@ export const connect = {
     },
     denied: {
       title: 'No access was granted',
-      text: "The Instagram window was closed or you tapped Cancel, so nothing was shared with Inbunden. Try again whenever you're ready, or use the export instead.",
+      text: "The Meta window was closed or you tapped Cancel, so nothing was shared with Inbunden. Try again whenever you're ready, or use the export instead.",
     },
     expired: {
       title: 'Connect Instagram again',
       text: "The connection timed out or has ended, so Inbunden can't read your posts right now. Connect again, or use the export instead.",
     },
+    noaccount: {
+      title: 'No Instagram account was shared',
+      text: 'Meta connects Instagram through a business portfolio, and no account came through. Check that you picked the portfolio your Instagram account belongs to and that the account was ticked. Never set one up? Use the export instead. It works for every account.',
+    },
     unknown: {
-      title: 'Something went wrong on Instagram',
-      text: 'Instagram returned an error we did not expect. Try again in a minute, or use the export instead.',
+      title: 'Something went wrong at Meta',
+      text: 'Meta returned an error we did not expect. Try again in a minute, or use the export instead.',
     },
   },
   showSwitch: 'Show me how to switch',

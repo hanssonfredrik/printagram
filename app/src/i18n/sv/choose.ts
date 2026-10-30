@@ -10,9 +10,9 @@ export const choose: Messages['choose'] = {
   comingSoon: 'Kommer snart',
   connect: {
     title: 'Anslut Instagram',
-    text: 'Logga in på Instagrams egen webbplats och ge Inbunden tillåtelse att läsa dina inlägg. Dina bilder dyker upp här direkt.',
+    text: 'Logga in med ditt Instagram-konto i Metas fönster och ge Inbunden tillåtelse att läsa dina inlägg. Dina bilder dyker upp här direkt.',
     needsPro:
-      'Kräver ett kreatörs- eller företagskonto. Att byta är gratis, tar två minuter och går att ångra.',
+      'Kräver ett kreatörs- eller företagskonto i en företagsportfölj hos Meta. Att byta till kreatör är gratis, tar två minuter och går att ångra.',
     likes: 'Dina gilla-markeringar följer med, så att du kan skriva ut dina mest gillade inlägg.',
     public: 'Professionella konton är offentliga. Vill du vara privat? Använd exporten.',
     button: 'Anslut Instagram',

@@ -9,9 +9,9 @@ export const choose = {
   comingSoon: 'Coming soon',
   connect: {
     title: 'Connect Instagram',
-    text: "Log in on Instagram's own site and allow Inbunden to read your posts. Your photos show up here right away.",
+    text: "Log in with your Instagram account in Meta's window and allow Inbunden to read your posts. Your photos show up here right away.",
     needsPro:
-      'Needs a Creator or Business account. Switching is free, takes two minutes and is reversible.',
+      'Needs a Creator or Business account in a Meta business portfolio. Switching to Creator is free, takes two minutes and is reversible.',
     likes: 'Brings your likes along, so you can print your most‑loved posts.',
     public: 'Professional accounts are public. Want to stay private? Use the export.',
     button: 'Connect Instagram',

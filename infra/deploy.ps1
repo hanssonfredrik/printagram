@@ -30,6 +30,7 @@ param(
   [string] $EmailFrom = 'Inbunden <hello@inbunden.com>',
   [string] $IgAppId = '',
   [string] $IgAppSecret = '',
+  [string] $IgConfigId = '',
   [string] $GoogleClientId = '',
   [string] $GoogleClientSecret = '',
   [string] $SecretsFile = "$PSScriptRoot/.secrets.$Env.json"
@@ -60,7 +61,7 @@ $params = @{
   extraCorsOrigins = $ExtraCorsOrigins; connectEnabled = [bool]$ConnectEnabled; googlePhotosEnabled = [bool]$GooglePhotosEnabled
   authJwtSecret = $secrets.authJwtSecret; tokenEncKey = $secrets.tokenEncKey; cronSecret = $secrets.cronSecret
   paymentProvider = $PaymentProvider; stripeSecretKey = $StripeSecretKey; stripePublishableKey = $StripePublishableKey; stripeWebhookSecret = $StripeWebhookSecret
-  resendApiKey = $ResendApiKey; emailFrom = $EmailFrom; igAppId = $IgAppId; igAppSecret = $IgAppSecret
+  resendApiKey = $ResendApiKey; emailFrom = $EmailFrom; igAppId = $IgAppId; igAppSecret = $IgAppSecret; igConfigId = $IgConfigId
   googleClientId = $GoogleClientId; googleClientSecret = $GoogleClientSecret
 }
 $paramFile = Join-Path $env:TEMP "printagram-params-$Env.json"

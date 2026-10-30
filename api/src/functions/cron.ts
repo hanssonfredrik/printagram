@@ -1,6 +1,5 @@
 import { timingSafeEqual } from 'node:crypto';
 import { normalizeLang } from '@printagram/shared';
-import { decrypt, encrypt } from '../lib/auth.js';
 import {
   deleteBlob,
   deleteContainer,
@@ -12,7 +11,6 @@ import { config } from '../lib/config.js';
 import { mailer, templates } from '../lib/email.js';
 import { forbidden, json, readJson, route } from '../lib/http.js';
 import { addDays, nowIso } from '../lib/ids.js';
-import * as ig from '../lib/instagramApi.js';
 import { destroyLibrary } from '../lib/libraryService.js';
 import {
   deletePartition,
@@ -29,7 +27,7 @@ const BUDGET_MS = 25_000;
 type Task =
   | 'expireLibraries'
   | 'sendReminders'
-  | 'refreshIgTokens'
+  | 'expireIgTokens'
   | 'cleanupOrphans'
   | 'cleanupAnonymous'
   | 'cleanupTokens'
@@ -118,30 +116,20 @@ route(
         }
         break;
       }
-      case 'refreshIgTokens': {
-        const soon = addDays(now, 30);
+      case 'expireIgTokens': {
+        // Instagram access ends after 60 days (instagramApi TOKEN_MAX_DAYS): the stored token is
+        // deleted, and the person connects again if they want new posts. Nothing is refreshed.
         for await (const l of libraries.scanAll()) {
           if (!budget()) {
             more = true;
             break;
           }
-          if (
-            !l.igTokenEnc ||
-            l.igTokenInvalid ||
-            !l.igTokenExpiresAt ||
-            new Date(l.igTokenExpiresAt) > soon
-          )
-            continue;
-          try {
-            const r = await ig.refreshToken(decrypt(l.igTokenEnc));
-            await libraries.merge(l.userId, l.libraryId, {
-              igTokenEnc: encrypt(r.access_token),
-              igTokenExpiresAt: new Date(Date.now() + r.expires_in * 1000).toISOString(),
-            });
-          } catch (e) {
-            ctx.warn(`token refresh failed for ${l.libraryId}`, e);
-            await libraries.merge(l.userId, l.libraryId, { igTokenInvalid: true });
-          }
+          if (!l.igTokenEnc || !l.igTokenExpiresAt || new Date(l.igTokenExpiresAt) > now) continue;
+          await libraries.merge(l.userId, l.libraryId, {
+            igTokenEnc: null,
+            igConnected: false,
+            igTokenExpiresAt: null,
+          });
           processed++;
         }
         break;

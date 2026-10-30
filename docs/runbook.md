@@ -96,12 +96,11 @@ Stripe stays dormant until `PAYMENT_PROVIDER=stripe` is set together with the ke
 2. API key → `RESEND_API_KEY`, `EMAIL_FROM` → `Inbunden <hello@yourdomain>`; `EMAIL_PROVIDER` becomes `resend` automatically when the key is set.
 
 ### Meta / Instagram (connect path)
-Full guide with the App Review text and screencast script: `docs/meta-app-setup.md`. **30 Oct 2026:** the Meta app exists (id 1063408666760429), but Meta no longer gives new apps the Instagram Login route the code uses; see the status section in that guide before touching this.
-1. developers.facebook.com → create an app with the use case *Manage messaging & content on Instagram* and the Venueve AB business (verified) → customize it down to `instagram_business_basic` → *API setup with Instagram login*.
-2. Redirect URI `https://<host>/api/instagram/callback`; Deauthorize callback `https://<host>/api/instagram/deauthorize`; Data deletion callback `https://<host>/api/instagram/data-deletion`.
-3. Add yourself and testers as *Instagram Testers* (Standard Access) → set `IG_APP_ID`, `IG_APP_SECRET`, `FEATURE_CONNECT_ENABLED=true` on a preview environment and test.
-4. Mark the use case *Ready to test* (Review → Testing), then submit App Review for `instagram_business_basic` (Advanced Access): app settings (icon, privacy policy URL, category), screencast, a tester login. Once approved, *Publish* the app, then enable the flag in production and redeploy so the prerendered copy switches.
-5. Operations: the daily cron refreshes tokens that expire within 30 days and marks failed ones invalid (the user sees "connect again"). Graph calls are pinned to `v26.0` in `api/src/lib/instagramApi.ts`; bump it when Meta's dashboard warns about deprecation. The data-deletion callback answers with `/privacy/deletion?code=…`, a public status page.
+Full guide, ids and the App Review package: `docs/meta-app-setup.md`. Connect uses Meta's Unified Login (Facebook Login for Business with a system-user token); new apps cannot get the older Instagram Login.
+1. Settings: `IG_APP_ID` (Meta app id 1063408666760429), `IG_APP_SECRET`, `IG_CONFIG_ID` (login configuration 1665439111774577), `IG_REDIRECT_URI`, `FEATURE_CONNECT_ENABLED=true`.
+2. The redirect, deauthorize and data-deletion URLs live under Facebook Login for Business → Settings in the Meta dashboard.
+3. Until App Review grants Advanced Access for `instagram_basic` and the app is published, only people with a role on the app can connect.
+4. Operations: tokens are never refreshed. The nightly cron task `expireIgTokens` deletes tokens older than 60 days, and the person connects again. A Meta error #190 during an import marks the token invalid ("connect again"). Graph calls are pinned to `v26.0` in `api/src/lib/instagramApi.ts`. The data-deletion callback answers with `/privacy/deletion?code=…`, a public status page.
 
 ### Custom domain
 `inbunden.com` on the Static Web App; `www.inbunden.com` and `inbunden.se` forwarded at the registrar; full steps in `docs/go-live.md` §2. Then redeploy with `-AppBaseUrl https://inbunden.com -ExtraCorsOrigins https://inbunden.com` so emails, OAuth and Blob CORS use the new origin.

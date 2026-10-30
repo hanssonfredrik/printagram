@@ -26,6 +26,7 @@
     "FEATURE_CONNECT_ENABLED": "false",
     "IG_APP_ID": "",
     "IG_APP_SECRET": "",
+    "IG_CONFIG_ID": "",
     "IG_REDIRECT_URI": "https://<your-tunnel-or-swa-host>/api/instagram/callback",
 
     "FEATURE_GOOGLE_PHOTOS_ENABLED": "true",

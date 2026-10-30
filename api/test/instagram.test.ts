@@ -1,6 +1,7 @@
 /**
- * Instagram connect: the real handlers in-process against Azurite, with the Instagram API client
- * stubbed (OAuth, profile, media pages, downloads). Skipped without Azurite, like routes.test.ts.
+ * Instagram connect (Meta's Unified Login): the real handlers in-process against Azurite, with
+ * the Meta client stubbed (code exchange, shared accounts, media pages, downloads). Skipped
+ * without Azurite, like routes.test.ts.
  */
 import net from 'node:net';
 import { createHmac } from 'node:crypto';
@@ -20,6 +21,7 @@ process.env.EMAIL_PROVIDER = 'console';
 process.env.COOKIE_SECURE = 'false';
 process.env.IG_APP_ID = 'ig-app';
 process.env.IG_APP_SECRET = 'ig-secret';
+process.env.IG_CONFIG_ID = 'cfg-1';
 process.env.IG_REDIRECT_URI = 'http://localhost:7071/api/instagram/callback';
 // Switched on inside the tests: the first one checks the "not available yet" answer.
 delete process.env.FEATURE_CONNECT_ENABLED;
@@ -37,8 +39,11 @@ vi.mock('@azure/functions', async (orig) => {
   };
 });
 
-/** Knobs the tests turn: what kind of account logs in, and whether Instagram rejects the token. */
-const knobs = vi.hoisted(() => ({ accountType: 'MEDIA_CREATOR', mediaFails: false }));
+/** Knobs the tests turn: which accounts the person shares, and whether Meta rejects the token. */
+const knobs = vi.hoisted(() => ({
+  accounts: [{ id: '1789', username: 'tester' }] as { id: string; username: string }[],
+  mediaFails: false,
+}));
 
 /** One image post, one carousel (image + video) and one video, over two pages. */
 vi.mock('../src/lib/instagramApi.js', async (orig) => {
@@ -46,21 +51,18 @@ vi.mock('../src/lib/instagramApi.js', async (orig) => {
   return {
     ...mod,
     authorizeUrl: (state: string) =>
-      `https://www.instagram.com/oauth/authorize?client_id=ig-app&state=${encodeURIComponent(state)}`,
+      `https://www.facebook.com/v26.0/dialog/oauth?client_id=ig-app&state=${encodeURIComponent(state)}`,
     exchangeCode: async (code: string) => {
-      if (code !== 'good-code') throw new Error('instagram token: Invalid authorization code');
-      return { access_token: 'short-token', user_id: '1789' };
+      if (code !== 'good-code') throw new Error('meta oauth/access_token: (#100) Invalid code');
+      // A system-user token that never expires: we cap it at 60 days ourselves.
+      return { access_token: 'system-token', expires_in: null };
     },
-    longLivedToken: async () => ({ access_token: 'long-token', expires_in: 5_184_000 }),
-    refreshToken: async () => ({ access_token: 'long-token-2', expires_in: 5_184_000 }),
-    me: async () => ({
-      user_id: '1789',
-      username: 'tester',
-      media_count: 3,
-      account_type: knobs.accountType,
-    }),
-    mediaPage: async (_token: string, after: string | null) => {
-      if (knobs.mediaFails) throw new Error('instagram me/media: Invalid OAuth access token.');
+    instagramAccounts: async () => knobs.accounts,
+    systemUser: async () => ({ id: '5555', client_business_id: 'biz-1' }),
+    mediaPage: async (_token: string, igUserId: string, after: string | null) => {
+      if (igUserId !== '1789') throw new Error(`media asked for account ${igUserId}`);
+      if (knobs.mediaFails)
+        throw new Error('meta 1789/media: (#190) OAuthException Error validating access token');
       if (!after)
         return {
           data: [
@@ -232,7 +234,7 @@ describe.skipIf(!up)('Instagram connect against Azurite', () => {
     const start = await call<{ url: string }>('instagramStart', 'GET', 'instagram/start');
     expect(start.status).toBe(200);
     const url = new URL(start.body.url);
-    expect(url.origin).toBe('https://www.instagram.com');
+    expect(url.origin).toBe('https://www.facebook.com');
     const state = url.searchParams.get('state')!;
     expect(state).toBeTruthy();
     const cb = (q: string) => call('instagramCallback', 'GET', `instagram/callback?${q}`);
@@ -247,12 +249,13 @@ describe.skipIf(!up)('Instagram connect against Azurite', () => {
 
     expect(await errorOf('code=good-code&state=forged')).toBe('expired');
     expect(await errorOf(`error=access_denied&error_reason=user_denied&${st}`)).toBe('denied');
-    // Instagram shows personal accounts a vague access_denied without a reason.
-    expect(await errorOf(`error=access_denied&${st}`)).toBe('personal');
+    expect(await errorOf(`error=access_denied&${st}`)).toBe('denied');
+    expect(await errorOf(`error=server_error&${st}`)).toBe('unknown');
     expect(await errorOf(`code=bad-code&${st}`)).toBe('unknown');
-    knobs.accountType = 'PERSONAL';
-    expect(await errorOf(`code=good-code&${st}`)).toBe('personal');
-    knobs.accountType = 'MEDIA_CREATOR';
+    // The person had no business portfolio with an Instagram account, or unticked it.
+    knobs.accounts = [];
+    expect(await errorOf(`code=good-code&${st}`)).toBe('noaccount');
+    knobs.accounts = [{ id: '1789', username: 'tester' }];
 
     const ok = await cb(`code=good-code&${st}`);
     expect(ok.status).toBe(302);
@@ -261,9 +264,18 @@ describe.skipIf(!up)('Instagram connect against Azurite', () => {
     const libraryId = okLoc.searchParams.get('library')!;
     expect(libraryId).toBeTruthy();
 
-    type Status = { connected: boolean; username: string | null; libraryId: string | null };
+    type Status = {
+      connected: boolean;
+      username: string | null;
+      libraryId: string | null;
+      tokenExpiresAt: string | null;
+    };
     const status = await call<Status>('instagramStatus', 'GET', 'instagram/status');
     expect(status.body).toMatchObject({ connected: true, username: 'tester', libraryId });
+    // Access is capped at 60 days even though Meta's token would never expire.
+    const days = (new Date(status.body.tokenExpiresAt!).getTime() - Date.now()) / 86_400_000;
+    expect(days).toBeGreaterThan(59);
+    expect(days).toBeLessThanOrEqual(60);
 
     // The import: `new` resolves to the connected library; carousels expand to their children.
     const first = await runImport(call, 'new');
@@ -336,7 +348,7 @@ describe.skipIf(!up)('Instagram connect against Azurite', () => {
     knobs.mediaFails = true;
     const lost = await runImport(call, libraryId);
     expect(lost.last).toMatchObject({ status: 'failed', errorCode: 'NOT_CONNECTED' });
-    expect(lost.last?.error).toMatch(/OAuth/);
+    expect(lost.last?.error).toMatch(/#190/);
     knobs.mediaFails = false;
     expect((await call<Status>('instagramStatus', 'GET', 'instagram/status')).body.connected).toBe(
       false,
@@ -350,6 +362,22 @@ describe.skipIf(!up)('Instagram connect against Azurite', () => {
     const state2 = new URL(again.body.url).searchParams.get('state')!;
     const re = await cb(`code=good-code&state=${encodeURIComponent(state2)}`);
     expect(new URL(re.headers.Location!).searchParams.get('library')).toBe(libraryId);
+    expect((await call<Status>('instagramStatus', 'GET', 'instagram/status')).body.connected).toBe(
+      true,
+    );
+
+    // When our 60 days are up the connection counts as ended, before the nightly cron deletes it.
+    const { libraries, lookups } = await import('../src/lib/tables.js');
+    const owner = (await lookups.get('ig_user', '1789'))!.userId!;
+    expect((await lookups.get('ig_user', '5555'))?.value).toBe(libraryId);
+    await libraries.merge(owner, libraryId, { igTokenExpiresAt: '2020-01-01T00:00:00.000Z' });
+    expect((await call<Status>('instagramStatus', 'GET', 'instagram/status')).body.connected).toBe(
+      false,
+    );
+    expect((await runImport(call, libraryId)).job.status).toBe(409);
+    const third = await call<{ url: string }>('instagramStart', 'GET', 'instagram/start');
+    const state3 = new URL(third.body.url).searchParams.get('state')!;
+    await cb(`code=good-code&state=${encodeURIComponent(state3)}`);
     expect((await call<Status>('instagramStatus', 'GET', 'instagram/status')).body.connected).toBe(
       true,
     );
@@ -404,16 +432,21 @@ describe.skipIf(!up)('Instagram connect against Azurite', () => {
     delete process.env.FEATURE_CONNECT_ENABLED;
   }, 60_000);
 
-  it('keeps the versioned Graph endpoints and the scope Meta expects', async () => {
+  it('builds the Unified Login dialog URL Meta expects', async () => {
     const real = await vi.importActual<typeof InstagramApi>('../src/lib/instagramApi.js');
-    expect(real.SCOPE).toBe('instagram_business_basic');
+    expect(real.PERMISSION).toBe('instagram_basic');
     expect(real.API_VERSION).toMatch(/^v\d+\.\d+$/);
     const u = new URL(real.authorizeUrl('abc'));
-    expect(u.origin + u.pathname).toBe('https://www.instagram.com/oauth/authorize');
+    expect(u.origin + u.pathname).toBe(`https://www.facebook.com/${real.API_VERSION}/dialog/oauth`);
+    expect(u.searchParams.get('client_id')).toBe('ig-app');
+    expect(u.searchParams.get('config_id')).toBe('cfg-1');
     expect(u.searchParams.get('response_type')).toBe('code');
-    expect(u.searchParams.get('scope')).toBe('instagram_business_basic');
-    expect(u.searchParams.get('enable_fb_login')).toBe('0');
+    expect(u.searchParams.get('override_default_response_type')).toBe('true');
+    // Facebook Login for Business takes the permissions from the configuration, never a scope.
+    expect(u.searchParams.has('scope')).toBe(false);
     expect(u.searchParams.get('state')).toBe('abc');
     expect(u.searchParams.get('redirect_uri')).toBe(process.env.IG_REDIRECT_URI);
+    expect(real.isTokenError('meta x/media: (#190) Error validating access token')).toBe(true);
+    expect(real.isTokenError('meta x/media: (#4) Application request limit reached')).toBe(false);
   });
 });

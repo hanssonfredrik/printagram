@@ -10,7 +10,7 @@ on:
     inputs:
       tasks:
         description: Comma-separated task list
-        default: expireLibraries,sendReminders,refreshIgTokens,cleanupOrphans,cleanupAnonymous,cleanupTokens,cleanupVisits
+        default: expireLibraries,sendReminders,expireIgTokens,cleanupOrphans,cleanupAnonymous,cleanupTokens,cleanupVisits
         required: false
 
 permissions: {}
@@ -23,7 +23,7 @@ jobs:
         env:
           CRON_URL: ${{ secrets.CRON_URL }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          TASKS: ${{ github.event.inputs.tasks || 'expireLibraries,sendReminders,refreshIgTokens,cleanupOrphans,cleanupAnonymous,cleanupTokens,cleanupVisits' }}
+          TASKS: ${{ github.event.inputs.tasks || 'expireLibraries,sendReminders,expireIgTokens,cleanupOrphans,cleanupAnonymous,cleanupTokens,cleanupVisits' }}
         run: |
           set -euo pipefail
           IFS=',' read -ra tasks <<< "$TASKS"

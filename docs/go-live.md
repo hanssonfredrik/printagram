@@ -8,7 +8,7 @@ These steps need your accounts, your money or your decisions, so they aren't aut
 | 2 | [Custom domain: inbunden.com](#2-custom-domain-inbundencom) | A domain you own | 30 min + DNS wait | ✅ Done. Update the `CRON_URL` secret (step 2, *Still open*) |
 | 3 | [Email with Resend, and receiving mail](#3-email-with-resend-and-receiving-mail) | Resend account, DNS access | 30 min + DNS wait | ✅ Done (send a test mail to confirm) |
 | 4 | [Real payments with Stripe](#4-real-payments-with-stripe) | Stripe account (company details, bank account) | 1 h + Stripe verification | ✅ Live: real payments with live keys |
-| 5 | [Instagram connect (Meta App Review)](#5-instagram-connect-meta-app-review) | Meta developer account, business verification, privacy policy | days to weeks | 🔴 Blocked 30 Oct 2026: the Meta app exists (id 1063408666760429, Venueve AB verified) but Meta no longer offers the Instagram Login route the code uses to new apps. Decision needed, see the status section in `docs/meta-app-setup.md` |
+| 5 | [Instagram connect (Meta App Review)](#5-instagram-connect-meta-app-review) | Meta developer account, business verification, privacy policy | days to weeks | 🟡 Rewritten for Meta's Unified Login and the Meta app configured (30 Oct 2026). Left: app icon and domain, Azure settings, a test run, App Review. Steps in `docs/meta-app-setup.md` |
 | 6 | [Google Photos import](#6-google-photos-import-google-oauth-verification) | Google Cloud project | 15 min, verification days | ✅ Live: verified, open to everyone |
 | 7 | [Meta transfer destination](#7-meta-transfer-destination-future-the-real-fix-for-private-accounts) | Company registration, Meta business verification | weeks | ⬜ Future |
 
@@ -200,7 +200,7 @@ Stripe runs only when `PAYMENT_PROVIDER=stripe` **and** all three keys are set. 
 
 ## 5. Instagram connect (Meta App Review)
 
-**Status: 🔴 blocked on a Meta change** (30 Oct 2026). OAuth, import, token refresh, the Meta deauthorize and data-deletion callbacks, the `/privacy/deletion` status page and the tests (`api/test/instagram.test.ts`) are in place, and the Meta app was created (id 1063408666760429, business Venueve AB, verified). But the dashboard says "API setup with Instagram login is not available for newer apps": new apps get Unified Login (Facebook Login for Business, the person must pick a Meta business portfolio) or Page-linked Facebook Login. Our code implements the Instagram Login route. Options and the recommendation are in the status section of `docs/meta-app-setup.md`; the steps below assume the route is rewritten for one of the two remaining options. The full step-by-step guide with the review text and screencast script is `docs/meta-app-setup.md`; the list below is the short version.
+**Status: 🟡 code and Meta app ready** (30 Oct 2026). Meta no longer gives new apps the Instagram Login route, so connect now uses Unified Login: Facebook Login for Business with a login configuration (app id 1063408666760429, configuration id 1665439111774577, Venueve AB verified). The person picks the business portfolio that holds their Creator or Business account. What is left: the app icon and domain in the dashboard, the Azure settings, a test run that checks captions arrive, and App Review for `instagram_basic`. Everything, including the review text and screencast script, is in `docs/meta-app-setup.md`; the list below is older background.
 
 Until Meta approves, the "Connect Instagram" card shows "coming soon" and everyone uses the export upload, which already works for all accounts.
 

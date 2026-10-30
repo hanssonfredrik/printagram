@@ -57,6 +57,8 @@ param emailFrom string = 'Inbunden <hello@inbunden.com>'
 param igAppId string = ''
 @secure()
 param igAppSecret string = ''
+@description('Facebook Login for Business configuration id for Instagram connect (Unified Login)')
+param igConfigId string = ''
 param googleClientId string = ''
 @secure()
 param googleClientSecret string = ''
@@ -180,6 +182,7 @@ resource swaSettings 'Microsoft.Web/staticSites/config@2023-12-01' = {
     FEATURE_CONNECT_ENABLED: connectEnabled ? 'true' : 'false'
     IG_APP_ID: igAppId
     IG_APP_SECRET: igAppSecret
+    IG_CONFIG_ID: igConfigId
     IG_REDIRECT_URI: '${resolvedAppBaseUrl}/api/instagram/callback'
     FEATURE_GOOGLE_PHOTOS_ENABLED: googlePhotosEnabled ? 'true' : 'false'
     GOOGLE_CLIENT_ID: googleClientId

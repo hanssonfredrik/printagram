@@ -13,7 +13,7 @@
  *   untouched SPA shell with noindex, served for the app routes), dist/404.html (the not-found
  *   page), dist/llms.txt and dist/llms-full.txt (every public page as Markdown), and the share
  *   images: og-image-<lang>.jpg (the landing page) and one card per guide and language.
- * - Adds a 301 from every public URL with a trailing slash (/about/) to the canonical one.
+ * - Sends URLs with a trailing slash (/about/) to the canonical one with a 301 (trailingSlash: never).
  * - Rewrites dist/staticwebapp.config.json: a rewrite per page (/about → /pages/about.html; a
  *   folder with an index.html would make Static Web Apps redirect /about to /about/, while the
  *   canonical URLs have no trailing slash), the shell for each app route (APP_ROUTES), and a real
@@ -338,6 +338,7 @@ interface SwaConfig {
   routes?: { route: string }[];
   navigationFallback?: unknown;
   responseOverrides?: Record<string, unknown>;
+  trailingSlash?: 'always' | 'never' | 'auto';
 }
 
 /**
@@ -352,23 +353,19 @@ function rewriteConfig() {
     .filter(({ path: p }) => p !== '/')
     .map(({ path: p }) => ({ route: p, rewrite: `/${pageFile(p)}` }));
   const app = APP_ROUTES.map((route) => ({ route, rewrite: '/app-shell.html' }));
-  // /about/ and /sv/om/ are not canonical: send them to the URL without the slash. The pages are
-  // single files, never folders, so Static Web Apps has no reason to redirect the other way.
-  const slashes = allPublicPaths()
-    .filter(({ path: p }) => p !== '/')
-    .map(({ path: p }) => ({ route: `${p}/`, redirect: p, statusCode: 301 }));
   // Static Web Apps answers /index.html with a 301 to /index, which would be a 200 copy of /.
-  slashes.push(
-    { route: '/index', redirect: '/', statusCode: 301 },
-    { route: '/index.html', redirect: '/', statusCode: 301 },
-  );
-  const known = new Set([...pages, ...app, ...slashes].map((r) => r.route));
+  const index = [{ route: '/index', redirect: '/', statusCode: 301 }];
+  const known = new Set([...pages, ...app, ...index].map((r) => r.route));
   config.routes = [
     ...pages,
     ...app,
-    ...slashes,
+    ...index,
     ...(config.routes ?? []).filter((r) => !known.has(r.route)),
   ];
+  // /about/ and /sv/om/ are not canonical. Static Web Apps treats /sv and /sv/ as the same route,
+  // so per-page redirect rules are rejected as duplicates; its own setting sends the 301 instead.
+  // The pages are single files, never folders, so nothing redirects the other way.
+  config.trailingSlash = 'never';
   delete config.navigationFallback;
   config.responseOverrides = {
     ...config.responseOverrides,

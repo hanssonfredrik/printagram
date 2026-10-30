@@ -74,7 +74,8 @@ export const config = {
     return (
       bool('FEATURE_CONNECT_ENABLED', false) &&
       !!process.env.IG_APP_ID &&
-      !!process.env.IG_APP_SECRET
+      !!process.env.IG_APP_SECRET &&
+      !!process.env.IG_CONFIG_ID
     );
   },
   get googlePhotosEnabled() {
@@ -93,8 +94,11 @@ export const config = {
   },
   get instagram() {
     return {
+      /** The Meta app id and secret (Unified Login has no separate Instagram app id). */
       appId: process.env.IG_APP_ID ?? '',
       appSecret: process.env.IG_APP_SECRET ?? '',
+      /** Facebook Login for Business configuration: system-user token, Instagram account, instagram_basic. */
+      configId: process.env.IG_CONFIG_ID ?? '',
       redirectUri: process.env.IG_REDIRECT_URI ?? `${this.appBaseUrl}/api/instagram/callback`,
     };
   },

@@ -125,7 +125,7 @@ Private Instagram accounts have no API, so the user lets Instagram transfer thei
 
 ## Scheduled work
 
-GitHub Actions `cron.yml` (daily) calls `POST /api/cron/run` with `x-cron-key` for each task until `more=false`: `expireLibraries`, `sendReminders`, `refreshIgTokens`, `cleanupOrphans`, `cleanupAnonymous`, `cleanupTokens`, `cleanupVisits`.
+GitHub Actions `cron.yml` (daily) calls `POST /api/cron/run` with `x-cron-key` for each task until `more=false`: `expireLibraries`, `sendReminders`, `expireIgTokens`, `cleanupOrphans`, `cleanupAnonymous`, `cleanupTokens`, `cleanupVisits`.
 
 ## Cost (see plan for assumptions)
 

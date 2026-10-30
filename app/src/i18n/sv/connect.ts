@@ -3,7 +3,7 @@ import type { Messages } from '../en';
 export const connect: Messages['connect'] = {
   title: 'Anslut ditt Instagram',
   intro:
-    'Du loggar in på instagram.com och ger Inbunden tillåtelse att läsa dina inlägg. Instagram låter bara kreatörs- och företagskonton ansluta, så först en snabb koll.',
+    'Meta, företaget bakom Instagram, öppnar ett fönster där du loggar in med ditt Instagram-konto och ger Inbunden tillåtelse att läsa dina inlägg. Bara kreatörs- och företagskonton kan ansluta, så först en snabb koll.',
   acctQuestion: 'Vilken typ av konto har du?',
   acct: {
     pro: 'Kreatör eller företag',
@@ -12,14 +12,14 @@ export const connect: Messages['connect'] = {
   },
   askFor: {
     title: 'Det här ber Inbunden om',
-    profile: 'Ditt användarnamn och din profilbild',
+    profile: 'Ditt användarnamn på Instagram',
     posts: 'Dina inlägg: bilder, bildtexter, datum och gilla-markeringar',
     readOnly:
       'Bara läsåtkomst. Inga inlägg, inga meddelanden, inga följare. Koppla från när du vill. Åtkomsten upphör också av sig själv efter 60 dagar.',
   },
   continue: 'Fortsätt med Instagram',
   opensWindow:
-    'Du skickas till instagram.com för att logga in och kommer sedan direkt tillbaka hit. Vi ser aldrig ditt lösenord.',
+    'I Metas fönster loggar du in med Instagram, väljer din företagsportfölj och ditt konto och godkänner åtkomsten. Sedan kommer du direkt tillbaka hit. Vi ser aldrig ditt lösenord.',
   switchFirst: {
     title: 'Byt till ett professionellt konto först',
     text: 'Gratis, tar ungefär två minuter, går att ångra och ingen får någon avisering. En sak ändras: ett privat konto blir offentligt, och väntande följarförfrågningar godkänns. Vill du hellre vara privat? Använd exporten i stället. Den funkar för alla konton.',
@@ -59,8 +59,8 @@ export const connect: Messages['connect'] = {
   seeButton: 'Jag ser knappen (kreatör eller företag)',
   noButton: 'Ingen knapp (personligt konto)',
   waiting: {
-    title: 'Skickar dig till Instagram…',
-    text: 'Du är på väg till instagram.com. Logga in där och tryck på Tillåt, så kommer du tillbaka hit av dig själv.',
+    title: 'Skickar dig till Meta…',
+    text: 'Logga in med ditt Instagram-konto, välj din företagsportfölj och ditt konto och tryck på Fortsätt. Du kommer tillbaka hit av dig själv.',
     reopen: 'Hände inget? Försök igen',
   },
   errors: {
@@ -70,15 +70,19 @@ export const connect: Messages['connect'] = {
     },
     denied: {
       title: 'Ingen åtkomst gavs',
-      text: 'Instagram-fönstret stängdes eller så tryckte du på Avbryt, så inget delades med Inbunden. Försök igen när du är redo, eller använd exporten i stället.',
+      text: 'Metas fönster stängdes eller så tryckte du på Avbryt, så inget delades med Inbunden. Försök igen när du är redo, eller använd exporten i stället.',
     },
     expired: {
       title: 'Anslut Instagram igen',
       text: 'Anslutningen tog för lång tid eller har upphört, så Inbunden kan inte läsa dina inlägg just nu. Anslut igen, eller använd exporten i stället.',
     },
+    noaccount: {
+      title: 'Inget Instagram-konto delades',
+      text: 'Meta ansluter Instagram via en företagsportfölj, och inget konto kom fram. Kontrollera att du valde portföljen som ditt Instagram-konto tillhör och att kontot var ikryssat. Har du aldrig skapat någon? Använd exporten i stället. Den funkar för alla konton.',
+    },
     unknown: {
-      title: 'Något gick fel hos Instagram',
-      text: 'Instagram svarade med ett fel vi inte väntade oss. Försök igen om en minut, eller använd exporten i stället.',
+      title: 'Något gick fel hos Meta',
+      text: 'Meta svarade med ett fel vi inte väntade oss. Försök igen om en minut, eller använd exporten i stället.',
     },
   },
   showSwitch: 'Visa hur jag byter',
