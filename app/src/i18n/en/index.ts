@@ -12,6 +12,7 @@ import { books } from './books';
 import { auth } from './auth';
 import { share } from './share';
 import { about } from './about';
+import { pricing } from './pricing';
 import { legal } from './legal';
 import { guides } from './guides';
 import { seo } from './seo';
@@ -33,6 +34,7 @@ export const en = {
   auth,
   share,
   about,
+  pricing,
   legal,
   guides,
   seo,

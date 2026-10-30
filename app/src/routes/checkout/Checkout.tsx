@@ -17,6 +17,7 @@ import {
 import { CoverThumb } from '@/components/PageRenderer';
 import { errorText, useLang, useT } from '@/i18n';
 import { ApiClientError, api } from '@/services';
+import { orderItem, trackEvent } from '@/services/analytics';
 import { useDraft } from '@/state/draft';
 import { saveCurrentDraft, useBook } from '@/state/useBook';
 import { useConfig, useSession } from '@/state/session';
@@ -73,6 +74,7 @@ export function Checkout() {
         setOrder(res.order);
         setClientSecret(res.clientSecret);
         setProvider(res.provider);
+        if (res.order.status === 'created') trackEvent('begin_checkout', orderItem(res.order));
         if (res.order.promoCode) setPromoOpen(true);
         if (res.order.status === 'failed' && res.order.failureReason) {
           setPay('error');

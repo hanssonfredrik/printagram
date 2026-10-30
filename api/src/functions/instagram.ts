@@ -82,6 +82,10 @@ route(
       const short = await ig.exchangeCode(code);
       const long = await ig.longLivedToken(short.access_token);
       const profile = await ig.me(long.access_token);
+      // Only professional accounts can use this API. Instagram normally refuses personal ones
+      // before we get here; this catches the case where it does not.
+      const kind = (profile.account_type ?? '').toUpperCase();
+      if (kind && kind !== 'BUSINESS' && kind !== 'MEDIA_CREATOR') return back('error=personal');
       const expiresAt = new Date(Date.now() + long.expires_in * 1000).toISOString();
 
       let lib = await igLibrary(user.userId);
@@ -250,6 +254,9 @@ route(
       requireConnect();
       if (!lib.igTokenEnc) throw conflict('NOT_CONNECTED', 'Connect your Instagram account first.');
     }
+    // Set when Instagram rejects the token, so the client can say "connect again" rather than
+    // "something went wrong".
+    let tokenInvalid = !google && !!lib.igTokenInvalid;
     const done = () =>
       json({
         status: job.status,
@@ -259,6 +266,7 @@ route(
         total: job.total,
         more: job.status === 'running',
         error: job.lastError ?? undefined,
+        errorCode: tokenInvalid ? 'NOT_CONNECTED' : undefined,
       });
     if (job.status !== 'running') return done();
     if (job.leaseUntil && new Date(job.leaseUntil) > new Date()) return done();
@@ -283,6 +291,9 @@ route(
       : [];
     let cursor = job.cursor;
     let pageExhausted = false;
+    // Meta's reference marks `caption` as Facebook Login only; these counts show what we really get.
+    let withCaption = 0;
+    let withLikes = 0;
 
     try {
       while (Date.now() - started < IMPORT_BUDGET_MS) {
@@ -329,6 +340,8 @@ route(
               job.skipped++;
               return;
             }
+            if (it.caption) withCaption++;
+            if (it.likes !== null) withLikes++;
             if (it.isVideo || !it.url) {
               await photos.upsertMany([base]);
               job.processed++;
@@ -358,6 +371,9 @@ route(
         });
       }
       const finished = pending.length === 0 && pageExhausted;
+      ctx.log(
+        `instagram import ${job.jobId}: ${job.processed} items so far, this run ${withCaption} with a caption and ${withLikes} with a like count`,
+      );
       if (finished) {
         job.status = 'done';
         await importJobs.merge(user.userId, job.jobId, {
@@ -383,8 +399,10 @@ route(
         lastError: msg,
         leaseUntil: null,
       });
-      if (/OAuthException|Invalid OAuth|access token/i.test(msg))
+      if (/OAuthException|Invalid OAuth|access token/i.test(msg)) {
+        tokenInvalid = true;
         await libraries.merge(user.userId, lib.libraryId, { igTokenInvalid: true });
+      }
     }
     return done();
   },

@@ -57,6 +57,7 @@ export const landing: Messages['landing'] = {
     intro: 'Ett pris för PDF:en, oavsett hur många bilder och sidor boken har.',
     from: (price: string) => `från ${price}`,
     comingSoon: 'Kommer snart',
+    more: 'Vad som ingår, vad trycket kostar och hur det jämför sig',
     pdf: {
       title: 'Digital PDF',
       text: 'Tryckfärdig PDF, ladda ner direkt.',
@@ -72,6 +73,7 @@ export const landing: Messages['landing'] = {
     },
   },
   faqTitle: 'Frågor',
+  guidesTitle: 'Guider',
   guidesTeaser: 'Mer om att exportera från Instagram, trycka PDF:en och välja fotobokstjänst:',
   guidesLink: 'läs guiderna',
   faq: [
@@ -123,7 +125,7 @@ export const landing: Messages['landing'] = {
     },
     {
       q: 'Kan jag använda Google Foto?',
-      a: 'Ja. Instagram kan skicka en kopia av dina inlägg till Google Foto, och sedan väljer du dem i Googles egen bildväljare. Du kan också välja andra bilder du har där. Vi ser bara de bilder du väljer. Bildtexter och gillningar följer inte med den vägen, och datumet kan bli dagen för överföringen.',
+      a: 'Ja. Instagram kan skicka en kopia av dina inlägg till Google Foto, och sedan väljer du dem i Googles egen bildväljare. Du kan också välja andra bilder du har där. Vi ser bara de bilder du väljer. Bildtexter och gillningar följer inte med den vägen, och datumet kan bli dagen för överföringen. Se [guiden om Google Foto](guideGooglePhotos).',
       when: 'googlePhotos',
     },
     {

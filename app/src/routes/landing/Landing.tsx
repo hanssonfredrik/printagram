@@ -11,6 +11,7 @@ import { useLang, useT } from '@/i18n';
 import { fillPrice } from '@/seo/jsonld';
 import { forFlags } from '@/seo/text';
 import { useConfig } from '@/state/session';
+import { GUIDE_KEYS } from '@/seo/routes';
 import { samplePhotos, sampleSpreads } from './samples';
 import s from './landing.module.css';
 
@@ -162,6 +163,9 @@ export function Landing() {
             <div className={`${s.priceNote} muted`}>{tl.pricing.comingSoon}</div>
           </Card>
         </div>
+        <p className="muted" style={{ paddingTop: 20 }}>
+          <PageLink page="pricing">{tl.pricing.more}</PageLink>
+        </p>
       </section>
 
       <section className={`${s.section} ${s['section--narrow']}`}>
@@ -178,9 +182,19 @@ export function Landing() {
             </div>
           ))}
         </div>
-        <p className="muted" style={{ paddingTop: 20 }}>
-          {tl.guidesTeaser} <PageLink page="guides">{tl.guidesLink}</PageLink>
-        </p>
+        <div className="stack stack-8" style={{ paddingTop: 28 }}>
+          <h3 className={s.faqQ}>{tl.guidesTitle}</h3>
+          <ul className={s.guideList}>
+            {GUIDE_KEYS.map((k) => (
+              <li key={k}>
+                <PageLink page={k}>{t.guides.items[k].title}</PageLink>
+              </li>
+            ))}
+          </ul>
+          <p className="muted">
+            {tl.guidesTeaser} <PageLink page="guides">{tl.guidesLink}</PageLink>
+          </p>
+        </div>
         <div className="center" style={{ paddingTop: 48 }}>
           <Button size="xl" onClick={start}>
             {tl.start}

@@ -9,6 +9,11 @@ export const seo: Messages['seo'] = {
       description:
         'Gör en fotobok av dina Instagram-inlägg. Välj bilderna, vi gör layouten och du laddar ner en tryckfärdig PDF till ett fast pris.',
     },
+    pricing: {
+      title: 'Priser: ett fast pris för din fotobok som PDF',
+      description:
+        'Vad en fotobok från Inbunden kostar: ett fast pris för den tryckfärdiga PDF:en, oavsett antal sidor. Vad som ingår, vad trycket kostar och hur det jämför sig.',
+    },
     about: {
       title: 'Om Inbunden',
       description:

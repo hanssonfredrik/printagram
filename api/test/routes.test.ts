@@ -299,6 +299,18 @@ describe.skipIf(!up)('API routes against Azurite', () => {
     expect(second.body.order.id).toBe(first.body.order.id);
     const id = first.body.order.id;
 
+    // The order remembers where its photos came from, and the fake provider has no livemode.
+    const { orders } = await import('../src/lib/tables.js');
+    let row:
+      | { source?: string | null; sourceLabel?: string | null; stripeLivemode?: boolean | null }
+      | undefined;
+    for await (const o of orders.scanAll()) if (o.orderId === id) row = o;
+    expect(row).toMatchObject({
+      source: 'export',
+      sourceLabel: 'routes.zip',
+      stripeLivemode: null,
+    });
+
     const declined = await call<{ error: { code: string } }>(
       'ordersPayTest',
       'POST',
@@ -758,6 +770,15 @@ describe.skipIf(!up)('API routes against Azurite', () => {
       source: 'googlephotos',
       status: 'ready',
     });
+
+    // An order for a Google Photos book is tagged with that source.
+    const gBook = await bookWith(call, libraryId, [still.id]);
+    const gOrder = await call<OrderBody>('ordersCreate', 'POST', 'orders', { bookId: gBook.id });
+    expect(gOrder.status).toBe(201);
+    const { orders } = await import('../src/lib/tables.js');
+    let gRow: { source?: string | null } | undefined;
+    for await (const o of orders.scanAll()) if (o.orderId === gOrder.body.order.id) gRow = o;
+    expect(gRow?.source).toBe('googlephotos');
 
     // A second run is idempotent: the photo is already there. (A new Picker session is needed.)
     await call('googleSessionCreate', 'POST', 'google/session');

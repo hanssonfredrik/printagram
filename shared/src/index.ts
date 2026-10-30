@@ -5,3 +5,4 @@ export * from './exportSchema.js';
 export * from './dates.js';
 export * from './promo.js';
 export * from './i18n.js';
+export * from './photoSource.js';

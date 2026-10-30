@@ -16,6 +16,7 @@ import {
 } from '@/components/ui';
 import { FlowProgress } from '@/components/Progress';
 import { api } from '@/services';
+import { ApiClientError } from '@/services/api';
 import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
 import { useLibrary } from '@/state/library';
@@ -29,6 +30,23 @@ type Conn = 'idle' | 'waiting' | 'error' | 'importing' | 'done';
 /** Connect errors the OAuth return can report (the texts live in the dictionary). */
 function isConnectError(e: string | null): e is ConnectError {
   return !!e && Object.hasOwn(getT().connect.errors, e);
+}
+
+/** The import job ended in `failed`; `code` is the API's reason when it has a specific one. */
+class ImportFailed extends Error {
+  constructor(
+    public code: string | undefined,
+    message: string,
+  ) {
+    super(message);
+  }
+}
+
+/** "Connect again" when Instagram no longer accepts our token; anything else is unexpected. */
+function importError(e: unknown): ConnectError {
+  if (e instanceof ApiClientError && e.code === 'NOT_CONNECTED') return 'expired';
+  if (e instanceof ImportFailed && e.code === 'NOT_CONNECTED') return 'expired';
+  return 'unknown';
 }
 
 export function Connect() {
@@ -61,7 +79,6 @@ export function Connect() {
     sample: string[];
   } | null>(null);
   const [disconnected, setDisconnected] = useState(false);
-  const popup = useRef<Window | null>(null);
   const timers = useRef<number[]>([]);
 
   useEffect(() => {
@@ -80,11 +97,12 @@ export function Connect() {
         const targetLib = libId ?? status.libraryId ?? 'new';
         const { jobId, libraryId: realLib } = await api.startImport(targetLib);
         setLibraryId(realLib);
-        setUsername(status.username ?? 'mara.linde');
+        setUsername(status.username ?? null);
         let more = true;
         while (more) {
           const p = await api.runImport(jobId);
-          if (p.status === 'failed') throw new Error(p.error ?? 'Import failed');
+          if (p.status === 'failed')
+            throw new ImportFailed(p.errorCode, p.error ?? 'Import failed');
           if (p.total) setPct(Math.round((p.processed / p.total) * 100));
           more = p.more;
         }
@@ -111,7 +129,7 @@ export function Connect() {
         });
         timers.current.push(window.setTimeout(() => setConn('done'), 500));
       } catch (e) {
-        setErr('unknown');
+        setErr(importError(e));
         setConn('error');
         console.error(e);
       }
@@ -150,11 +168,6 @@ export function Connect() {
       setErr('unknown');
       setConn('error');
     }
-  };
-
-  const reopen = () => {
-    if (popup.current && !popup.current.closed) popup.current.focus();
-    else void startConnect();
   };
 
   const connErrors: Record<ConnectError, { title: string; text: string }> = tc.errors;
@@ -270,7 +283,7 @@ export function Connect() {
               <div className="small muted pretty" style={{ maxWidth: '40ch' }}>
                 {tc.waiting.text}
               </div>
-              <button type="button" className="link-button" onClick={reopen}>
+              <button type="button" className="link-button" onClick={() => void startConnect()}>
                 {tc.waiting.reopen}
               </button>
             </Card>
@@ -317,7 +330,7 @@ export function Connect() {
                 }}
               />
               <div>
-                <div className="semibold">@{username ?? '…'}</div>
+                {username ? <div className="semibold">@{username}</div> : null}
                 <div className="tiny muted">{tc.importing.account}</div>
               </div>
               <Pill className="ml-auto">{tc.importing.connected}</Pill>

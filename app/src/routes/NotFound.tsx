@@ -1,8 +1,12 @@
+import { useEffect } from 'react';
 import { Button } from '@/components/ui';
 import { useT } from '@/i18n';
 
 export function NotFound() {
   const t = useT();
+  useEffect(() => {
+    document.title = t.common.notFound.title + t.seo.titleSuffix;
+  }, [t]);
   return (
     <div
       className="screen"

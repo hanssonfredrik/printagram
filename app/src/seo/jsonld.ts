@@ -74,7 +74,7 @@ export function structuredData(opts: {
     },
     ...(SAME_AS.length ? { sameAs: SAME_AS } : {}),
   };
-  const image = absoluteUrl(site, ogImagePath(lang));
+  const image = absoluteUrl(site, ogImagePath(lang, key));
   const website: Json = {
     '@type': 'WebSite',
     '@id': siteId,
@@ -106,32 +106,39 @@ export function structuredData(opts: {
     })),
   });
 
+  // The PDF as a Product with its offer, only once real payments are on. The landing page and
+  // the pricing page describe the same product, so they share one @id.
+  const product = (): Json => ({
+    '@type': 'Product',
+    '@id': `${home}#pdf-book`,
+    name: t.seo.product.name,
+    description: t.seo.product.description,
+    image,
+    brand: { '@id': orgId },
+    offers: {
+      '@type': 'Offer',
+      price: (pdfPriceCents(cfg.pricing, currencyForLang(lang)) / 100).toFixed(2),
+      priceCurrency: currencyForLang(lang).toUpperCase(),
+      availability: 'https://schema.org/InStock',
+      url: absoluteUrl(site, pathFor('pricing', lang)),
+      seller: { '@id': orgId },
+      // A digital download: delivered at once, so no returns (see the terms).
+      hasMerchantReturnPolicy: {
+        '@type': 'MerchantReturnPolicy',
+        returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted',
+        applicableCountry: 'SE',
+      },
+    },
+  });
+  const offerShown = opts.configLoaded && !paymentsAreTest(cfg.payment);
+
   if (key === 'landing') {
     graph.push(page, faq(forFlags(t.landing.faq, cfg)));
-    if (opts.configLoaded && !paymentsAreTest(cfg.payment)) {
-      graph.push({
-        '@type': 'Product',
-        '@id': `${home}#pdf-book`,
-        name: t.seo.product.name,
-        description: t.seo.product.description,
-        image,
-        brand: { '@id': orgId },
-        offers: {
-          '@type': 'Offer',
-          price: (pdfPriceCents(cfg.pricing, currencyForLang(lang)) / 100).toFixed(2),
-          priceCurrency: currencyForLang(lang).toUpperCase(),
-          availability: 'https://schema.org/InStock',
-          url: home,
-          seller: { '@id': orgId },
-          // A digital download: delivered at once, so no returns (see the terms).
-          hasMerchantReturnPolicy: {
-            '@type': 'MerchantReturnPolicy',
-            returnPolicyCategory: 'https://schema.org/MerchantReturnNotPermitted',
-            applicableCountry: 'SE',
-          },
-        },
-      });
-    }
+    if (offerShown) graph.push(product());
+  } else if (key === 'pricing') {
+    graph.push(page, faq(t.pricing.faq));
+    if (offerShown) graph.push(product());
+    graph.push(breadcrumbs(url, site, lang, t, [['pricing', pageTitle(key, t, false)]]));
   } else if (isGuide(key)) {
     const g = t.guides.items[key];
     const meta = PAGES[key];

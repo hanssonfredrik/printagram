@@ -19,3 +19,6 @@ docs/research/*.pdf
 infra/.secrets.*.json
 docs/screenshots/*.pdf
 api/node_modules/
+
+# Search Console / Analytics exports and research notes (local only)
+docs/seo-data/

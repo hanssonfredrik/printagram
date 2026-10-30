@@ -147,6 +147,12 @@ export interface OrderRow {
   paymentProvider: 'fake' | 'stripe';
   failureReason: string | null;
   stripePaymentIntentId: string | null;
+  /** Stripe's livemode for the PaymentIntent. null: fake provider, or a row from before this field. */
+  stripeLivemode?: boolean | null;
+  /** Where the photos came from, snapshotted at order time because libraries expire. */
+  source?: PhotoSource | null;
+  /** Instagram username or export file name, as on the library. */
+  sourceLabel?: string | null;
   paidAt: string | null;
   pdfBlob: string | null;
   pdfVersion: number;
@@ -377,6 +383,9 @@ const ORDER_NULLABLE: (keyof OrderRow)[] = [
   'shareToken',
   'promoCode',
   'failureReason',
+  'stripeLivemode',
+  'source',
+  'sourceLabel',
 ];
 const PHOTO_NULLABLE: (keyof PhotoRow)[] = ['likes', 'width', 'height', 'mime'];
 const LOOKUP_NULLABLE: (keyof LookupRow)[] = ['userId', 'value', 'purpose', 'expiresAt', 'usedAt'];

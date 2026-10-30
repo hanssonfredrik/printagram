@@ -51,6 +51,15 @@ describe('screens (against the in-memory test API)', () => {
       screen.getByText('One price for the PDF, however many photos and pages your book has.'),
     ).toBeTruthy();
     expect(screen.getByText('Is it safe?')).toBeTruthy();
+    // Every guide is linked from the home page.
+    expect(
+      screen
+        .getByRole('link', { name: 'How to make a photo book from your Instagram' })
+        .getAttribute('href'),
+    ).toBe('/guides/instagram-photo-book');
+    expect(
+      screen.getByRole('link', { name: 'How to make a photo book from Google Photos' }),
+    ).toBeTruthy();
   });
 
   it('shows Swedish visitors prices in kronor', async () => {
@@ -100,6 +109,13 @@ describe('screens (against the in-memory test API)', () => {
     renderAt('/connect?error=personal');
     expect(await screen.findByText("Instagram didn't let us connect")).toBeTruthy();
     expect(screen.getByText('Show me how to switch')).toBeTruthy();
+  });
+
+  it("privacy/deletion: Instagram's data-deletion status link shows the confirmation code", async () => {
+    renderAt('/privacy/deletion?code=abc123');
+    expect(await screen.findByText('Your Instagram data was deleted')).toBeTruthy();
+    expect(screen.getByText('Confirmation code: abc123')).toBeTruthy();
+    expect(document.querySelector('meta[name="robots"]')?.getAttribute('content')).toBe('noindex');
   });
 
   it('connect: allowed → import progress → found photos', async () => {
@@ -169,6 +185,31 @@ describe('screens (against the in-memory test API)', () => {
     renderAt('/google?error=denied');
     expect(await screen.findByText('No access was granted')).toBeTruthy();
     expect(screen.getByText('Use the export instead')).toBeTruthy();
+  });
+
+  it('pricing: the page shows the PDF price, the examples and the FAQ in both languages', async () => {
+    renderAt('/pricing');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Pricing' })).toBeTruthy();
+    expect(screen.getByText(/costs €9 as a print-ready PDF/)).toBeTruthy();
+    expect(screen.getAllByText('€9').length).toBeGreaterThanOrEqual(3);
+    expect(screen.getByText('Is there a subscription or an account fee?')).toBeTruthy();
+    expect(screen.getAllByRole('link', { name: 'printing guide' })[0]!.getAttribute('href')).toBe(
+      '/guides/print-your-photo-book',
+    );
+    const nav = screen.getByRole('navigation', { name: 'Main' });
+    expect(within(nav).getByRole('link', { name: 'Pricing' }).getAttribute('aria-current')).toBe(
+      'page',
+    );
+    cleanup();
+    renderAt('/sv/priser');
+    expect(await screen.findByRole('heading', { level: 1, name: 'Priser' })).toBeTruthy();
+    expect(screen.getByText(/kostar 89 kr som tryckfärdig PDF/)).toBeTruthy();
+    expect(screen.getByText('från 299 kr')).toBeTruthy();
+    await waitFor(() =>
+      expect(document.querySelector('link[rel="canonical"]')?.getAttribute('href')).toBe(
+        'https://inbunden.com/sv/priser',
+      ),
+    );
   });
 
   it('about: the footer links to the About page with the name and the company', async () => {
@@ -496,7 +537,7 @@ describe('public pages: navigation and search metadata', () => {
     const nav = await screen.findByRole('navigation', { name: 'Main' });
     expect(within(nav).getByRole('link', { name: 'Guides' }).getAttribute('href')).toBe('/guides');
     expect(within(nav).getByRole('link', { name: 'Pricing' }).getAttribute('href')).toBe(
-      '/#pricing',
+      '/pricing',
     );
     cleanup();
     await seedLibraryAndDraft();

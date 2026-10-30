@@ -172,12 +172,127 @@ export const guides: GuidesMessages = {
           a: 'Usually a few hours, sometimes a day or two. Instagram says it can take up to 30 days.',
         },
         {
+          q: 'Does the export include likes?',
+          a: 'No. You get the photos, the caption and the date of every post, but not how many likes each post got. The likes in the export are the ones you gave to other people.',
+        },
+        {
           q: 'How big is the ZIP?',
           a: 'It depends on how much you have posted. With Posts only it is often a few hundred megabytes to a few gigabytes. Inbunden accepts exports up to 8 GB.',
         },
         {
           q: 'Is it safe to upload my export?',
           a: 'Inbunden reads only the posts in the file. Your photos are kept for 3 months so you can make more books, and you can delete them at any time.',
+        },
+      ],
+    },
+    guideGooglePhotos: {
+      title: 'How to make a photo book from Google Photos',
+      description:
+        'Turn photos in Google Photos into a print-ready photo book PDF, Instagram posts you transferred there included. What comes along and how to pick well.',
+      lead: 'Photos in Google Photos can become a photo book in two steps: pick them in Google’s own picker, and let Inbunden lay them out as a print-ready PDF. Instagram can also send a copy of your posts to Google Photos, which makes this the easiest route for a private Instagram account: no ZIP to download, no waiting for an email.',
+      sections: [
+        {
+          title: 'Two ways photos end up in Google Photos',
+          paragraphs: [
+            'Most people already have Google Photos backing up their phone. Those are the originals: full size, with the day the photo was taken. They print sharper than anything downloaded from Instagram.',
+            'Instagram can also copy your posts to Google Photos. Meta’s transfer tool sends the posted versions (up to 1080 pixels wide) into an album called Data Transfer. That is the route to take when the photos you want are only on Instagram, or when you want the posts exactly as you published them.',
+          ],
+        },
+        {
+          title: 'Send your Instagram posts to Google Photos',
+          paragraphs: [
+            'This happens inside Instagram, not in Inbunden. It takes two minutes to start, and Instagram copies in the background. It works for every account, private ones too.',
+          ],
+          steps: [
+            {
+              title: 'Open Accounts Center',
+              text: 'In the Instagram app: profile → menu (☰) → Settings and activity → Accounts Center → Your information and permissions.',
+            },
+            {
+              title: 'Transfer a copy of your information',
+              text: 'Tap Transfer a copy of your information (older versions: Download or transfer information → Transfer to a destination). Pick your Instagram profile.',
+            },
+            {
+              title: 'Choose Google Photos',
+              text: 'Choose Posts, all of them or a date range, then Google Photos as the destination. Sign in to Google when asked and allow the transfer.',
+            },
+            {
+              title: 'Wait for Instagram',
+              text: 'Instagram copies your photos in the background, usually within an hour, sometimes longer. Google Photos shows them in a folder or album called Data Transfer.',
+            },
+          ],
+        },
+        {
+          title: 'Pick the photos and make the book',
+          bullets: [
+            {
+              text: 'In Inbunden, choose Via Google Photos and sign in with Google. You sign in on Google’s own page; Inbunden never sees your password.',
+              when: 'googlePhotos',
+            },
+            {
+              text: 'Google Photos opens in a new tab with its picker. Tick the photos you want (the Data Transfer album for Instagram posts, or anything else in your library) and tap Done. Google only shares the photos you tick.',
+              when: 'googlePhotos',
+            },
+            {
+              text: 'Inbunden copies your selection at full size, lays out the pages in date order and shows you every page. Change layouts, move photos, add text pages, pick a cover, then download the PDF for {price}.',
+              when: 'googlePhotos',
+            },
+            {
+              text: 'Inbunden’s access to Google Photos ends by itself within an hour. Your copied photos stay in your Inbunden library for 3 months so you can make more books.',
+              when: 'googlePhotos',
+            },
+            {
+              text: 'Inbunden’s Google Photos import is paused at the moment. Use the Instagram export instead: [how to download your Instagram data](guideInstagramExport).',
+              when: 'noGooglePhotos',
+            },
+          ],
+        },
+        {
+          title: 'What comes along, and what does not',
+          bullets: [
+            'The photos, at the size Google Photos has them. Phone backups are full size; Instagram transfers are up to 1080 pixels wide, fine for a half or quarter page, soft across a full page. The preview warns about any photo that is too small for its spot.',
+            'Dates come from Google Photos. For Instagram transfers the date is often the day of the transfer, not the day you posted, so the automatic order can be off. You can drag pages and photos into the right order before you pay.',
+            'Captions and like counts stay on Instagram. If you want captions under the photos, use the [Instagram export](guideInstagramExport) instead: it carries the caption and date of every post. Like counts are not in the export either.',
+            'Videos are skipped. A book holds up to 999 photos.',
+          ],
+        },
+        {
+          title: 'Tips for a better book',
+          bullets: [
+            'Make an album in Google Photos first, for example “Book 2026”, and go through it on a big screen. Picking from an album in the picker is quicker than scrolling the whole library.',
+            'Use Google’s search to find what you need: a year, a place, a person. Then pick from the results.',
+            'If you have both the Instagram version and the original of a photo, pick the original. It prints sharper, and you keep the caption-free look either way.',
+            'Theme beats quantity: [a year in review](guideYearBook), a trip, a child’s first year. Fifty good photos make a better book than three hundred.',
+          ],
+        },
+        {
+          title: 'Other ways to print from Google Photos',
+          paragraphs: [
+            'Google Photos has its own print store in some countries (look for Print store in the app). It prints a Google-designed book from the photos you pick, and the book ships to you; you do not get a file. Most photo book services also accept photos uploaded from Google Photos or from your phone, and you build the book in their editor.',
+            'Inbunden gives you a print-ready PDF instead: you choose where to print it, and the price is the same whatever the number of pages. The [printing guide](guidePrint) lists what to ask a print shop for, and [the comparison](guideCompare) goes through the other services.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Does Inbunden see my whole Google Photos library?',
+          a: 'No. Google’s picker only shares the photos you tick. Inbunden cannot browse, search or list anything else, and its access ends by itself within an hour.',
+        },
+        {
+          q: 'Do I need Google Photos to use Inbunden?',
+          a: 'No. The Instagram export works for every account and brings captions and dates along. Google Photos is the quicker route when you already have the photos there or when you do not want to handle a ZIP file.',
+        },
+        {
+          q: 'Why are the dates on my Instagram photos wrong?',
+          a: 'When Instagram copies posts to Google Photos, the files often get the date of the transfer instead of the day you posted. Inbunden can only read the date Google Photos gives it. Drag the pages into the right order, or use the Instagram export, which keeps the original dates.',
+        },
+        {
+          q: 'Does the transfer work for a private Instagram account?',
+          a: 'Yes. You start the transfer inside your own Instagram account, so it works for private and personal accounts alike. Nothing changes on your account and nothing is posted.',
+        },
+        {
+          q: 'How long does the transfer from Instagram take?',
+          a: 'Usually under an hour, sometimes a few hours for large accounts. Look for the Data Transfer album in Google Photos. Sign in to Inbunden once the photos are there.',
         },
       ],
     },

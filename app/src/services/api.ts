@@ -52,6 +52,8 @@ export interface ImportProgress {
   total: number | null;
   more: boolean;
   error?: string;
+  /** NOT_CONNECTED when Instagram rejected the token: the user has to connect again. */
+  errorCode?: string;
 }
 
 export interface InstagramStatus {

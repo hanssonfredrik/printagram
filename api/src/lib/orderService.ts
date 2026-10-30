@@ -43,8 +43,15 @@ export function bookContentHash(
     .slice(0, 22);
 }
 
-/** Single place where an order becomes paid: fake provider, Stripe webhook, /sync or a 0-total order. */
-export async function markPaid(o: OrderRow, paymentRef: string | null): Promise<OrderRow> {
+/**
+ * Single place where an order becomes paid: fake provider, Stripe webhook, /sync or a 0-total
+ * order. `extra` carries provider facts learned at the same time (Stripe's livemode).
+ */
+export async function markPaid(
+  o: OrderRow,
+  paymentRef: string | null,
+  extra: Partial<Pick<OrderRow, 'stripeLivemode'>> = {},
+): Promise<OrderRow> {
   if (o.status === 'paid' || o.status === 'ready') return o;
   const paidAt = nowIso();
   if (o.promoCode) await redeemPromo(o);
@@ -53,6 +60,7 @@ export async function markPaid(o: OrderRow, paymentRef: string | null): Promise<
     paidAt,
     failureReason: null,
     stripePaymentIntentId: paymentRef ?? o.stripePaymentIntentId,
+    ...extra,
   };
   await orders.merge(o.userId, o.orderId, patch);
   const book = await books.get(o.userId, o.bookId);
@@ -74,10 +82,11 @@ export async function markFailed(
   o: OrderRow,
   status: 'failed' | 'expired' | 'refunded',
   reason: string | null = null,
+  extra: Partial<Pick<OrderRow, 'stripeLivemode'>> = {},
 ): Promise<OrderRow> {
   if (o.status === 'ready' && status !== 'refunded') return o;
   if (o.status === 'paid' && status === 'failed') return o;
-  const patch: Partial<OrderRow> = { status, failureReason: reason };
+  const patch: Partial<OrderRow> = { status, failureReason: reason, ...extra };
   await orders.merge(o.userId, o.orderId, patch);
   return { ...o, ...patch } as OrderRow;
 }

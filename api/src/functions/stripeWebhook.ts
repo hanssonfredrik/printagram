@@ -45,9 +45,11 @@ route(
     if (orderId && userId) {
       const o = await orders.get(userId, orderId);
       if (o) {
+        // Stripe says whether this was a live or a test payment; the admin shows the right link.
+        const extra = { stripeLivemode: event.livemode };
         switch (event.type) {
           case 'payment_intent.succeeded':
-            await markPaid(o, paymentIntentId);
+            await markPaid(o, paymentIntentId, extra);
             break;
           case 'payment_intent.payment_failed':
             // Not terminal: the same PaymentIntent can be retried and later succeed.
@@ -55,13 +57,14 @@ route(
               o,
               'failed',
               (pi as Stripe.PaymentIntent).last_payment_error?.message ?? 'The payment failed.',
+              extra,
             );
             break;
           case 'payment_intent.canceled':
-            await markFailed(o, 'failed', 'The payment was cancelled.');
+            await markFailed(o, 'failed', 'The payment was cancelled.', extra);
             break;
           case 'charge.refunded':
-            await markFailed(o, 'refunded');
+            await markFailed(o, 'refunded', null, extra);
             break;
           default:
             break;

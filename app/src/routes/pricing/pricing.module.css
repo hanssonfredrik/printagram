@@ -1,0 +1,52 @@
+/* Price cards and FAQ rows, the same look as the landing page's pricing section. */
+.priceCard {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-height: 100%;
+}
+
+.price {
+  font-family: var(--font-serif);
+  font-size: 36px;
+}
+
+.priceNote {
+  margin-top: auto;
+  padding-top: 12px;
+  font-size: 13px;
+}
+
+.cardTitle {
+  font-family: var(--font-sans);
+  font-size: 1em;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.list {
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.6;
+}
+
+.list li + li {
+  margin-top: 6px;
+}
+
+.faq {
+  padding: 18px 0;
+  border-top: 1px solid var(--border);
+}
+
+.faq:last-child {
+  border-bottom: 1px solid var(--border);
+}
+
+.faqQ {
+  font-family: var(--font-sans);
+  font-size: 1em;
+  font-weight: 600;
+  letter-spacing: 0;
+  margin-bottom: 4px;
+}

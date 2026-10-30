@@ -39,6 +39,46 @@ export function ago(iso: string | null | undefined): string {
   return `${Math.round(s / 86_400)} d ago`;
 }
 
+/** What each raw order status means. The API keeps the raw values; only the admin reads these. */
+export const STATUS_LABELS: Record<string, { label: string; hint: string }> = {
+  created: { label: 'Not paid', hint: 'Checkout was opened, no payment yet' },
+  paid: { label: 'Paid, PDF pending', hint: 'Payment received, the PDF has not been uploaded yet' },
+  ready: { label: 'Paid, PDF ready', hint: 'Payment received and the PDF is uploaded' },
+  failed: { label: 'Payment failed', hint: 'The last attempt failed; the customer can retry' },
+  refunded: { label: 'Refunded', hint: 'Refunded in Stripe' },
+  expired: { label: 'Expired', hint: 'Old status, not set by current code' },
+};
+
+export const statusLabel = (status: string) => STATUS_LABELS[status]?.label ?? status;
+
+/** Where an order's photos came from, as the API stores it. */
+export const SOURCE_LABELS: Record<string, string> = {
+  instagram: 'Instagram connect',
+  export: 'Export ZIP',
+  googlephotos: 'Google Photos',
+};
+export const sourceLabel = (source: string | null | undefined) =>
+  SOURCE_LABELS[source ?? ''] ?? 'Unknown';
+
+/**
+ * Stripe dashboard links for a PaymentIntent. Stripe tells us livemode once a payment is
+ * prepared or confirmed; rows from before that was stored get both links.
+ */
+export function stripePaymentUrls(
+  paymentIntentId: string,
+  livemode: boolean | null,
+): { label: string; href: string }[] {
+  const id = encodeURIComponent(paymentIntentId);
+  const live = { label: 'Open in Stripe', href: `https://dashboard.stripe.com/payments/${id}` };
+  const test = {
+    label: 'Open in Stripe (test mode)',
+    href: `https://dashboard.stripe.com/test/payments/${id}`,
+  };
+  if (livemode === true) return [live];
+  if (livemode === false) return [test];
+  return [live, test];
+}
+
 export const bytes = (n: number | null) =>
   n === null ? '–' : n > 1e6 ? `${(n / 1e6).toFixed(1)} MB` : `${Math.round(n / 1e3)} kB`;
 

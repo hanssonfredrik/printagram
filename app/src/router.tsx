@@ -4,12 +4,15 @@ import { AppShell, PublicLayout, SessionGate } from './routes/AppShell';
 import { Landing } from './routes/landing/Landing';
 import { NotFound } from './routes/NotFound';
 import { About } from './routes/about/About';
+import { Pricing } from './routes/pricing/Pricing';
 import { LegalPage } from './routes/legal/LegalPage';
+import { DeletionStatus } from './routes/legal/DeletionStatus';
 import { GuidePage, GuidesIndex } from './routes/guides/Guides';
 import { allPublicPaths, GUIDE_KEYS, type GuideKey, type PageKey } from './seo/routes';
 
 const PUBLIC_PAGES: Record<PageKey, ReactElement> = {
   landing: <Landing />,
+  pricing: <Pricing />,
   about: <About />,
   privacy: <LegalPage doc="privacy" />,
   terms: <LegalPage doc="terms" />,
@@ -40,7 +43,12 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <PublicLayout />,
-        children: [...publicRoutes, { path: '*', element: <NotFound /> }],
+        children: [
+          ...publicRoutes,
+          // Instagram's data-deletion status link; one URL for both languages, not indexed.
+          { path: 'privacy/deletion', element: <DeletionStatus /> },
+          { path: '*', element: <NotFound /> },
+        ],
       },
       {
         element: <SessionGate />,

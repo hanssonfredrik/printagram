@@ -109,3 +109,25 @@ export function initAnalytics(): void {
     if (s.analytics !== prev.analytics) apply(s.analytics);
   });
 }
+
+/**
+ * A GA4 event (begin_checkout, purchase, view_item, ...). Dropped unless the visitor granted
+ * consent and the tag is loaded, so nothing reaches Google before that. Never throws.
+ */
+export function trackEvent(name: string, params: Record<string, unknown> = {}): void {
+  if (!loaded || useConsent.getState().analytics !== 'granted') return;
+  try {
+    window.gtag?.('event', name, params);
+  } catch {
+    // Analytics must never break the page.
+  }
+}
+
+/** The value, currency and `items` GA4 wants for an order of the PDF book. */
+export function orderItem(o: { amountCents: number; currency: string }) {
+  return {
+    currency: o.currency.toUpperCase(),
+    value: o.amountCents / 100,
+    items: [{ item_id: 'pdf-book', item_name: 'Photo book PDF', price: o.amountCents / 100 }],
+  };
+}

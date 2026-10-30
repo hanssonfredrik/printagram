@@ -60,7 +60,7 @@ export function SiteHeader({
 
   const items: NavItem[] = [
     { page: 'landing', hash: 'how', label: t.common.nav.how, active: false },
-    { page: 'landing', hash: 'pricing', label: t.common.nav.pricing, active: false },
+    { page: 'pricing', label: t.common.nav.pricing, active: page === 'pricing' },
     {
       page: 'guides',
       label: t.common.nav.guides,

@@ -11,6 +11,14 @@ export interface PaymentStartResult {
   ref: string | null;
   /** Client secret for the browser (Stripe only). */
   clientSecret: string | null;
+  /** Stripe's livemode for the payment; null when the provider has no such notion. */
+  livemode: boolean | null;
+}
+
+export interface PaymentStatusResult {
+  status: PaymentStatus;
+  reason: string | null;
+  livemode: boolean | null;
 }
 
 export interface PaymentProvider {
@@ -18,7 +26,7 @@ export interface PaymentProvider {
   /** Creates or updates the provider-side payment for an order's current amount. */
   prepare(order: OrderRow, email: string | null): Promise<PaymentStartResult>;
   /** Asks the provider what happened (used by /sync and as a webhook fallback). */
-  status(order: OrderRow): Promise<{ status: PaymentStatus; reason: string | null }>;
+  status(order: OrderRow): Promise<PaymentStatusResult>;
 }
 
 /** The configured provider. Throws (loudly) on misconfiguration instead of silently falling back. */

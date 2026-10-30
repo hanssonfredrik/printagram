@@ -33,7 +33,8 @@ export const stripeProvider: PaymentProvider = {
       ) {
         pi = await s.paymentIntents.update(pi.id, { amount: order.amountCents });
       }
-      if (pi.status !== 'canceled') return { ref: pi.id, clientSecret: pi.client_secret };
+      if (pi.status !== 'canceled')
+        return { ref: pi.id, clientSecret: pi.client_secret, livemode: pi.livemode };
     }
     pi = await s.paymentIntents.create(
       {
@@ -46,18 +47,23 @@ export const stripeProvider: PaymentProvider = {
       },
       { idempotencyKey: `order:${order.orderId}:${order.currency}:${order.amountCents}` },
     );
-    return { ref: pi.id, clientSecret: pi.client_secret };
+    return { ref: pi.id, clientSecret: pi.client_secret, livemode: pi.livemode };
   },
   async status(order) {
-    if (!order.stripePaymentIntentId) return { status: 'pending', reason: null };
+    if (!order.stripePaymentIntentId) return { status: 'pending', reason: null, livemode: null };
     const pi = await retrieveIntent(order.stripePaymentIntentId);
-    if (!pi) return { status: 'pending', reason: null };
-    if (pi.status === 'succeeded') return { status: 'succeeded', reason: null };
+    if (!pi) return { status: 'pending', reason: null, livemode: null };
+    const livemode = pi.livemode;
+    if (pi.status === 'succeeded') return { status: 'succeeded', reason: null, livemode };
     if (pi.status === 'canceled')
-      return { status: 'canceled', reason: 'The payment was cancelled.' };
+      return { status: 'canceled', reason: 'The payment was cancelled.', livemode };
     if (pi.status === 'requires_payment_method' && pi.last_payment_error) {
-      return { status: 'failed', reason: pi.last_payment_error.message ?? 'The payment failed.' };
+      return {
+        status: 'failed',
+        reason: pi.last_payment_error.message ?? 'The payment failed.',
+        livemode,
+      };
     }
-    return { status: 'pending', reason: null };
+    return { status: 'pending', reason: null, livemode };
   },
 };

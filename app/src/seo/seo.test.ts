@@ -15,6 +15,7 @@ import {
   alternates,
   APP_ROUTES,
   GUIDE_KEYS,
+  ogImagePath,
   PAGE_KEYS,
   pageAt,
   PAGES,
@@ -66,6 +67,13 @@ describe('public page table', () => {
     expect(robots).toContain('Sitemap: https://inbunden.com/sitemap.xml');
     expect(robots).toContain('Disallow: /api/');
     expect(robots).not.toMatch(/Disallow: \/$/m);
+  });
+
+  it('gives guides their own share image and every other page the landing screenshot', () => {
+    expect(ogImagePath('en')).toBe('/og-image-en.jpg');
+    expect(ogImagePath('sv', 'about')).toBe('/og-image-sv.jpg');
+    expect(ogImagePath('sv', 'guides')).toBe('/og-image-sv.jpg');
+    expect(ogImagePath('en', 'guideChristmas')).toBe('/og-image-guideChristmas-en.jpg');
   });
 
   it('has a dated guide text in both languages for every guide', () => {
@@ -127,6 +135,47 @@ describe('structured data', () => {
       priceCurrency: 'EUR',
     });
     expect(offer('sv')).toMatchObject({ price: '89.00', priceCurrency: 'SEK' });
+  });
+
+  it('gives the pricing page the FAQ, the breadcrumb and the same product as the landing page', () => {
+    const data = structuredData({
+      key: 'pricing',
+      lang: 'sv',
+      t: messagesFor('sv'),
+      cfg: cfg('stripe'),
+      configLoaded: true,
+      site: SITE,
+      price: '89 kr',
+    });
+    const nodes = graph(data);
+    expect(nodes.map((n) => n['@type'])).toEqual([
+      'Organization',
+      'WebSite',
+      'WebPage',
+      'FAQPage',
+      'Product',
+      'BreadcrumbList',
+    ]);
+    const product = nodes.find((n) => n['@type'] === 'Product')!;
+    expect(product['@id']).toBe('https://inbunden.com/sv#pdf-book');
+    expect(product.offers).toMatchObject({
+      priceCurrency: 'SEK',
+      url: 'https://inbunden.com/sv/priser',
+    });
+    expect(JSON.stringify(nodes.find((n) => n['@type'] === 'FAQPage'))).toContain('89 kr per bok');
+    expect(
+      graph(
+        structuredData({
+          key: 'pricing',
+          lang: 'en',
+          t: messagesFor('en'),
+          cfg: cfg('fake'),
+          configLoaded: true,
+          site: SITE,
+          price: '€9',
+        }),
+      ).map((n) => n['@type']),
+    ).not.toContain('Product');
   });
 
   it('leaves the offer out while Stripe runs with test keys', () => {

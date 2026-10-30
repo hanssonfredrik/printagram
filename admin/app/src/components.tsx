@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from 'react';
-import { dayOffset, defaultRange, type Range } from './format';
+import { dayOffset, defaultRange, STATUS_LABELS, type Range } from './format';
 
 export function PageHead({ title, children }: { title: string; children?: ReactNode }) {
   return (
@@ -289,5 +289,26 @@ const STATUS_CLASS: Record<string, string> = {
 };
 
 export function StatusBadge({ status }: { status: string }) {
-  return <span className={`badge ${STATUS_CLASS[status] ?? ''}`}>{status}</span>;
+  const meta = STATUS_LABELS[status];
+  return (
+    <span
+      className={`badge ${STATUS_CLASS[status] ?? ''}`}
+      title={meta ? `${status}: ${meta.hint}` : status}
+    >
+      {meta?.label ?? status}
+    </span>
+  );
+}
+
+/** One line explaining the statuses used in the orders list. */
+export function StatusLegend({ statuses }: { statuses: string[] }) {
+  return (
+    <p className="muted">
+      {statuses
+        .filter((s) => STATUS_LABELS[s])
+        .map((s) => `${STATUS_LABELS[s]!.label}: ${STATUS_LABELS[s]!.hint.toLowerCase()}`)
+        .join('. ')}
+      .
+    </p>
+  );
 }

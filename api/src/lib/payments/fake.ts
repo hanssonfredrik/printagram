@@ -8,13 +8,14 @@ import type { PaymentProvider } from './provider.js';
 export const fakeProvider: PaymentProvider = {
   name: 'fake',
   async prepare(order) {
-    return { ref: `fake_${order.orderId}`, clientSecret: null };
+    return { ref: `fake_${order.orderId}`, clientSecret: null, livemode: null };
   },
   async status(order) {
     if (order.status === 'paid' || order.status === 'ready')
-      return { status: 'succeeded', reason: null };
-    if (order.status === 'failed') return { status: 'failed', reason: order.failureReason };
-    return { status: 'pending', reason: null };
+      return { status: 'succeeded', reason: null, livemode: null };
+    if (order.status === 'failed')
+      return { status: 'failed', reason: order.failureReason, livemode: null };
+    return { status: 'pending', reason: null, livemode: null };
   },
 };
 

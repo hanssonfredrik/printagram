@@ -602,6 +602,122 @@ describe.skipIf(!up)('admin API against Azurite', () => {
     ).toEqual([[8900, 1780]]);
   });
 
+  it('orders: list fills in the photo source for old rows and counts unpaid checkouts apart', async () => {
+    const { orders, libraries } = await import('../../../api/src/lib/tables.js');
+    const me = await makeUser({ isAdmin: true });
+    const buyer = await makeUser({ isAdmin: false });
+    const call = client();
+    expect((await signIn(call, me.email)).status).toBe(200);
+
+    const libraryId = randomUUID();
+    await libraries.upsert({
+      userId: buyer.userId,
+      libraryId,
+      source: 'instagram',
+      sourceLabel: '@someone',
+      status: 'expired',
+      photoCount: 3,
+    } as never);
+    const now = new Date().toISOString();
+    const base = {
+      userId: buyer.userId,
+      bookId: 'b',
+      bookVersion: 1,
+      title: 'T',
+      format: 'square',
+      showMeta: true,
+      layout: {},
+      pages: [],
+      photoIds: [],
+      pageCount: 24,
+      photoCount: 3,
+      contentHash: 'h',
+      subtotalCents: 900,
+      discountCents: 0,
+      promoCode: null,
+      amountCents: 900,
+      currency: 'eur',
+      paymentProvider: 'stripe',
+      failureReason: null,
+      stripePaymentIntentId: 'pi_src',
+      paidAt: now,
+      pdfBlob: null,
+      pdfVersion: 0,
+      pdfBytes: null,
+      pdfPages: null,
+      readyAt: null,
+      shareToken: null,
+      createdAt: now,
+      status: 'ready',
+    };
+    // Old rows, from before the source was stored on the order.
+    const fromLib = randomUUID();
+    const fromPrefix = randomUUID();
+    const unknown = randomUUID();
+    const unpaid = randomUUID();
+    await orders.upsert({ ...base, orderId: fromLib, libraryId, coverPhotoId: null } as never);
+    await orders.upsert({
+      ...base,
+      orderId: fromPrefix,
+      libraryId: 'gone',
+      coverPhotoId: 'gp_abc',
+    } as never);
+    await orders.upsert({
+      ...base,
+      orderId: unknown,
+      libraryId: 'gone-too',
+      coverPhotoId: null,
+    } as never);
+    await orders.upsert({
+      ...base,
+      orderId: unpaid,
+      libraryId,
+      coverPhotoId: null,
+      status: 'created',
+      paidAt: null,
+      source: 'export',
+      sourceLabel: 'mine.zip',
+    } as never);
+
+    type Row = { id: string; status: string; source: string | null; sourceLabel: string | null };
+    type List = {
+      items: Row[];
+      totals: { count: number; orderCount: number; unpaidCount: number; paidCount: number };
+    };
+    const q = `q=${encodeURIComponent(buyer.email)}`;
+    const list = await call<List>('ordersList', 'GET', `orders?${q}`);
+    expect(list.status).toBe(200);
+    const byId = new Map(list.body.items.map((r) => [r.id, r]));
+    expect(byId.get(fromLib)).toMatchObject({ source: 'instagram', sourceLabel: '@someone' });
+    expect(byId.get(fromPrefix)).toMatchObject({ source: 'googlephotos', sourceLabel: null });
+    expect(byId.get(unknown)).toMatchObject({ source: null, sourceLabel: null });
+    expect(byId.get(unpaid)).toMatchObject({ source: 'export', sourceLabel: 'mine.zip' });
+    expect(list.body.totals).toMatchObject({
+      count: 4,
+      orderCount: 3,
+      unpaidCount: 1,
+      paidCount: 3,
+    });
+
+    // The answer was written back to the row.
+    expect(await orders.get(buyer.userId, fromLib)).toMatchObject({
+      source: 'instagram',
+      sourceLabel: '@someone',
+    });
+
+    const onlyIg = await call<List>('ordersList', 'GET', `orders?${q}&source=instagram`);
+    expect(onlyIg.body.items.map((r) => r.id)).toEqual([fromLib]);
+
+    const one = await call<{ order: Row & { stripeLivemode: boolean | null } }>(
+      'ordersGet',
+      'GET',
+      `orders/${buyer.userId}/${fromPrefix}`,
+      undefined,
+      { userId: buyer.userId, orderId: fromPrefix },
+    );
+    expect(one.body.order).toMatchObject({ source: 'googlephotos', stripeLivemode: null });
+  });
+
   it('orders: delete needs the id, paid Stripe orders need the test-mode box, and is audited', async () => {
     const { orders, books, lookups, libraries, audit } =
       await import('../../../api/src/lib/tables.js');
@@ -676,6 +792,25 @@ describe.skipIf(!up)('admin API against Azurite', () => {
     expect(await orders.get(buyer.userId, stripeId)).not.toBeNull();
     expect((await del(stripeId, { confirm: stripeId, stripeTest: true })).status).toBe(200);
     expect(await orders.get(buyer.userId, stripeId)).toBeNull();
+
+    // When Stripe itself recorded a test-mode payment the box is not needed; a live one still is.
+    const knownTestId = randomUUID();
+    const liveId = randomUUID();
+    await orders.upsert({
+      ...base,
+      orderId: knownTestId,
+      paymentProvider: 'stripe',
+      stripeLivemode: false,
+    } as never);
+    await orders.upsert({
+      ...base,
+      orderId: liveId,
+      paymentProvider: 'stripe',
+      stripeLivemode: true,
+    } as never);
+    expect((await del(knownTestId, { confirm: knownTestId })).status).toBe(200);
+    expect((await del(liveId, { confirm: liveId })).status).toBe(400);
+    expect((await del(liveId, { confirm: liveId, stripeTest: true })).status).toBe(200);
 
     const log = await audit.listMonth(new Date().toISOString().slice(0, 7), 5000);
     expect(

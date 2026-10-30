@@ -15,6 +15,7 @@ import {
   type UserRow,
 } from '../core.js';
 import { noCents, orderCurrency, type CurrencyCents } from '../lib/money.js';
+import { withSource } from '../lib/orderSource.js';
 import { adminRoute } from '../lib/route.js';
 import { bookView, libraryView, orderView, userView } from '../lib/views.js';
 
@@ -69,11 +70,14 @@ adminRoute('usersGet', { methods: ['GET'], route: 'users/{id}' }, async ({ req }
     books.list(u.userId),
     orders.list(u.userId),
   ]);
+  // The user's libraries are already loaded, so old orders get their source without extra reads.
+  const libCache = new Map(libs.map((l) => [`${u.userId}/${l.libraryId}`, l]));
+  const withSources = await Promise.all(ords.map((o) => withSource(o, libCache)));
   return json({
     user: userView(u),
     libraries: libs.map(libraryView),
     books: bks.map(bookView),
-    orders: ords
+    orders: withSources
       .map((o) => orderView(o, u.email))
       .sort((a, b) => b.createdAt.localeCompare(a.createdAt)),
   });

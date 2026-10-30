@@ -58,7 +58,7 @@ export function useSeo(page: { key: PageKey; lang: Lang } | null) {
     const description = pageDescription(key, t);
     const url = absoluteUrl(SITE_URL, pathFor(key, lang));
 
-    const image = absoluteUrl(SITE_URL, ogImagePath(lang));
+    const image = absoluteUrl(SITE_URL, ogImagePath(lang, key));
     const guide = isGuide(key);
 
     document.title = title;
@@ -68,7 +68,7 @@ export function useSeo(page: { key: PageKey; lang: Lang } | null) {
     meta('property', 'og:title', title);
     meta('property', 'og:description', description);
     meta('property', 'og:image', image);
-    meta('property', 'og:image:alt', t.seo.imageAlt);
+    meta('property', 'og:image:alt', guide ? title : t.seo.imageAlt);
     add('meta', { property: 'og:url', content: url });
     add('meta', { property: 'og:locale', content: t.seo.locale });
     if (guide) {

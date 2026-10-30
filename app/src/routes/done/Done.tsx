@@ -5,11 +5,24 @@ import { fmtDate, photoSpan } from '@printagram/shared';
 import { Banner, Button, Card, ProgressBar } from '@/components/ui';
 import { CoverThumb } from '@/components/PageRenderer';
 import { ApiClientError, api } from '@/services';
+import { orderItem, trackEvent } from '@/services/analytics';
 import { generatePdf, downloadBytes, slugify } from '@/services/pdf';
 import { useDraft } from '@/state/draft';
 import { useSession } from '@/state/session';
 import { useLibrary } from '@/state/library';
 import { errorText, getT, useLang, useT } from '@/i18n';
+
+/** GA4 `purchase`, once per order on this browser (Done is revisited for every download). */
+function recordPurchase(o: Order) {
+  const key = `printagram.purchased.${o.id}`;
+  try {
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, '1');
+  } catch {
+    // Private mode without storage: report it anyway rather than never.
+  }
+  trackEvent('purchase', { transaction_id: o.id, ...orderItem(o) });
+}
 
 type Stage =
   | 'loading'
@@ -117,6 +130,7 @@ export function Done() {
         }
         if (cancelled) return;
         setOrder(o);
+        if (o.status === 'paid' || o.status === 'ready') recordPurchase(o);
         if (o.status === 'paid') await produce(o);
         else if (o.status === 'ready') setStage('ready');
         else if (o.status === 'failed' || o.status === 'expired') setStage('failed');

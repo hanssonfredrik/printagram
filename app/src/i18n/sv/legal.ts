@@ -3,6 +3,15 @@ import type { Messages } from '../en';
 export const legal: Messages['legal'] = {
   updated: (date: string) => `Senast uppdaterad ${date}`,
   contact: 'hello@inbunden.com',
+  deletion: {
+    title: 'Dina Instagram-uppgifter har raderats',
+    lead: 'Du tog bort Inbunden från ditt Instagram-konto, så vi har raderat de bilder vi kopierat därifrån, tillsammans med åtkomstnyckeln vi fick från Instagram.',
+    code: (code: string) => `Bekräftelsekod: ${code}`,
+    noCode:
+      'Den här sidan bekräftar en raderingsbegäran från Instagram. Öppna länken du fick från Instagram för att se din bekräftelsekod.',
+    note: 'Böcker du redan har beställt och deras PDF:er finns kvar på ditt Inbunden-konto. Du kan radera hela kontot när du vill under Mina böcker.',
+    home: 'Tillbaka till Inbunden',
+  },
   privacy: {
     title: 'Integritetspolicy',
     lead: 'Vad Inbunden sparar om dig, varför, hur länge och vilka mer som ser det.',

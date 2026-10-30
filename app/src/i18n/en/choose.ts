@@ -25,7 +25,7 @@ export const choose = {
     every: 'Personal, private, Creator or Business: every account works.',
     email:
       'Instagram emails you the file within a few hours, sometimes a day or two. We send you a return link.',
-    noLikes: "Likes usually aren't included in the export.",
+    noLikes: 'You get photos, captions and dates. Like counts are not in the export.',
     button: 'Show me how',
   },
   google: {

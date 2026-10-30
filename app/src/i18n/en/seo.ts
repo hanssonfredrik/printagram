@@ -9,6 +9,11 @@ export const seo = {
       description:
         'Turn your Instagram posts into a photo book. Pick the photos, we lay out the pages and you download a print-ready PDF for one flat price.',
     },
+    pricing: {
+      title: 'Pricing: one flat price for your photo book PDF',
+      description:
+        'What an Inbunden photo book costs: one flat price for the print-ready PDF, however many pages. What is included, what printing adds and how it compares.',
+    },
     about: {
       title: 'About Inbunden',
       description:

@@ -2,6 +2,16 @@
 export const legal = {
   updated: (date: string) => `Last updated ${date}`,
   contact: 'hello@inbunden.com',
+  /** Where Instagram's data-deletion status link lands (/privacy/deletion?code=…). */
+  deletion: {
+    title: 'Your Instagram data was deleted',
+    lead: 'You removed Inbunden from your Instagram account, so we deleted the photos we had copied from it, along with the access token Instagram gave us.',
+    code: (code: string) => `Confirmation code: ${code}`,
+    noCode:
+      'This page confirms a deletion request from Instagram. Open the link Instagram gave you to see your confirmation code.',
+    note: 'Books you already ordered and their PDFs stay in your Inbunden account. You can delete the whole account at any time under My books.',
+    home: 'Back to Inbunden',
+  },
   privacy: {
     title: 'Privacy policy',
     lead: 'What Inbunden stores about you, why, for how long, and who else sees it.',

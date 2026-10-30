@@ -19,7 +19,7 @@ export const connect: Messages['connect'] = {
   },
   continue: 'Fortsätt med Instagram',
   opensWindow:
-    'Öppnar instagram.com i ett nytt fönster. Du loggar in där. Vi ser aldrig ditt lösenord.',
+    'Du skickas till instagram.com för att logga in och kommer sedan direkt tillbaka hit. Vi ser aldrig ditt lösenord.',
   switchFirst: {
     title: 'Byt till ett professionellt konto först',
     text: 'Gratis, tar ungefär två minuter, går att ångra och ingen får någon avisering. En sak ändras: ett privat konto blir offentligt, och väntande följarförfrågningar godkänns. Vill du hellre vara privat? Använd exporten i stället. Den funkar för alla konton.',
@@ -59,9 +59,9 @@ export const connect: Messages['connect'] = {
   seeButton: 'Jag ser knappen (kreatör eller företag)',
   noButton: 'Ingen knapp (personligt konto)',
   waiting: {
-    title: 'Väntar på Instagram…',
-    text: 'Ett fönster öppnades på instagram.com. Logga in där och tryck på Tillåt. Sidan uppdateras av sig själv.',
-    reopen: 'Öppnades inget? Öppna Instagram igen',
+    title: 'Skickar dig till Instagram…',
+    text: 'Du är på väg till instagram.com. Logga in där och tryck på Tillåt, så kommer du tillbaka hit av dig själv.',
+    reopen: 'Hände inget? Försök igen',
   },
   errors: {
     personal: {
@@ -73,8 +73,8 @@ export const connect: Messages['connect'] = {
       text: 'Instagram-fönstret stängdes eller så tryckte du på Avbryt, så inget delades med Inbunden. Försök igen när du är redo, eller använd exporten i stället.',
     },
     expired: {
-      title: 'Anslutningen tog för lång tid',
-      text: 'Instagram svarade inte i tid. Försök igen, eller använd exporten i stället.',
+      title: 'Anslut Instagram igen',
+      text: 'Anslutningen tog för lång tid eller har upphört, så Inbunden kan inte läsa dina inlägg just nu. Anslut igen, eller använd exporten i stället.',
     },
     unknown: {
       title: 'Något gick fel hos Instagram',

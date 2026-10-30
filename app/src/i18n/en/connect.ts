@@ -17,7 +17,8 @@ export const connect = {
       'Read‑only. No posting, no messages, no followers. Disconnect any time. Access also ends by itself after 60 days.',
   },
   continue: 'Continue with Instagram',
-  opensWindow: 'Opens instagram.com in a new window. You log in there. We never see your password.',
+  opensWindow:
+    "You'll be sent to instagram.com to log in, then straight back here. We never see your password.",
   switchFirst: {
     title: 'Switch to a Professional account first',
     text: 'Free, about two minutes, reversible, and nobody is notified. One thing changes: a private account becomes public, and pending follow requests are accepted. Prefer to stay private? Use the export instead. It works for every account.',
@@ -57,9 +58,9 @@ export const connect = {
   seeButton: 'I see the button (Creator or Business)',
   noButton: 'No button (personal account)',
   waiting: {
-    title: 'Waiting for Instagram…',
-    text: 'A window opened at instagram.com. Log in there and tap Allow. This page updates by itself.',
-    reopen: 'Nothing opened? Open Instagram again',
+    title: 'Sending you to Instagram…',
+    text: "You're on your way to instagram.com. Log in there and tap Allow, and you'll come back here by yourself.",
+    reopen: 'Nothing happened? Try again',
   },
   errors: {
     personal: {
@@ -71,8 +72,8 @@ export const connect = {
       text: "The Instagram window was closed or you tapped Cancel, so nothing was shared with Inbunden. Try again whenever you're ready, or use the export instead.",
     },
     expired: {
-      title: 'The connection timed out',
-      text: 'Instagram did not answer in time. Try again, or use the export instead.',
+      title: 'Connect Instagram again',
+      text: "The connection timed out or has ended, so Inbunden can't read your posts right now. Connect again, or use the export instead.",
     },
     unknown: {
       title: 'Something went wrong on Instagram',

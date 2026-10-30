@@ -58,6 +58,7 @@ export const landing = {
     intro: 'One price for the PDF, however many photos and pages your book has.',
     from: (price: string) => `from ${price}`,
     comingSoon: 'Coming soon',
+    more: 'What is included, what printing costs and how it compares',
     pdf: {
       title: 'Digital PDF',
       text: 'Print‑ready PDF, download instantly.',
@@ -73,6 +74,7 @@ export const landing = {
     },
   },
   faqTitle: 'Questions',
+  guidesTitle: 'Guides',
   guidesTeaser:
     'More on exporting from Instagram, printing the PDF and choosing a photo book service:',
   guidesLink: 'read the guides',
@@ -126,7 +128,7 @@ export const landing = {
     },
     {
       q: 'Can I use Google Photos?',
-      a: "Yes. Instagram can send a copy of your posts to Google Photos, and then you pick them in Google's own picker. You can also pick any other photos you have there. We only see the photos you choose. Captions and likes don't come along that way, and the date can be the day of the transfer.",
+      a: "Yes. Instagram can send a copy of your posts to Google Photos, and then you pick them in Google's own picker. You can also pick any other photos you have there. We only see the photos you choose. Captions and likes don't come along that way, and the date can be the day of the transfer. See [the Google Photos guide](guideGooglePhotos).",
       when: 'googlePhotos',
     },
     {

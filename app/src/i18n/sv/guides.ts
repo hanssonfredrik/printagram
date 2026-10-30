@@ -131,12 +131,127 @@ export const guides: Messages['guides'] = {
           a: 'Oftast några timmar, ibland en dag eller två. Instagram säger att det kan ta upp till 30 dagar.',
         },
         {
+          q: 'Följer gilla-markeringarna med i exporten?',
+          a: 'Nej. Du får bilderna, bildtexten och datumet för varje inlägg, men inte hur många gilla-markeringar inlägget fick. Gilla-markeringarna i exporten är de du själv har gett andra.',
+        },
+        {
           q: 'Hur stor blir ZIP-filen?',
           a: 'Det beror på hur mycket du har lagt upp. Med bara Inlägg blir den ofta från några hundra megabyte till några gigabyte. Inbunden tar emot exporter på upp till 8 GB.',
         },
         {
           q: 'Är det säkert att ladda upp min export?',
           a: 'Inbunden läser bara inläggen i filen. Dina bilder sparas i 3 månader så att du kan göra fler böcker, och du kan radera dem när du vill.',
+        },
+      ],
+    },
+    guideGooglePhotos: {
+      title: 'Så gör du en fotobok av bilder i Google Foto',
+      description:
+        'Gör en tryckfärdig fotobok som PDF av bilderna i Google Foto, även Instagram-inlägg du fört över dit. Vad som följer med och hur du väljer bra.',
+      lead: 'Bilder i Google Foto blir en fotobok i två steg: välj dem i Googles egen bildväljare och låt Inbunden göra layouten som en tryckfärdig PDF. Instagram kan också skicka en kopia av dina inlägg till Google Foto, vilket gör det här till den enklaste vägen för ett privat Instagram-konto: ingen ZIP att ladda ner, ingen väntan på mejl.',
+      sections: [
+        {
+          title: 'Två sätt bilder hamnar i Google Foto',
+          paragraphs: [
+            'De flesta har redan Google Foto som säkerhetskopierar mobilen. Det är originalen: full storlek, med dagen bilden togs. De trycks skarpare än något som laddats ner från Instagram.',
+            'Instagram kan också kopiera dina inlägg till Google Foto. Metas överföringsverktyg skickar de publicerade versionerna (upp till 1080 pixlar breda) till ett album som heter Dataöverföring (Data Transfer). Den vägen tar du när bilderna du vill ha bara finns på Instagram, eller när du vill ha inläggen precis som du publicerade dem.',
+          ],
+        },
+        {
+          title: 'Skicka dina Instagram-inlägg till Google Foto',
+          paragraphs: [
+            'Det här sker inne i Instagram, inte i Inbunden. Det tar två minuter att starta, och Instagram kopierar i bakgrunden. Det fungerar för alla konton, även privata.',
+          ],
+          steps: [
+            {
+              title: 'Öppna Kontocenter',
+              text: 'I Instagram-appen: profil → meny (☰) → Inställningar och aktivitet → Kontocenter → Din information och dina behörigheter.',
+            },
+            {
+              title: 'Överför en kopia av din information',
+              text: 'Tryck på Överför en kopia av din information (äldre versioner: Ladda ner eller överför information → Överför till en destination). Välj din Instagram-profil.',
+            },
+            {
+              title: 'Välj Google Foto',
+              text: 'Välj Inlägg, alla eller ett datumintervall, och sedan Google Foto som destination. Logga in på Google när du blir ombedd och tillåt överföringen.',
+            },
+            {
+              title: 'Vänta på Instagram',
+              text: 'Instagram kopierar dina bilder i bakgrunden, oftast inom en timme, ibland längre. Google Foto visar dem i en mapp eller ett album som heter Dataöverföring.',
+            },
+          ],
+        },
+        {
+          title: 'Välj bilderna och gör boken',
+          bullets: [
+            {
+              text: 'I Inbunden väljer du Via Google Foto och loggar in med Google. Du loggar in på Googles egen sida; Inbunden ser aldrig ditt lösenord.',
+              when: 'googlePhotos',
+            },
+            {
+              text: 'Google Foto öppnas i en ny flik med sin bildväljare. Bocka för bilderna du vill ha (albumet Dataöverföring för Instagram-inlägg, eller vad som helst annat i ditt bibliotek) och tryck på Klar. Google delar bara de bilder du bockat för.',
+              when: 'googlePhotos',
+            },
+            {
+              text: 'Inbunden kopierar ditt urval i full storlek, lägger ut sidorna i datumordning och visar dig varje sida. Ändra layouter, flytta bilder, lägg till textsidor, välj omslag och ladda sedan ner PDF:en för {price}.',
+              when: 'googlePhotos',
+            },
+            {
+              text: 'Inbundens åtkomst till Google Foto upphör av sig själv inom en timme. Dina kopierade bilder finns kvar i ditt Inbunden-bibliotek i 3 månader så att du kan göra fler böcker.',
+              when: 'googlePhotos',
+            },
+            {
+              text: 'Inbundens import från Google Foto är pausad just nu. Använd Instagram-exporten i stället: [så laddar du ner din Instagram-data](guideInstagramExport).',
+              when: 'noGooglePhotos',
+            },
+          ],
+        },
+        {
+          title: 'Vad som följer med, och vad som inte gör det',
+          bullets: [
+            'Bilderna, i den storlek Google Foto har dem. Säkerhetskopior från mobilen är i full storlek; Instagram-överföringar är upp till 1080 pixlar breda, bra för en halv eller en fjärdedels sida, mjuka över en hel sida. Förhandsvisningen varnar för bilder som är för små för sin plats.',
+            'Datumen kommer från Google Foto. För Instagram-överföringar är datumet ofta dagen för överföringen, inte dagen du publicerade, så den automatiska ordningen kan bli fel. Du kan dra sidor och bilder i rätt ordning innan du betalar.',
+            'Bildtexter och gilla-markeringar stannar på Instagram. Vill du ha bildtexter under bilderna, använd [Instagram-exporten](guideInstagramExport) i stället: den tar med bildtext och datum för varje inlägg. Antal gilla-markeringar finns inte heller i exporten.',
+            'Videor hoppas över. En bok rymmer upp till 999 bilder.',
+          ],
+        },
+        {
+          title: 'Tips för en bättre bok',
+          bullets: [
+            'Gör ett album i Google Foto först, till exempel ”Boken 2026”, och gå igenom det på en stor skärm. Att välja ur ett album i bildväljaren går fortare än att skrolla hela biblioteket.',
+            'Använd Googles sökning för att hitta det du behöver: ett år, en plats, en person. Välj sedan bland träffarna.',
+            'Har du både Instagram-versionen och originalet av en bild, välj originalet. Det trycks skarpare.',
+            'Tema slår mängd: [ett år i bilder](guideYearBook), en resa, ett barns första år. Femtio bra bilder blir en bättre bok än trehundra.',
+          ],
+        },
+        {
+          title: 'Andra sätt att trycka från Google Foto',
+          paragraphs: [
+            'Google Foto har en egen tryckbutik i vissa länder (leta efter Tryckbutik i appen). Den trycker en bok som Google formger av bilderna du väljer, och boken skickas hem till dig; du får ingen fil. De flesta fotobokstjänster tar också emot bilder som laddas upp från Google Foto eller mobilen, och du bygger boken i deras redigerare.',
+            'Inbunden ger dig en tryckfärdig PDF i stället: du väljer var den ska tryckas, och priset är detsamma oavsett antal sidor. [Guiden om att trycka](guidePrint) listar vad du ska be tryckeriet om, och [jämförelsen](guideCompare) går igenom de andra tjänsterna.',
+          ],
+        },
+      ],
+      faq: [
+        {
+          q: 'Ser Inbunden hela mitt Google Foto-bibliotek?',
+          a: 'Nej. Googles bildväljare delar bara de bilder du bockar för. Inbunden kan inte bläddra, söka eller lista något annat, och åtkomsten upphör av sig själv inom en timme.',
+        },
+        {
+          q: 'Behöver jag Google Foto för att använda Inbunden?',
+          a: 'Nej. Instagram-exporten fungerar för alla konton och tar med bildtexter och datum. Google Foto är den snabbare vägen när du redan har bilderna där eller inte vill hantera en ZIP-fil.',
+        },
+        {
+          q: 'Varför är datumen på mina Instagram-bilder fel?',
+          a: 'När Instagram kopierar inlägg till Google Foto får filerna ofta datumet för överföringen i stället för dagen du publicerade. Inbunden kan bara läsa det datum Google Foto ger. Dra sidorna i rätt ordning, eller använd Instagram-exporten, som behåller de ursprungliga datumen.',
+        },
+        {
+          q: 'Fungerar överföringen för ett privat Instagram-konto?',
+          a: 'Ja. Du startar överföringen inne i ditt eget Instagram-konto, så den fungerar för privata och personliga konton lika väl. Inget ändras på ditt konto och inget publiceras.',
+        },
+        {
+          q: 'Hur lång tid tar överföringen från Instagram?',
+          a: 'Oftast under en timme, ibland några timmar för stora konton. Leta efter albumet Dataöverföring i Google Foto. Logga in på Inbunden när bilderna finns där.',
         },
       ],
     },

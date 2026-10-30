@@ -8,6 +8,8 @@ import { config } from './config.js';
 const OAUTH_AUTHORIZE = 'https://www.instagram.com/oauth/authorize';
 const OAUTH_TOKEN = 'https://api.instagram.com/oauth/access_token';
 const GRAPH = 'https://graph.instagram.com';
+/** Pinned: unversioned calls go to the oldest live version, which Meta retires without notice. */
+export const API_VERSION = 'v26.0';
 export const SCOPE = 'instagram_business_basic';
 
 export interface IgMedia {
@@ -36,7 +38,7 @@ export function authorizeUrl(state: string): string {
 }
 
 async function graph<T>(path: string, params: Record<string, string>): Promise<T> {
-  const u = new URL(`${GRAPH}/${path}`);
+  const u = new URL(`${GRAPH}/${API_VERSION}/${path}`);
   for (const [k, v] of Object.entries(params)) u.searchParams.set(k, v);
   const res = await fetch(u);
   const body = (await res.json().catch(() => ({}))) as T & {

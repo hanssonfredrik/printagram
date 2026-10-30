@@ -136,6 +136,20 @@
   margin-bottom: 4px;
 }
 
+.guideList {
+  margin: 0;
+  padding-left: 20px;
+  line-height: 1.7;
+  columns: 2;
+  column-gap: 32px;
+}
+
+@media (max-width: 640px) {
+  .guideList {
+    columns: 1;
+  }
+}
+
 /* Card headings (steps, price cards): h3 for the outline, styled like the body text. */
 .cardTitle {
   font-family: var(--font-sans);

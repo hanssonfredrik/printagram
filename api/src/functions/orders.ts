@@ -5,6 +5,7 @@ import {
   pdfPriceCents,
   totalPages,
   normalizeLang,
+  photoSourceFromId,
   promoMessage,
   promoFitsCurrency,
   promoRejection,
@@ -83,7 +84,7 @@ async function reprice(
   let clientSecret: string | null = null;
   if (amountCents > 0) {
     const started = await paymentProvider().prepare(next, email);
-    next = { ...next, stripePaymentIntentId: started.ref };
+    next = { ...next, stripePaymentIntentId: started.ref, stripeLivemode: started.livemode };
     clientSecret = started.clientSecret;
   }
   await orders.merge(o.userId, o.orderId, {
@@ -91,6 +92,7 @@ async function reprice(
     discountCents: discount,
     amountCents,
     stripePaymentIntentId: next.stripePaymentIntentId,
+    stripeLivemode: next.stripeLivemode ?? null,
   });
   return { order: next, clientSecret };
 }
@@ -124,8 +126,18 @@ route(
       .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0];
     if (open) {
       const started = open.amountCents > 0 ? await provider.prepare(open, user.email) : null;
-      if (started && started.ref !== open.stripePaymentIntentId)
-        await orders.merge(user.userId, open.orderId, { stripePaymentIntentId: started.ref });
+      if (
+        started &&
+        (started.ref !== open.stripePaymentIntentId ||
+          started.livemode !== (open.stripeLivemode ?? null))
+      ) {
+        await orders.merge(user.userId, open.orderId, {
+          stripePaymentIntentId: started.ref,
+          stripeLivemode: started.livemode,
+        });
+        open.stripePaymentIntentId = started.ref;
+        open.stripeLivemode = started.livemode;
+      }
       return json({
         order: orderView(open, await coverThumb(open)),
         clientSecret: started?.clientSecret ?? null,
@@ -134,6 +146,8 @@ route(
     }
 
     const { pages, subtotalCents } = subtotalFor(book, currency);
+    // Libraries expire, so where the photos came from is kept on the order itself.
+    const lib = await libraries.get(user.userId, book.libraryId);
     const row: OrderRow = {
       orderId: newId(),
       userId: user.userId,
@@ -141,6 +155,8 @@ route(
       bookVersion: book.version,
       contentHash,
       libraryId: book.libraryId,
+      source: lib?.source ?? photoSourceFromId(book.photoIds[0]),
+      sourceLabel: lib?.sourceLabel ?? null,
       title: book.title,
       format: book.format,
       showMeta: book.showMeta,
@@ -160,6 +176,7 @@ route(
       paymentProvider: provider.name,
       failureReason: null,
       stripePaymentIntentId: null,
+      stripeLivemode: null,
       paidAt: null,
       pdfBlob: null,
       pdfVersion: 0,
@@ -171,6 +188,7 @@ route(
     };
     const started = await provider.prepare(row, user.email);
     row.stripePaymentIntentId = started.ref;
+    row.stripeLivemode = started.livemode;
     await orders.upsert(row);
     return json(
       {
@@ -210,9 +228,10 @@ route(
     let o = await ownedOrder(user.userId, req.params.id ?? '');
     if (o.status === 'created' || o.status === 'failed') {
       const st = await paymentProvider().status(o);
-      if (st.status === 'succeeded') o = await markPaid(o, o.stripePaymentIntentId);
+      const extra = st.livemode === null ? {} : { stripeLivemode: st.livemode };
+      if (st.status === 'succeeded') o = await markPaid(o, o.stripePaymentIntentId, extra);
       else if (st.status === 'failed' || st.status === 'canceled')
-        o = await markFailed(o, 'failed', st.reason);
+        o = await markFailed(o, 'failed', st.reason, extra);
     }
     return json(orderView(o, await coverThumb(o)));
   },

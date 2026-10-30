@@ -11,7 +11,9 @@
  *   its defaults. /api/me is always signed out.
  * - Writes dist/index.html for / and dist/pages/<path>.html for the rest, dist/app-shell.html (the
  *   untouched SPA shell with noindex, served for the app routes), dist/404.html (the not-found
- *   page), dist/llms.txt and dist/llms-full.txt (every public page as Markdown).
+ *   page), dist/llms.txt and dist/llms-full.txt (every public page as Markdown), and the share
+ *   images: og-image-<lang>.jpg (the landing page) and one card per guide and language.
+ * - Adds a 301 from every public URL with a trailing slash (/about/) to the canonical one.
  * - Rewrites dist/staticwebapp.config.json: a rewrite per page (/about → /pages/about.html; a
  *   folder with an index.html would make Static Web Apps redirect /about to /about/, while the
  *   canonical URLs have no trailing slash), the shell for each app route (APP_ROUTES), and a real
@@ -208,13 +210,16 @@ function llmsTxt(pages: Map<string, PageInfo>, cfg: AppConfig): string {
     '',
     ...(cfg.printedBooksEnabled
       ? []
-      : ['- The person wants a printed book delivered to the door. Inbunden sells the PDF; printed books are coming soon.']),
+      : [
+          '- The person wants a printed book delivered to the door. Inbunden sells the PDF; printed books are coming soon.',
+        ]),
     '- The best photos are on the phone or camera rather than Instagram: original files print sharper.',
     '- The person wants a very small or special format, such as a 13 × 13 cm gift book.',
     '',
     '## Pages',
     '',
     line('landing', 'en'),
+    line('pricing', 'en'),
     line('about', 'en'),
     line('guides', 'en'),
     '',
@@ -225,6 +230,7 @@ function llmsTxt(pages: Map<string, PageInfo>, cfg: AppConfig): string {
     '## På svenska',
     '',
     line('landing', 'sv'),
+    line('pricing', 'sv'),
     line('about', 'sv'),
     line('guides', 'sv'),
     ...GUIDE_KEYS.map((k) => line(k, 'sv')),
@@ -346,14 +352,51 @@ function rewriteConfig() {
     .filter(({ path: p }) => p !== '/')
     .map(({ path: p }) => ({ route: p, rewrite: `/${pageFile(p)}` }));
   const app = APP_ROUTES.map((route) => ({ route, rewrite: '/app-shell.html' }));
-  const known = new Set([...pages, ...app].map((r) => r.route));
-  config.routes = [...pages, ...app, ...(config.routes ?? []).filter((r) => !known.has(r.route))];
+  // /about/ and /sv/om/ are not canonical: send them to the URL without the slash. The pages are
+  // single files, never folders, so Static Web Apps has no reason to redirect the other way.
+  const slashes = allPublicPaths()
+    .filter(({ path: p }) => p !== '/')
+    .map(({ path: p }) => ({ route: `${p}/`, redirect: p, statusCode: 301 }));
+  // Static Web Apps answers /index.html with a 301 to /index, which would be a 200 copy of /.
+  slashes.push(
+    { route: '/index', redirect: '/', statusCode: 301 },
+    { route: '/index.html', redirect: '/', statusCode: 301 },
+  );
+  const known = new Set([...pages, ...app, ...slashes].map((r) => r.route));
+  config.routes = [
+    ...pages,
+    ...app,
+    ...slashes,
+    ...(config.routes ?? []).filter((r) => !known.has(r.route)),
+  ];
   delete config.navigationFallback;
   config.responseOverrides = {
     ...config.responseOverrides,
     '404': { rewrite: '/404.html', statusCode: 404 },
   };
   writeFileSync(file, `${JSON.stringify(config, null, 2)}\n`);
+}
+
+/**
+ * Runs in the page after its HTML was captured: replaces the body with a 1200 × 630 share card.
+ * Uses the stylesheet already loaded (tokens, fonts), so the card matches the site.
+ */
+function ogCard(card: { title: string; kicker: string; description: string }) {
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  const size = card.title.length > 70 ? 48 : card.title.length > 48 ? 56 : 64;
+  document.documentElement.style.cssText = 'background:#faf7f2;overflow:hidden';
+  document.body.style.cssText = 'margin:0;background:#faf7f2';
+  document.body.innerHTML = `
+    <div style="box-sizing:border-box;width:1200px;height:630px;padding:72px 80px;display:flex;flex-direction:column;justify-content:space-between;background:#faf7f2;color:#2a2622;font-family:'Albert Sans',Helvetica,Arial,sans-serif">
+      <div style="display:flex;align-items:center;gap:14px;font-size:26px;font-weight:500;color:#6f675e">
+        <img src="/logo.svg" alt="" width="40" height="40" />
+        <span style="color:#2a2622;font-weight:600">Inbunden</span>
+        <span>${esc(card.kicker)}</span>
+      </div>
+      <div style="font-family:'Lora',Georgia,serif;font-size:${size}px;line-height:1.15;letter-spacing:-0.01em;text-wrap:balance;max-width:1000px">${esc(card.title)}</div>
+      <div style="font-size:26px;line-height:1.4;color:#6f675e;max-width:1000px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${esc(card.description)}</div>
+      <div style="height:8px;width:160px;border-radius:999px;background:#4a5fa8"></div>
+    </div>`;
 }
 
 async function main() {
@@ -416,6 +459,21 @@ async function main() {
     const out = path.join(DIST, pageFile(p));
     mkdirSync(path.dirname(out), { recursive: true });
     writeFileSync(out, html);
+    if (GUIDE_KEYS.includes(key as (typeof GUIDE_KEYS)[number])) {
+      // The guide's share image: a card with its title, drawn with the page's own fonts and colours.
+      await page.setViewportSize({ width: 1200, height: 630 });
+      await page.evaluate(ogCard, {
+        title: meta.get(p)!.title.replace(/ · Inbunden$/, ''),
+        kicker: lang === 'sv' ? 'Guide · inbunden.com' : 'Guide · inbunden.com',
+        description: meta.get(p)!.description,
+      });
+      await page.evaluate(() => document.fonts.ready);
+      await page.screenshot({
+        path: path.join(DIST, ogImagePath(lang, key).slice(1)),
+        type: 'jpeg',
+        quality: 85,
+      });
+    }
     if (key === 'landing') {
       // The share image: the top of this landing page, so it always shows the current copy and price.
       await page.addStyleTag({ content: '[role="region"] { display: none !important; }' });

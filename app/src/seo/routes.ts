@@ -9,7 +9,7 @@ import type { Lang } from '@printagram/shared';
 /** Public origin. VITE_SITE_URL overrides it (vite.config.ts); PR previews still point here. */
 export const DEFAULT_SITE_URL = 'https://inbunden.com';
 
-export type PageKey = 'landing' | 'about' | 'privacy' | 'terms' | 'guides' | GuideKey;
+export type PageKey = 'landing' | 'pricing' | 'about' | 'privacy' | 'terms' | 'guides' | GuideKey;
 
 /** In the order the guides index lists them. */
 export type GuideKey =
@@ -17,6 +17,7 @@ export type GuideKey =
   | 'guideInstagramExport'
   | 'guideExportProblems'
   | 'guideSaveInstagram'
+  | 'guideGooglePhotos'
   | 'guidePrint'
   | 'guidePrintPhotos'
   | 'guideYearBook'
@@ -36,6 +37,7 @@ export interface PublicPage {
 
 export const PAGES: Record<PageKey, PublicPage> = {
   landing: { paths: { en: '/', sv: '/sv' }, priority: 1, updated: '2026-10-25' },
+  pricing: { paths: { en: '/pricing', sv: '/sv/priser' }, priority: 0.8, updated: '2026-10-30' },
   about: { paths: { en: '/about', sv: '/sv/om' }, priority: 0.6, updated: '2026-10-05' },
   guides: { paths: { en: '/guides', sv: '/sv/guider' }, priority: 0.7, updated: '2026-10-25' },
   guideInstagramBook: {
@@ -67,6 +69,12 @@ export const PAGES: Record<PageKey, PublicPage> = {
     priority: 0.7,
     published: '2026-10-25',
     updated: '2026-10-25',
+  },
+  guideGooglePhotos: {
+    paths: { en: '/guides/google-photos-photo-book', sv: '/sv/guider/fotobok-fran-google-foto' },
+    priority: 0.7,
+    published: '2026-10-30',
+    updated: '2026-10-30',
   },
   guidePrint: {
     paths: { en: '/guides/print-your-photo-book', sv: '/sv/guider/skriv-ut-din-fotobok' },
@@ -122,6 +130,7 @@ export const PAGES: Record<PageKey, PublicPage> = {
 export const APP_ROUTES = [
   '/start',
   '/connect',
+  '/privacy/deletion',
   '/google',
   '/export',
   '/export/*',
@@ -165,9 +174,14 @@ export function allPublicPaths(): { key: PageKey; lang: Lang; path: string }[] {
   );
 }
 
-/** The share image per language: a screenshot of that landing page (scripts/prerender.ts). */
-export function ogImagePath(lang: Lang): string {
-  return `/og-image-${lang}.jpg`;
+/**
+ * The share image (Open Graph, JSON-LD image): guides get their own card with the title,
+ * every other page a screenshot of the landing page in that language (scripts/prerender.ts).
+ */
+export function ogImagePath(lang: Lang, key?: PageKey): string {
+  return key && key.startsWith('guide') && key !== 'guides'
+    ? `/og-image-${key}-${lang}.jpg`
+    : `/og-image-${lang}.jpg`;
 }
 
 export function absoluteUrl(site: string, path: string): string {

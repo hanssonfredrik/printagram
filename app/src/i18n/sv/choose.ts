@@ -26,7 +26,7 @@ export const choose: Messages['choose'] = {
     every: 'Personligt, privat, kreatör eller företag: alla konton funkar.',
     email:
       'Instagram mejlar dig filen inom några timmar, ibland efter en dag eller två. Vi skickar dig en returlänk.',
-    noLikes: 'Gilla-markeringar brukar inte följa med i exporten.',
+    noLikes: 'Du får bilder, bildtexter och datum. Antal gilla-markeringar finns inte i exporten.',
     button: 'Visa hur',
   },
   google: {

@@ -8,7 +8,7 @@ These steps need your accounts, your money or your decisions, so they aren't aut
 | 2 | [Custom domain: inbunden.com](#2-custom-domain-inbundencom) | A domain you own | 30 min + DNS wait | ✅ Done. Update the `CRON_URL` secret (step 2, *Still open*) |
 | 3 | [Email with Resend, and receiving mail](#3-email-with-resend-and-receiving-mail) | Resend account, DNS access | 30 min + DNS wait | ✅ Done (send a test mail to confirm) |
 | 4 | [Real payments with Stripe](#4-real-payments-with-stripe) | Stripe account (company details, bank account) | 1 h + Stripe verification | ✅ Live: real payments with live keys |
-| 5 | [Instagram connect (Meta App Review)](#5-instagram-connect-meta-app-review) | Meta developer account, business verification, privacy policy | days to weeks | ⬜ |
+| 5 | [Instagram connect (Meta App Review)](#5-instagram-connect-meta-app-review) | Meta developer account, business verification, privacy policy | days to weeks | 🔴 Blocked 30 Oct 2026: the Meta app exists (id 1063408666760429, Venueve AB verified) but Meta no longer offers the Instagram Login route the code uses to new apps. Decision needed, see the status section in `docs/meta-app-setup.md` |
 | 6 | [Google Photos import](#6-google-photos-import-google-oauth-verification) | Google Cloud project | 15 min, verification days | ✅ Live: verified, open to everyone |
 | 7 | [Meta transfer destination](#7-meta-transfer-destination-future-the-real-fix-for-private-accounts) | Company registration, Meta business verification | weeks | ⬜ Future |
 
@@ -65,7 +65,7 @@ The site takes **real payments**. Stripe runs with live keys (`pk_live_…`), so
 | 1. `inbunden.com` on the Static Web App | ✅ Serves the app with its own certificate; `http://` redirects to `https://` |
 | 2. Redirects | ✅ `www.inbunden.com` and the generated `green-glacier-0dadae803.5.azurestaticapps.net` host 301 to `https://inbunden.com/` (`inbunden.com` is the default domain). `inbunden.se` and `www.inbunden.se` 301 there via Loopia. Path and query are kept everywhere |
 | 4. App settings and CORS | ✅ `APP_BASE_URL=https://inbunden.com`, `GOOGLE_REDIRECT_URI=https://inbunden.com/api/google/callback`; blob CORS allows `https://inbunden.com` (and the azurestaticapps.net host) |
-| 5. `SITE_URL` | ✅ Set. Prerendered public pages in English and Swedish, per-page canonical and hreflang, `sitemap.xml` (26 URLs), `llms.txt`, `llms-full.txt` |
+| 5. `SITE_URL` | ✅ Set. Prerendered public pages in English and Swedish, per-page canonical and hreflang, `sitemap.xml` (every public page in both languages; 32 URLs as of 30 Oct 2026), `llms.txt`, `llms-full.txt` |
 | 6. Google redirect URI | ✅ Assumed done together with step 4. Confirm with the Google Photos check in step 7 |
 
 **Domains:** `inbunden.com` and `www.inbunden.com` are custom domains on the Static Web App. `inbunden.se` and `www.inbunden.se` are 301 forwards at Loopia, so they never serve the app and need no CORS entry. With `inbunden.com` set as the default domain, Azure also redirects the generated `green-glacier-0dadae803.5.azurestaticapps.net` host. Anything that calls that host directly now gets a `301`.
@@ -73,7 +73,7 @@ The site takes **real payments**. Stripe runs with live keys (`pk_live_…`), so
 **Still open:**
 - **`CRON_URL` secret** (GitHub → Settings → Secrets and variables → Actions): change it from the azurestaticapps.net address to `https://inbunden.com`. The generated host now redirects, and the daily cron job does not follow redirects. Since this change the job fails with an error instead of silently doing nothing. Afterwards run **Actions → Scheduled maintenance → Run workflow** once and check it's green.
 - **Stripe webhook:** if the endpoint in Stripe (Inbunden account → Developers → Webhooks) uses the azurestaticapps.net address, change it to `https://inbunden.com/api/stripe/webhook`. Stripe doesn't follow redirects, so deliveries would fail and orders would only get marked paid through the page's own sync.
-- **`IG_REDIRECT_URI`** still points at the azurestaticapps.net host. Change it to `https://inbunden.com/api/instagram/callback` when you do step 5 (it must match the Meta app).
+- **`IG_REDIRECT_URI`**: when you set it in step 5, use `https://inbunden.com/api/instagram/callback` (it must match the Meta app). Left unset, the API derives it from `APP_BASE_URL`, which already points at inbunden.com.
 
 **You need:** DNS access at Loopia and the Static Web App's default hostname (portal → Static Web App → Overview → URL, currently `green-glacier-0dadae803.5.azurestaticapps.net`).
 
@@ -97,7 +97,7 @@ The site takes **real payments**. Stripe runs with live keys (`pk_live_…`), so
 
 ### 2a. Search engines and AI search
 
-The public pages (landing, about, guides, privacy, terms; English at `/`, Swedish at `/sv/...`) are listed in `app/src/seo/routes.ts`. The deploy workflow prerenders them to static HTML (`scripts/prerender.ts`), so crawlers that don't run JavaScript, such as GPTBot, ClaudeBot and PerplexityBot, see the full text. The build also writes `robots.txt`, `sitemap.xml`, `llms.txt`, `llms-full.txt` (every public page as Markdown) and one share image per language (`og-image-en.jpg`, `og-image-sv.jpg`, a screenshot of that landing page). The browser hydrates the static HTML instead of redrawing it.
+The public pages (landing, pricing, about, guides, privacy, terms; English at `/`, Swedish at `/sv/...`) are listed in `app/src/seo/routes.ts`. The deploy workflow prerenders them to static HTML (`scripts/prerender.ts`), so crawlers that don't run JavaScript, such as GPTBot, ClaudeBot and PerplexityBot, see the full text. The build also writes `robots.txt`, `sitemap.xml`, `llms.txt`, `llms-full.txt` (every public page as Markdown) and the share images: one per language for the ordinary pages (`og-image-en.jpg`, `og-image-sv.jpg`, a screenshot of that landing page) and a title card per guide and language (`og-image-<guideKey>-<lang>.jpg`). URLs with a trailing slash (`/about/`, `/sv/guider/`) answer `301` to the canonical URL without it. The browser hydrates the static HTML instead of redrawing it.
 
 App screens (`APP_ROUTES` in `app/src/seo/routes.ts`: `/books`, `/start`, …) get the SPA shell with `noindex`. Every other unknown URL gets a real **404** status with the not-found page (`404.html`), so Search Console shows no soft 404s. A new app route must be added to `APP_ROUTES`, or it will 404 when opened directly; a test checks this against the router.
 
@@ -200,15 +200,17 @@ Stripe runs only when `PAYMENT_PROVIDER=stripe` **and** all three keys are set. 
 
 ## 5. Instagram connect (Meta App Review)
 
-Until this is approved, the "Connect Instagram" card shows "coming soon" and everyone uses the export upload, which already works for all accounts.
+**Status: 🔴 blocked on a Meta change** (30 Oct 2026). OAuth, import, token refresh, the Meta deauthorize and data-deletion callbacks, the `/privacy/deletion` status page and the tests (`api/test/instagram.test.ts`) are in place, and the Meta app was created (id 1063408666760429, business Venueve AB, verified). But the dashboard says "API setup with Instagram login is not available for newer apps": new apps get Unified Login (Facebook Login for Business, the person must pick a Meta business portfolio) or Page-linked Facebook Login. Our code implements the Instagram Login route. Options and the recommendation are in the status section of `docs/meta-app-setup.md`; the steps below assume the route is rewritten for one of the two remaining options. The full step-by-step guide with the review text and screencast script is `docs/meta-app-setup.md`; the list below is the short version.
+
+Until Meta approves, the "Connect Instagram" card shows "coming soon" and everyone uses the export upload, which already works for all accounts.
 
 **You need:**
 - A Meta developer account.
-- **Business verification** of your company (Meta Business Manager).
+- **Business verification** of your company (Meta Business Manager). Done for Venueve AB.
 - The privacy policy URL `https://inbunden.com/privacy` and terms `https://inbunden.com/terms` (both built, English and Swedish).
 
-1. **developers.facebook.com → My Apps → Create app.** Choose type *Business*, then add the **Instagram** product → *API setup with Instagram business login*.
-2. Under *Instagram → API setup → Business login settings*, set:
+1. **developers.facebook.com → My Apps → Create app.** Pick the use case **Manage messaging & content on Instagram** (not *Other*, which Meta is retiring) and the business **Venueve AB**. Then customize the use case down to `instagram_business_basic` and pick *API setup with Instagram login*.
+2. Under *API setup with Instagram login → Set up Instagram business login → Business login settings*, set:
    | Field | Value |
    | --- | --- |
    | OAuth redirect URI | `https://inbunden.com/api/instagram/callback` |
@@ -222,14 +224,16 @@ Until this is approved, the "Connect Instagram" card shows "coming soon" and eve
      ```powershell
      az staticwebapp appsettings set -n <swa name> -g printagram-rg --setting-names FEATURE_CONNECT_ENABLED=true IG_APP_ID=<id> IG_APP_SECRET=<secret> IG_REDIRECT_URI=https://inbunden.com/api/instagram/callback
      ```
-     `IG_REDIRECT_URI` must exactly match what you entered in step 2.
-   - Check: Choose source → Connect Instagram → log in on Instagram → back in the app, the import runs and the photos show likes.
+     `IG_REDIRECT_URI` must exactly match what you entered in step 2 (Meta's dashboard sometimes adds a trailing slash; remove it).
+   - Check: Choose source → Connect Instagram → log in on Instagram → back in the app, the import runs and the photos show likes. The Functions log lines `instagram import …` say how many items had a caption; if none do, the connect card must stop promising captions.
+   - Check `https://<host>/privacy/deletion?code=test` loads in English and Swedish. Meta's reviewers open the URL our data-deletion callback returns.
 5. Submit **App Review** for `instagram_business_basic` (Advanced Access). You'll need:
-   - Business verification completed.
+   - Business verification completed (done).
    - The privacy policy URL `https://inbunden.com/privacy`, plus an app icon and category.
    - A screencast showing: log in on Instagram → grant permission → your posts appear → building a book from them.
-   - A short text explaining the use: *"Users connect their own professional Instagram account to import their own posts into a printable photo book. We read media and captions only; nothing is posted."*
-6. Once approved, `FEATURE_CONNECT_ENABLED=true` in production opens connect to everyone (`-ConnectEnabled` on the deploy, or `az staticwebapp appsettings set … --setting-names FEATURE_CONNECT_ENABLED=true`).
+   - A short text explaining the use: *"Users connect their own professional Instagram account to import their own posts into a printable photo book. We read media and captions only; nothing is posted."* The longer version and the reviewer instructions are in `docs/meta-app-setup.md` §5.
+   - A test account (professional, 2FA off) the reviewer can log in with, added as an Instagram Tester, plus a 100 % discount code so they can download the PDF.
+6. Once approved, **Publish** the app in the dashboard (the old Live mode toggle is gone), then `FEATURE_CONNECT_ENABLED=true` in production opens connect to everyone (`-ConnectEnabled` on the deploy, or `az staticwebapp appsettings set … --setting-names FEATURE_CONNECT_ENABLED=true`).
 
 ---
 

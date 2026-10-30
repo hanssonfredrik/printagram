@@ -1,8 +1,29 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { api, qs } from '../api';
-import { ErrorMsg, Loading, PageHead, Pager, RangePicker, StatusBadge, Tile } from '../components';
-import { bytes, dateTime, defaultRange, money, moneySum, num, type CurrencyCents } from '../format';
+import {
+  ErrorMsg,
+  Loading,
+  PageHead,
+  Pager,
+  RangePicker,
+  StatusBadge,
+  StatusLegend,
+  Tile,
+} from '../components';
+import {
+  bytes,
+  dateTime,
+  defaultRange,
+  money,
+  moneySum,
+  num,
+  SOURCE_LABELS,
+  sourceLabel,
+  statusLabel,
+  stripePaymentUrls,
+  type CurrencyCents,
+} from '../format';
 import { useApi, useQueryState } from '../useApi';
 
 export interface AdminOrder {
@@ -21,6 +42,11 @@ export interface AdminOrder {
   currency: string;
   paymentProvider: string;
   stripePaymentIntentId: string | null;
+  /** From Stripe; null for fake orders and rows from before it was stored. */
+  stripeLivemode: boolean | null;
+  /** instagram | export | googlephotos, or null when unknown. */
+  source: string | null;
+  sourceLabel: string | null;
   failureReason: string | null;
   createdAt: string;
   paidAt: string | null;
@@ -38,6 +64,10 @@ interface OrderList {
   limit: number;
   totals: {
     count: number;
+    /** Rows that are not unpaid checkouts (paid, ready, refunded). */
+    orderCount: number;
+    /** created or failed: checkout opened, no money taken. */
+    unpaidCount: number;
     amountCents: CurrencyCents;
     paidCount: number;
     paidCents: CurrencyCents;
@@ -45,7 +75,7 @@ interface OrderList {
   items: AdminOrder[];
 }
 
-const STATUSES = ['', 'created', 'paid', 'ready', 'failed', 'expired', 'refunded'];
+const STATUSES = ['', 'created', 'paid', 'ready', 'failed', 'refunded'];
 
 export function Orders() {
   const [params, set] = useQueryState();
@@ -53,10 +83,11 @@ export function Orders() {
   const range = { from: params.get('from') ?? fallback.from, to: params.get('to') ?? fallback.to };
   const status = params.get('status') ?? '';
   const provider = params.get('provider') ?? '';
+  const source = params.get('source') ?? '';
   const offset = Number(params.get('offset') ?? 0);
   const [q, setQ] = useState(params.get('q') ?? '');
   const { data, error, loading } = useApi<OrderList>(
-    `orders${qs({ ...range, status, provider, offset, limit: 100, q: params.get('q') })}`,
+    `orders${qs({ ...range, status, provider, source, offset, limit: 100, q: params.get('q') })}`,
   );
 
   return (
@@ -87,7 +118,7 @@ export function Orders() {
         >
           {STATUSES.map((s) => (
             <option key={s} value={s}>
-              {s || 'Any status'}
+              {s ? statusLabel(s) : 'Any status'}
             </option>
           ))}
         </select>
@@ -100,18 +131,40 @@ export function Orders() {
           <option value="stripe">Stripe</option>
           <option value="fake">Test (fake)</option>
         </select>
+        <select
+          aria-label="Source"
+          value={source}
+          onChange={(e) => set({ source: e.target.value })}
+        >
+          <option value="">Any source</option>
+          {Object.entries(SOURCE_LABELS).map(([k, label]) => (
+            <option key={k} value={k}>
+              {label}
+            </option>
+          ))}
+        </select>
         <span className="muted">Dates filter on when the order was created.</span>
       </div>
+      <StatusLegend statuses={STATUSES.filter(Boolean)} />
       <ErrorMsg error={error} />
       <Loading show={loading && !data} />
       {data ? (
         <>
           <div className="grid tiles">
-            <Tile label="Orders" value={num(data.totals.count)} />
+            <Tile
+              label="Orders"
+              value={num(data.totals.orderCount)}
+              sub="paid, ready or refunded"
+            />
             <Tile
               label="Paid or ready"
               value={num(data.totals.paidCount)}
               sub={moneySum(data.totals.paidCents)}
+            />
+            <Tile
+              label="Unpaid checkouts"
+              value={num(data.totals.unpaidCount)}
+              sub="checkout opened, no money taken"
             />
           </div>
           <div className="card section">
@@ -122,6 +175,7 @@ export function Orders() {
                     <th>Created</th>
                     <th>Customer</th>
                     <th>Title</th>
+                    <th>Source</th>
                     <th>Status</th>
                     <th>Provider</th>
                     <th>Promo</th>
@@ -138,6 +192,7 @@ export function Orders() {
                         <Link to={`/users/${o.userId}`}>{o.email ?? 'anonymous'}</Link>
                       </td>
                       <td>{o.title}</td>
+                      <td title={o.sourceLabel ?? undefined}>{sourceLabel(o.source)}</td>
                       <td>
                         <StatusBadge status={o.status} />
                       </td>
@@ -177,6 +232,9 @@ export function OrderDetail() {
   const paidStripe =
     o?.paymentProvider === 'stripe' &&
     (o.status === 'paid' || o.status === 'ready' || o.status === 'refunded');
+  // Stripe itself said it was a test payment: no box needed. Live or unknown: the admin asserts.
+  const knownTest = paidStripe && o?.stripeLivemode === false;
+  const needsTestBox = paidStripe && !knownTest;
 
   async function remove(e: FormEvent) {
     e.preventDefault();
@@ -237,6 +295,11 @@ export function OrderDetail() {
               <dd>
                 {o.format} · {o.pageCount} pages · {o.photoCount} photos
               </dd>
+              <dt>Photos from</dt>
+              <dd>
+                {sourceLabel(o.source)}
+                {o.sourceLabel ? <span className="muted"> ({o.sourceLabel})</span> : null}
+              </dd>
               <dt>PDF</dt>
               <dd>
                 {o.hasPdf ? (
@@ -271,30 +334,34 @@ export function OrderDetail() {
               </dd>
               <dt>Provider</dt>
               <dd>{o.paymentProvider === 'fake' ? 'Test payments (no money taken)' : 'Stripe'}</dd>
-              <dt>PaymentIntent</dt>
+              <dt>{o.paymentProvider === 'fake' ? 'Reference' : 'PaymentIntent'}</dt>
               <dd>
-                {o.stripePaymentIntentId ? (
+                {!o.stripePaymentIntentId ? (
+                  '–'
+                ) : o.paymentProvider === 'fake' ? (
+                  <>
+                    <span className="mono">{o.stripePaymentIntentId}</span>
+                    <div className="muted">Test payment, no Stripe record.</div>
+                  </>
+                ) : (
                   <>
                     <span className="mono">{o.stripePaymentIntentId}</span>
                     <br />
-                    <a
-                      href={`https://dashboard.stripe.com/payments/${encodeURIComponent(o.stripePaymentIntentId)}`}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                    >
-                      Open in Stripe
-                    </a>{' '}
-                    ·{' '}
-                    <a
-                      href={`https://dashboard.stripe.com/test/payments/${encodeURIComponent(o.stripePaymentIntentId)}`}
-                      target="_blank"
-                      rel="noreferrer noopener"
-                    >
-                      (test mode)
-                    </a>
+                    {stripePaymentUrls(o.stripePaymentIntentId, o.stripeLivemode).map((link, i) => (
+                      <span key={link.href}>
+                        {i > 0 ? ' · ' : ''}
+                        <a href={link.href} target="_blank" rel="noreferrer noopener">
+                          {link.label}
+                        </a>
+                      </span>
+                    ))}
+                    {o.stripeLivemode === null ? (
+                      <div className="muted">
+                        Stripe has not told us yet whether this was a live or a test payment, so
+                        both links are shown.
+                      </div>
+                    ) : null}
                   </>
-                ) : (
-                  '–'
                 )}
               </dd>
             </dl>
@@ -312,14 +379,17 @@ export function OrderDetail() {
             code. The book becomes a draft again. Payment records at Stripe are not affected. This
             cannot be undone.
           </p>
-          {paidStripe ? (
+          {knownTest ? <p className="muted">Stripe recorded this as a test-mode payment.</p> : null}
+          {needsTestBox ? (
             <label className="toolbar">
               <input
                 type="checkbox"
                 checked={stripeTest}
                 onChange={(e) => setStripeTest(e.target.checked)}
               />
-              This was a Stripe test-mode payment. Real paid orders must be kept for the accounts.
+              {o.stripeLivemode === true
+                ? 'Stripe recorded this as a live payment. Only tick this if you are sure no real money was taken. Real paid orders must be kept for the accounts.'
+                : 'This was a Stripe test-mode payment. Real paid orders must be kept for the accounts.'}
             </label>
           ) : null}
           <div className="toolbar">
@@ -332,7 +402,7 @@ export function OrderDetail() {
             />
             <button
               className="btn danger"
-              disabled={busy || confirm !== o.id || (paidStripe && !stripeTest)}
+              disabled={busy || confirm !== o.id || (needsTestBox && !stripeTest)}
             >
               Delete order permanently
             </button>

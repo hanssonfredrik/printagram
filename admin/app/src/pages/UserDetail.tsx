@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { api } from '../api';
 import { ErrorMsg, Loading, PageHead, StatusBadge } from '../components';
-import { ago, date, dateTime, money } from '../format';
+import { ago, date, dateTime, money, sourceLabel } from '../format';
 import { useApi } from '../useApi';
 import type { AdminUser } from './Users';
 import type { AdminOrder } from './Orders';
@@ -271,7 +271,8 @@ export function UserDetail({ me }: { me: string }) {
                           {l.sourceLabel || l.source}
                           {l.igUsername ? ` (@${l.igUsername})` : ''}
                           <div className="muted">
-                            {l.source} · imported {date(l.importedAt)} · expires {date(l.expiresAt)}
+                            {sourceLabel(l.source)} · imported {date(l.importedAt)} · expires{' '}
+                            {date(l.expiresAt)}
                           </div>
                         </td>
                         <td>{l.status}</td>

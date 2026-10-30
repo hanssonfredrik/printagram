@@ -12,8 +12,11 @@ import {
 import { adminRoute } from '../lib/route.js';
 import { noCents, orderCurrency, parseCurrency } from '../lib/money.js';
 import { getVatRatePct } from '../lib/settings.js';
+import { withSource } from '../lib/orderSource.js';
 import { addTo, emptyTotals, splitVat, type VatTotals } from '../lib/vat.js';
 import { orderView, type OrderLike } from '../lib/views.js';
+
+const UNPAID = new Set(['created', 'failed', 'expired']);
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 
@@ -37,35 +40,51 @@ async function emails(): Promise<Map<string, string | null>> {
   return m;
 }
 
-/** GET orders?status=&provider=&from=&to=&q=&limit=&offset= (dates filter on createdAt). */
+/**
+ * GET orders?status=&provider=&source=&from=&to=&q=&limit=&offset= (dates filter on createdAt).
+ * `count` is every row in range; `orderCount` leaves out unpaid checkouts (created/failed).
+ */
 adminRoute('ordersList', { methods: ['GET'], route: 'orders' }, async ({ req }) => {
   const status = req.query.get('status') ?? '';
   const provider = req.query.get('provider') ?? '';
+  const source = req.query.get('source') ?? '';
   const q = (req.query.get('q') ?? '').trim().toLowerCase();
   const { from, to } = range(req.query);
   const byUser = await emails();
+  const libs = new Map();
   const all: OrderLike[] = [];
-  for await (const o of orders.scanAll()) {
-    if (status && o.status !== status) continue;
-    if (provider && o.paymentProvider !== provider) continue;
-    if (!inRange(o.createdAt, from, to)) continue;
+  for await (const row of orders.scanAll()) {
+    if (status && row.status !== status) continue;
+    if (provider && row.paymentProvider !== provider) continue;
+    if (!inRange(row.createdAt, from, to)) continue;
     if (
       q &&
-      !o.orderId.includes(q) &&
-      !(byUser.get(o.userId) ?? '').includes(q) &&
-      !(o.promoCode ?? '').toLowerCase().includes(q) &&
-      !(o.stripePaymentIntentId ?? '').toLowerCase().includes(q)
+      !row.orderId.includes(q) &&
+      !(byUser.get(row.userId) ?? '').includes(q) &&
+      !(row.promoCode ?? '').toLowerCase().includes(q) &&
+      !(row.stripePaymentIntentId ?? '').toLowerCase().includes(q)
     )
       continue;
+    const o = await withSource(row, libs);
+    if (source && o.source !== source) continue;
     all.push(o);
   }
   all.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   const limit = Math.min(500, Math.max(1, Number(req.query.get('limit') ?? 100) || 100));
   const offset = Math.max(0, Number(req.query.get('offset') ?? 0) || 0);
-  const totals = { count: all.length, amountCents: noCents(), paidCount: 0, paidCents: noCents() };
+  const totals = {
+    count: all.length,
+    orderCount: 0,
+    unpaidCount: 0,
+    amountCents: noCents(),
+    paidCount: 0,
+    paidCents: noCents(),
+  };
   for (const o of all) {
     const c = orderCurrency(o);
     totals.amountCents[c] += o.amountCents;
+    if (UNPAID.has(o.status)) totals.unpaidCount++;
+    else totals.orderCount++;
     if (o.status === 'paid' || o.status === 'ready') {
       totals.paidCount++;
       totals.paidCents[c] += o.amountCents;
@@ -84,8 +103,9 @@ adminRoute(
   'ordersGet',
   { methods: ['GET'], route: 'orders/{userId}/{orderId}' },
   async ({ req }) => {
-    const o = await orders.get(req.params.userId ?? '', req.params.orderId ?? '');
-    if (!o) throw notFound('Order');
+    const row = await orders.get(req.params.userId ?? '', req.params.orderId ?? '');
+    if (!row) throw notFound('Order');
+    const o = await withSource(row, new Map());
     const u = await users.get(o.userId);
     return json({ order: orderView(o, u?.email), bookId: o.bookId, libraryId: o.libraryId });
   },
@@ -105,8 +125,9 @@ adminRoute(
 
 /**
  * Deletes an order, for removing test orders. Body: { confirm: orderId, stripeTest?: true }.
- * A Stripe order that was paid is real bookkeeping unless it was a test-mode payment, so the
- * admin has to say so explicitly (the admin API has no Stripe key to check it).
+ * A Stripe order that was paid is real bookkeeping unless it was a test-mode payment. When
+ * Stripe told us so (stripeLivemode false) that is enough; otherwise the admin has to say so
+ * explicitly (the admin API has no Stripe key to check it).
  */
 adminRoute(
   'ordersDelete',
@@ -117,7 +138,8 @@ adminRoute(
     const body = await readJson<{ confirm?: unknown; stripeTest?: unknown }>(req);
     if (body.confirm !== o.orderId) throw badRequest('CONFIRM', 'Type the order id to confirm.');
     const paid = o.status === 'paid' || o.status === 'ready' || o.status === 'refunded';
-    if (o.paymentProvider === 'stripe' && paid && body.stripeTest !== true)
+    const knownTest = o.stripeLivemode === false;
+    if (o.paymentProvider === 'stripe' && paid && !knownTest && body.stripeTest !== true)
       throw badRequest(
         'PAID_ORDER',
         'This Stripe order was paid. Only delete it if it was a Stripe test-mode payment, and tick the box to say so.',
