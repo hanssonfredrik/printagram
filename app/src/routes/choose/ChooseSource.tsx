@@ -37,6 +37,32 @@ export function ChooseSource() {
         </p>
 
         <div className="grid-auto grid-auto--260" style={{ alignItems: 'stretch' }}>
+          <Card bordered primary radius="xl">
+            <div className="row gap-8">
+              <Pill>{tc.export.recommended}</Pill>
+            </div>
+            <div className="h3">{tc.export.title}</div>
+            <p className="muted pretty" style={{ fontSize: 15 }}>
+              {tc.export.text}
+            </p>
+            <div className="stack stack-10">
+              <Bullet>{tc.export.every}</Bullet>
+              <Bullet>{tc.export.email}</Bullet>
+              <Bullet warn>{tc.export.noLikes}</Bullet>
+            </div>
+            <div style={{ marginTop: 'auto', paddingTop: 6 }}>
+              <Button
+                block
+                onClick={() => {
+                  setSource('export');
+                  nav('/export');
+                }}
+              >
+                {tc.export.button}
+              </Button>
+            </div>
+          </Card>
+
           {cfg.googlePhotosEnabled && (
             <Card bordered radius="xl">
               <div className="row gap-8">
@@ -54,6 +80,7 @@ export function ChooseSource() {
               <div style={{ marginTop: 'auto', paddingTop: 6 }}>
                 <Button
                   block
+                  variant="outline"
                   onClick={() => {
                     setSource('google');
                     nav('/google');
@@ -64,33 +91,6 @@ export function ChooseSource() {
               </div>
             </Card>
           )}
-
-          <Card bordered radius="xl">
-            <div className="row gap-8">
-              <Pill>{tc.export.pill}</Pill>
-            </div>
-            <div className="h3">{tc.export.title}</div>
-            <p className="muted pretty" style={{ fontSize: 15 }}>
-              {tc.export.text}
-            </p>
-            <div className="stack stack-10">
-              <Bullet>{tc.export.every}</Bullet>
-              <Bullet>{tc.export.email}</Bullet>
-              <Bullet warn>{tc.export.noLikes}</Bullet>
-            </div>
-            <div style={{ marginTop: 'auto', paddingTop: 6 }}>
-              <Button
-                block
-                variant="outline"
-                onClick={() => {
-                  setSource('export');
-                  nav('/export');
-                }}
-              >
-                {tc.export.button}
-              </Button>
-            </div>
-          </Card>
 
           <Card bordered radius="xl">
             <div className="row gap-8">

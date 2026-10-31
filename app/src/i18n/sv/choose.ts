@@ -20,7 +20,7 @@ export const choose: Messages['choose'] = {
       'Vi väntar på att Instagram ska godkänna Inbunden. Tills dess kan du använda exporten. Den funkar för alla konton.',
   },
   export: {
-    pill: 'Funkar för alla konton',
+    recommended: 'Rekommenderas',
     title: 'Ladda upp din export',
     text: 'Be Instagram om en kopia av dina inlägg och släpp sedan ZIP-filen här. Inget ändras på ditt konto.',
     every: 'Personligt, privat, kreatör eller företag: alla konton funkar.',

@@ -19,7 +19,7 @@ export const choose = {
       "We're waiting for Instagram to approve Inbunden. Until then, use the export. It works for every account.",
   },
   export: {
-    pill: 'Works for every account',
+    recommended: 'Recommended',
     title: 'Upload your export',
     text: 'Ask Instagram for a copy of your posts, then drop the ZIP here. Nothing about your account changes.',
     every: 'Personal, private, Creator or Business: every account works.',
